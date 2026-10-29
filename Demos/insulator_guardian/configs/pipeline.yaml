@@ -1,0 +1,33 @@
+# 联动层：相机标定 / 端到端循环 / 产物路径
+# 相机采用「单目地面投影」口径：假设缺陷落点在地面平面 z=0，
+# 这是仿真阶段的近似，实机需要标定或换用测距/双目。
+camera:
+  width: 640
+  height: 480
+  fx: 480.0
+  fy: 480.0
+  cx: 320.0
+  cy: 240.0
+  height_m: 1.5            # 相机光心离地高度
+  pitch_deg: 25.0          # 下俯角（>0 = 朝下看）
+  mount_x: 0.0             # 相机在车体坐标系中的前后偏移
+  mount_y: 0.0
+
+pipeline:
+  dt: 0.1                  # s，仿真步长
+  max_steps: 3000
+  defect_confidence: 0.5   # 与 scheduler.defect_confidence 保持一致口径
+  ledger_flush_every: 1    # 每写几条台账刷一次盘
+
+detector:
+  mode: sim                # sim = 几何一致的虚拟检测器；yolo = 真模型
+  weights: null
+  conf: 0.25
+  iou: 0.45
+  max_range_m: 6.0         # 仿真检测器可见距离
+  fov_deg: 70.0            # 水平视场角
+  conf_jitter: 0.05        # 置信度抖动（模拟真实模型）
+  seed: 0
+
+paths:
+  results_root: ../results  # 相对 insulator_guardian/，即 Demos/results

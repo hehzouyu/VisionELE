@@ -1,0 +1,1022 @@
+                                    Journal of Power Sources 601 (2024) 234272
+                                    Contents lists available at ScienceDirect
+
+                             Journal of Power Sources
+
+                        journal homepage: www.elsevier.com/locate/jpowsour
+
+Review article
+
+Machine learning for battery systems applications: Progress, challenges, and
+opportunities
+
+Zahra Nozarijouybari, Hosam K. Fathy 
+
+Mechanical Engineering, the University of Maryland, College Park, United States of America
+
+HIGHLIGHTS
+
+� Machine learning applications are reviewed for the full battery life cycle.
+� Machine learning can revolutionize battery design, modeling, and management.
+� Key benefits of machine learning are transferability and physics independence.
+� Challenges include feature selection and the size/richness of data for learning.
+
+ARTICLE INFO            ABSTRACT
+
+Keywords:               Machine learning has emerged as a transformative force throughout the entire engineering life cycle of
+Machine learning        electrochemical batteries. Its applications encompass a wide array of critical domains, including material
+Battery modeling        discovery, model development, quality control during manufacturing, real-time monitoring, state estimation,
+Performance estimation  optimization of charge cycles, fault detection, and life cycle management. Machine learning excels in its
+Health monitoring       ability to identify and capture complex behavioral trends in batteries, which may be challenging to model
+                        using more traditional methods. The goal of this survey paper is to synthesize the rich existing literature on
+                        battery machine learning into a structured perspective on the successes, challenges, and prospects within this
+                        research domain. This critical examination highlights several key insights. Firstly, the selection of data sets,
+                        features, and algorithms significantly influences the success of machine learning applications, yet it remains
+                        an open research area with vast potential. Secondly, data set richness and size are both pivotal for the efficacy
+                        of machine learning algorithms, suggesting a potential for active machine learning techniques in the battery
+                        systems domain. Lastly, the field of machine learning in battery systems has extensive room for growth, moving
+                        beyond its current focus on specific applications like state of charge (SOC) and state of health (SOH) estimation,
+                        offering ample opportunities for innovation and expansion.
+
+1. Introduction                                                                     computer-aided design/optimization as a complement to experimental
+                                                                                    innovation has historically been one of the most important enablers for
+    This paper surveys the literature on machine learning for battery               more rapid innovation in any engineering field, including the battery
+systems applications, with a focus on the potential of this emerg-                  systems field.
+ing research area to revolutionize the battery energy storage domain.
+The paper is motivated by the ubiquity of battery applications in                       The discipline of battery modeling is quite mature, and provides
+today's world, including powering our consumer electronics, station-                a rich portfolio of existing modeling approaches. These approaches
+ary grid infrastructure, electrified transportation infrastructure, and             include physics-based battery models spanning a broad range of fi-
+other systems. Battery systems engineering is currently undergoing a                delities and complexities, from molecular dynamics models all the
+fundamental transition where the traditionally separate fields of experi-           way to reduced-order continuum dynamics models. These approaches
+mental research versus model- and data-driven research are converging.              also include equivalent circuit models that represent a battery using
+This transition is important, because it has the potential to enable the            a simple combination of elementary circuit components such as resis-
+faster exploration and invention of new technologies, at a lower cost.              tors, inductors, capacitors, voltage sources, diodes, etc. One important
+In fact, one can argue that the emergence of modeling, simulation, and              question, in this regard, is: why is there a need for data-driven machine
+
+   Corresponding author.
+      E-mail address: hfathy@umd.edu (H.K. Fathy).
+
+https://doi.org/10.1016/j.jpowsour.2024.234272
+Received 17 December 2023; Received in revised form 12 February 2024; Accepted 26 February 2024
+Available online 7 March 2024
+0378-7753/� 2024 Elsevier B.V. All rights reserved.
+Z. Nozarijouybari and H.K. Fathy                                                             Journal of Power Sources 601 (2024) 234272
+
+                                  Fig. 1. Trade-off for different battery modeling methods.
+
+learning models, given this rich existing portfolio of modeling paradigms?       to the aging and degradation of a given chemistry in the field. This
+More specifically, what value can machine learning add to model-                 is particularly important in light of the fact that many phenomena
+driven battery systems discovery, invention, and innovation? Fig. 1              typically contribute to a battery's aging and degradation. The abil-
+provides some initial insights into this question, thereby motivating the        ity to discern which of these phenomena are dominant in the field
+remainder of the paper. Specifically, the figure identifies seven criteria       is, therefore, quite valuable for practical battery system deployment.
+for comparing different battery modeling approaches, namely:                     Third, the flexibility of machine learning methods can be extremely
+                                                                                 valuable for transferring the insights gained from one generation of
+     � Fidelity, or the accuracy with which a model captures the under-          battery products and chemistries to the next. This minimizes the need
+       lying physics governing battery behavior.                                 for ``reinventing the wheel'' as the energy storage industry embraces
+                                                                                 newer battery products and chemistries.
+     � Computational simplicity/tractability.
+     � Data efficiency, or the degree to which one can parameterize a                In addition to the above advantages, perhaps the greatest degree
+                                                                                 to which a novel battery modeling approach can add value to the
+       battery model using limited experimental data.                            literature stems from the degree to which it can potentially augment,
+     � Interpretability by a human expert.                                       as opposed to replace, existing modeling approaches. Physics-based,
+     � Robustness, defined in this paper as the ability of a model to            equivalent circuit, and data-driven models are not mutually exclu-
+                                                                                 sive. In fact, there is a growing literature on hybrid combinations
+       predictively simulate battery behaviors beyond those reflected in         of these modeling approaches, especially hybrid physics-based/data-
+       the data used for training the model.                                     driven battery modeling. Aykol et al. provide a conceptual summary
+     � Transferability, defined in this paper as the degree to which             of the different ways one can integrate physics-based and machine
+       a given battery model is sufficiently general to be usable for            learning models [1]. Fig. 2 presents some of these model hybridization
+       multiple chemistries without needing to be reconstructed for              methods pictorially. In contrast to the ``black box" nature of purely
+       each chemistry. A given modeling approach inherently provides             data-driven models, hybrid physics-based/data-driven, or ``gray box"
+       better transferability if it is more ``flexible'' and/or ``physics-       models, offer a more transparent and theoretically grounded approach
+       independent''. For example, both Ohm's law and the Butler-                to battery modeling. By integrating the deterministic laws of physics
+       Volmer equation are fundamentally resistive in nature, in the             with the adaptability of machine learning algorithms, gray box models
+       sense that they both represent a relationship between an over-            utilize the strengths of both domains. For example, a physics-informed
+       potential on the one hand versus a current or current density on          neural network (PINN) ensures that the network's predictions do not
+       the other hand. This means that a (potentially nonlinear) resistive       violate the laws of thermodynamics or charge conservation [2]. Sim-
+       law can be used for modeling both of these distinct physical              ilarly, physics-based feature engineering can be employed to inform
+       effects, and may therefore potentially offer more ``flexibility'' and     the model's input features with domain knowledge, enhancing the
+       ``transferability'' than the underlying physical laws.                    model's ability to learn relevant patterns from data [3]. Additionally,
+                                                                                 existing physics-based models can be refined using data-driven tech-
+    As one can see from the figure, the power of machine learning and            niques to correct or update their predictions, an approach known as
+data-driven methods lies predominantly in their flexibility, physics in-         physics-based model correction [3]. This can be particularly useful
+dependence, and transferability. Machine learning models can perform             when dealing with phenomena that are not fully understood or are too
+well with respect to other criteria, too. For instance, these models are         complex to be captured by traditional models. Lastly, the incorporation
+often more computationally tractable than physics-based models. How-             of physics-based activation functions within neural networks can intro-
+ever, it is reasonable to argue that the biggest selling point of machine        duce known physical relationships directly into the learning mechanism
+learning for batteries is the degree to which it can capture battery             of the model [4]. These methods exemplify how the incorporation
+system behaviors without necessarily requiring the in-depth modeling             of physical principles into data-driven approaches can lead to more
+of the underlying physical processes. This is extremely valuable, for a          reliable, interpretable, and generalizable battery models, which are
+number of reasons. First, when novel battery chemistries are developed           crucial for advancing battery technology and its applications.
+and explored, the underlying physics are not always fully understood.
+Machine learning can help accelerate battery system development in                   One of the most valuable aspects of machine learning for battery
+such a context. Second, the advent of networked computing means                  systems is that machine learning is not a single, monolithic tool tailored
+that substantial volumes of data can become easily available for any             to a specific battery application. Rather, it is a portfolio of tools for
+battery chemistry, especially once it is commercially deployed. Machine          solving many interconnected problems, as illustrated in Fig. 3. The
+learning excels at constructing models from the resulting datasets,              power of machine learning lies at least partly in its ability to advance
+perhaps to the point of unveiling which physical phenomena contribute
+
+                                                                              2
+Z. Nozarijouybari and H.K. Fathy                                                                                     Journal of Power Sources 601 (2024) 234272
+
+Fig. 2. Examples of hybrid battery modeling approaches, including: (a) physics-informed machine learning models; (b) models utilizing machine learning to correct physics-based
+predictions; (c) machine learning models with physics-informed activation functions.
+
+                                  Fig. 3. Classifying battery machine learning problems and their interconnections.
+
+various stages of battery development by employing diverse modeling                 The existing literature on machine learning offers a rich and large
+techniques as illustrated in the figure. This encompasses the classi-           portfolio of both original research papers and review papers, as sur-
+fication of batteries into clusters, the learning of battery dynamics,          veyed below. The novelty of this particular review paper stems at least
+and the extrapolation of unforeseen scenarios through the applica-              partly from its structure, especially its use of a metaphorical journey
+tion of ensemble learning and transfer learning to analogous cases.             through a battery's life cycle to structure its literature review. This
+Moreover, machine learning provides capabilities for the accurate pre-          makes it possible to provide an extensive survey of a broad spectrum
+diction and estimation of key parameters, as well as the optimization of        of battery machine learning applications, ranging all the way from
+input-output relationships. This involves leveraging machine learning           material discovery to end-of-life management, in a structured manner.
+algorithms to forecast and refine battery performance metrics.                  It also makes it possible to contextualize different battery machine
+                                                                                learning applications, especially those related to online battery man-
+    The intent of the above discussion is to highlight the value added          agement, within the broader literature. Last but not least, this structure
+by machine learning to the battery systems engineering discipline from          helps highlight some of the cross-cutting challenges and opportunities
+a very broad perspective, regardless of the specific machine learning           appearing throughout the battery machine learning domain. One
+application at hand. It is reasonable, however, to argue that machine           important conclusion from this discussion is that machine learning for
+learning has specific benefits to impart at specific stages of a battery's      batteries remains at its infancy, with many exciting potential future
+life cycle. Moreover, it is reasonable to argue that different machine          explorations to come.
+learning algorithms may be better suited to different battery systems
+applications. These insights motivate the structure of this survey pa-          2. Applications of machine learning in the battery domain
+per. Specifically, the paper begins by metaphorically traveling with a
+battery cell or chemistry through its full engineering life cycle, and              Machine learning has become a centerpiece of the battery systems
+examining how machine learning can add value at every stage of that             domain, and has seen extensive use at every stage of the life cycle of
+cycle (Section 2). This leads to a discussion of: the prerequisites for the     battery technologies [5], as illustrated in Fig. 4. The discussion below
+successful application of machine learning in the battery system domain         is structured to follow this life cycle, showing the value of machine
+(Section 3); the databases available for battery machine learning (Sec-         learning at every stage from initial battery material innovation to
+tion 4); and some of the cross-cutting insights and open opportunities          end-of-life battery management.
+for research in this broad field (Section 5).
+
+                                                                             3
+Z. Nozarijouybari and H.K. Fathy                                                                  Journal of Power Sources 601 (2024) 234272
+
+                                  Fig. 4. Machine learning applications in a battery life cycle.
+
+2.1. Machine learning for battery discovery, invention, and manufacturing            To summarize the above applications, machine learning can help
+                                                                                 bring new battery chemistries to life, both in the laboratory by facilitat-
+    Before a battery chemistry is even commercialized, one can use               ing the invention of these chemistries and in the market by facilitating
+machine learning to develop its underlying chemistry [6,7]. This can             their manufacturing, quality control, etc. In other words, machine
+potentially include the use of machine learning to invent and discover           learning is valuable in the early stages of a battery system's engineering
+new battery chemistries [8-10]. Liu et al. provide a thorough survey             life cycle, including product conceptualization, invention, planning,
+of the literature on this topic, with an emphasis on both electrode              and design. A common challenge present in all of these applications
+and electrolyte discovery [11]. The literature presents many examples            is the lack of prior in-depth understanding and/or data when one
+of such use of machine learning for battery material discovery. For              wishes to invent or deploy a new battery chemistry. Machine learning is
+example, Guo et al. survey the use of machine learning to improve the            valuable, in this context, because it can assist with the discovery of new
+computational efficiency of the atomistic simulation of different battery        chemistries and/or ``binning'' of newly fabricated batteries by searching
+materials [12]. Hu et al. and Qiu et al. argue that machine learning can         for previously unmodeled patterns in battery image data, sparse testing
+be particularly valuable for the rapid discovery of a broad spectrum of          data sets, and/or sparse battery material databases.
+solid battery electrolytes [13,14]. Kilic et al. argue that machine learn-
+ing can also be valuable for the discovery of new battery chemistries,           2.2. Machine learning for integrated battery system deployment and design
+including Lithium-Sulfur chemistries, provided there is sufficient data
+to train the learning algorithms [15]. Huang et al. explore the use                  Machine learning can be used for optimizing not just the design
+of machine learning on the experimental side of battery material de-             and production of battery cells, but also the integration of these cells
+velopment, by showing that image processing algorithms can be used               into different energy systems. There is a significant volume of existing
+for the automated detection of lithium plating from operando X-ray               literature on the use of machine learning for integrating batteries into
+computed tomography images of battery materials undergoing exper-                different application systems, including electrified vehicles: a topic
+imental cycling [16]. Moreover, Sun et al. show that machine learning            explored in depth in a bibliometric analysis by Chen et al. [25].
+methods can both predict the X-ray electron spectroscopy of battery              Examples of such systems include grid-connected battery systems [26]
+materials and assist with the problem of dimensionality reduction in             and hybrid battery systems [27]. Managing battery safety is critical
+this domain [17]. Machine learning can also be used for characterizing           for successful integration into broader energy systems. This motivates
+transport mechanisms in experimental batteries [18], estimating the              the use of machine learning for developing methods for predicting
+operating voltage window for novel electrolytes [19], relating battery           battery failure as surveyed by Zhao et al. [28]. Catastrophic battery
+material mesostructure to battery performance metrics [20], and pre-             failures are sometimes driven by thermal events, such as thermal
+dicting the force field information needed for the atomistic simulation          runaway. Moreover, the performance of a battery can be very strongly
+of novel battery chemistries [21].                                               temperature-dependent: a fact that has motivated an extensive study of
+                                                                                 the use of machine learning for modeling battery thermal behavior by
+    Once a novel battery chemistry is invented, machine learning can             Zhang et al. [29]. This potentially drives the interest in the literature
+prove quite valuable for optimizing its production and manufac-                  in using machine learning for battery thermal management: a topic
+turing. For example, Liu et al. train a regression model to predict              surveyed extensively by Ghalkhani et al. [30]. Extensive research has
+the impact of fabrication process parameters on battery performance              been done in this area. For example, Zheng et al. use machine learning
+metrics, then use this regression model for fabrication process opti-            to model and monitor battery temperature dynamics [31] and Wei
+mization [22]. Moreover, Severson et al. show that machine learning              et al. propose a strategy to address the over-temperature risk associated
+models can be trained using early cycling data to predict long-term              with fast charging [32]. Finally, Tang et al. apply machine learning to
+cycle life [23]. This is an important capability because it makes it             the problem of designing an active liquid cooling system for a battery
+possible to classify production batteries into different batches based on        pack [33], and Zhang et al. discuss the use of machine learning for the
+initial estimates of quality and cycle life. Stock et al. demonstrate such       design of phase change materials, which can be valuable for the passive
+use of machine learning for the classification (or ``binning'') of batteries     regulation of battery temperature [34].
+early in their life cycles, based on measurements of electrochemical
+impedance spectroscopy [24].
+
+                                                                              4
+Z. Nozarijouybari and H.K. Fathy                                                                              Journal of Power Sources 601 (2024) 234272
+
+                                  Fig. 5. Machine learning as an enabler for cloud-experimental data fusion.
+
+    All of the above applications take machine learning a step further,             � First, machine learning methods can be used for the predictive
+where it becomes an enabler for not only battery cell engineering but                 modeling of battery performance dynamics. This topic has
+also system-level design and integration. The challenges associated with              been explored in the realm of electric vehicle batteries to model
+this stage of battery innovation are fundamentally different from those               battery performance [4,35,36], among other application domains.
+associated with cell-level engineering. For example, the use of machine               It is certainly possible to build predictive models of electrochem-
+learning to optimize a battery cell requires modeling the behavior of                 ical batteries based purely on machine learning. For instance,
+the cell on its own. In contrast, once machine learning is deployed for               recent research by the authors utilized machine learning for pre-
+system integration, the ability to model the complex interactions be-                 dicting the terminal voltage of a lithium-sulfur battery cell given
+tween battery cells and their environment (including other subsystems)                its input current profile [37]. However, it is also possible to aug-
+becomes critical. Machine learning tools are particularly well-suited for             ment an existing battery model with machine learning, perhaps
+this task because of their ability to integrate different models of dis-              with the goal of increasing its prediction accuracy. For instance,
+parate engineering systems, potentially with different underlying levels              Tu et al. utilized machine learning as a correction algorithm for
+of model uncertainty, in a seamless and straightforward manner. Fig. 5                low-order battery models in order to improve their prediction
+highlights this fact by showing the degree to which machine learning                  accuracy without significantly increasing computational cost [3].
+algorithms can learn seamlessly from laboratory test data, online sensor              Moreover, it is possible to train a machine learning model to
+data, and cloud-based databases of prior cycling data. Such seamless                  match the predictions of a physics-based model. This can be
+data fusion is useful not only for battery systems integration but also               particularly valuable for partial differential algebraic equation
+for battery management system deployment, as discussed in the next                    (PDAE) models, where machine learning can enable index reduc-
+section.                                                                              tion, thereby dramatically improving computational tractability:
+                                                                                      a problem explored in recent research by Li et al. [38]. Finally,
+2.3. Machine learning for online battery performance management                       machine learning methods can be used for the parameterization
+                                                                                      of existing battery models. For instance, Hashemi et al. employed
+    Once a battery system is commercially deployed, machine learning                  machine learning to capture the intricate relationships between
+becomes particularly attractive for the system's online management.                   battery State of Charge (SoC) and health within an equivalent
+Such use of machine learning in battery management systems (BMS)                      circuit model, facilitating fault diagnosis in electric aircraft [39].
+engineering is central to the scope of this paper, and has been studied               Also, Guo et al. leveraged machine learning methods to identify
+very extensively in the literature. There are at least two broad, intercon-           parameters in a physics-based fractional order model (FOM) [40].
+nected categories of online battery management applications, namely:
+managing a battery's performance and managing its aging/health.                     � Second, machine learning has been used extensively in the liter-
+This subsection explores the application of machine learning to battery               ature for the online battery state monitoring and estimation
+performance management, whereas the next subsection focuses on                        for different applications (e.g. electric vehicles [41-43], aircraft
+health management. Broadly speaking, questions related to battery                     propulsion systems [44], and unmanned aerial vehicles [45]).
+performance focus on shorter time scales, perhaps on the order of one                 Kim et al. and Ren et al. provide extensive surveys of the use of
+day of utilization or much less. These questions include: how does a                  data-driven methods for different battery state estimation appli-
+battery's charge pattern affect its terminal voltage, temperature, and/or state       cations [46,47]. The ``state'' of a battery refers, broadly speaking,
+of charge? In contrast, managing battery aging focuses on longer time                 to its operating condition. Online state estimation can, therefore,
+scales, on the order of months and years, with the overarching question               refer to any problem where the goal is to estimate one or more
+being how to model, monitor, and/or manage battery deterioration and                  aspects of a battery's operating condition, or state. Previous work
+end of life.                                                                          by the authors, for example, examined the problem of using a
+                                                                                      data-driven approach for determining whether a lithium-sulfur
+    Within the battery performance management domain, machine                         battery is operating in its high or low plateau region [48]. This,
+learning can be used for solving three broad classes of problems,                     in a sense, is a state estimation problem where the ``state'' of
+namely: performance modeling, performance monitoring/estimation,                      interest is a discrete metric indicating which plateau the battery is
+and performance optimization. Each one of these classes of problems                   currently operating inside. Perhaps the most extensively studied
+is explored in more depth below.
+
+                                                                                 5
+Z. Nozarijouybari and H.K. Fathy                                                                                                            Journal of Power Sources 601 (2024) 234272
+
+       battery performance-related (as opposed to health-related) state         2.4. Using machine learning to manage battery health, safety, reliability,
+       estimation problem is state of charge (SoC) estimation [49].             and end of life
+       Traditional SoC estimation essentially relies on modeling and
+       utilizing the relationship between battery cycling history and               Machine learning methods can be used to manage both the per-
+       terminal voltage in order to infer SoC. This can be achieved using       formance of a given battery as well as its aging, degradation, safety,
+       machine learning, as done by Chandran et al. [50]. In doing so,          reliability, and ultimately end of life. These families of BMS applica-
+       it may be valuable to account for battery temperature as part            tions are intertwined in practice. However, due to the sheer volume
+       of the SoC estimation process, as done by Chemali et al. [51].           of research in machine learning-based battery management, this paper
+       Moreover, it may be valuable to utilize clustering algorithms to         surveys the machine learning-based management of battery perfor-
+       map different clusters of battery cycling features onto different        mance versus safety/health/reliability separately. Within the context
+       SoC ranges, as explored by Hu et al. [43]. Beyond battery volt-          of managing battery safety, reliability, and health, one can find at least
+       age, current, and temperature measurements, however, there is            four significant bodies of work in the literature:
+       growing interest in the literature in estimating battery SoC using
+       novel sensors and online measurements. For example, machine                   � First, machine learning can be used for the predictive modeling
+       learning-assisted SoC estimation has been explored using strain                 of battery aging/degradation dynamics [59-62]. Xue et al.,
+       sensor data, as explained by Raoofi et al. [44]. One can also                   for instance, combined machine learning with semi-empirical
+       estimate SoC using electrochemical impedance spectroscopy (EIS)                 methods to model battery degradation [63]. Similarly, Kohtz et al.
+       data: a topic examined by both Babaeiyazdi et al. and Li et al. [52,            mixed physics-of-failure (PoF) and machine learning approaches
+       53]. Finally, a battery's acoustic signature can also potentially               for battery state of health prognostics [64]. The importance of
+       be used for SoC estimation, as shown by Galiounas et al. [54].                  machine learning within this class of problems stems from the
+       Machine learning methods can be especially valuable for SoC                     sheer number of phenomena contributing to battery aging, as well
+       estimation using such novel sensor measurements because the                     as the difficulty of building physics-based models spanning all of
+       underlying physics may not always be fully characterized in the                 these phenomena. Research by Gasper et al. highlights this fact by
+       literature. For example, machine learning can excel in scenarios                employing machine learning methods for battery aging prognosis,
+       where there is a mapping between a battery's acoustic signa-                    and showing that machine learning is more accurate in this
+       ture and SoC that enables SoC estimation, but whose underlying                  context than human subject matter experts [65]. One particularly
+       physics may not yet be fully modeled and characterized in the                   important challenge in modeling battery aging is the existence of
+       scientific literature.                                                          significant heterogeneity in how batteries age. Different battery
+     � Finally, machine learning can be used for optimizing battery                    chemistries may exhibit different aging dynamics, for example.
+       system control. This includes applications such as optimizing                   Moreover, significant heterogeneity may exist among different
+       fast battery charging as well as using machine learning for                     production batches of the same chemistry, or even different bat-
+       health-conscious battery control. For example, machine learn-                   tery cells within the same batch, due to factors such as production
+       ing algorithms can be used for battery fast charging protocol de-               quality control and variations in initial battery faults/flaws. At
+       velopment [32,55]. The ability of such algorithms to potentially                least one family of machine learning tools - namely, ensemble
+       model and detect lithium plating is particularly important in this              learning - can help address this heterogeneity issue by blending
+       context because it allows machine learning algorithms to optimize               the life predictions from multiple machine learning models: an
+       charging protocols that avoid such plating [56]. Machine learning               idea demonstrated by Shen et al. and She et al. [66,67].
+       methods enable life-extending health-conscious control by im-
+       proving accurate battery capacity fade prediction [57]. With this             � Second, machine learning has also been used extensively in the
+       potential, machine learning methods can assist battery optimiza-                literature for the online monitoring of battery state of health
+       tion to reduce the need for frequent battery recharging, which is               (SoH) [68-73]. Compared to SoC, the term SoH is somewhat
+       extremely important for resource-constrained environments such                  nebulous in the sense that there is a lack of a single, unified
+       as wearable sensors in the healthcare context [58].                             definition of SoH in the literature. However, there are at least two
+                                                                                       commonly used metrics for SoH in the scientific community: (i)
+    The above review highlights the popularity of machine learning                     capacity fade (i.e., the degradation of a battery's charge capacity
+methods for online battery performance modeling, monitoring/esti-                      with time and/or usage); and (ii) power fade, often quantified
+mation, and control. Fig. 6 illustrates the adoption of machine learn-                 in terms of impedance growth. Different learning methods are
+ing for such applications expanding from cycle data feature selection                  utilized in the literature to monitor these SoH metrics in a robust
+to performance modeling, estimation, and optimization. The driving                     and flexible manner. These include adversarial learning [74] and
+force for this popularity is the degree to which online battery perfor-                transfer learning [75]. Machine learning is particularly valuable
+mance management requires careful navigation of the tradeoff between                   for SoH estimation because it can learn battery aging behavior
+model complexity and fidelity. Online controllers cannot use exces-                    from large data sets, potentially using distributed cloud comput-
+sively complex battery models, given the computational tractability                    ing methods, as shown by Sun et al. [76]. Machine learning is
+issues associated with such models. However, it is important for on-                   also valuable because it can help navigate the coupling between
+line battery performance management to utilize models of sufficient                    battery performance and aging dynamics, thereby enabling com-
+accuracy to eke out the best achievable levels of battery performance.                 bined SoH/SoC estimation. For example, Li et al. propose a hybrid
+Machine learning methods are particularly well-suited for navigating                   approach that combines SoC and SoH estimation, incorporating
+this tradeoff between computational complexity versus prediction accu-                 surface strain and temperature measurements [77]. Moreover,
+racy. In fact, one can push the machine learning paradigm even further                 Alamin et al. use a digital twin for lithium-ion batteries to learn
+by using it to optimize battery cycling directly, as opposed to using                  and capture SoC dynamics as a function of SoH [78]. SoH mon-
+it in an indirect manner where a battery model is learned first, then                  itoring can be performed using different types of measurements,
+embedded within an optimization/planning routine. Perhaps these facts                  including online EIS measurements, as explored by Zhang et al.
+explain the degree to which machine learning algorithms have become                    and Babaeiyazdi et al. [79,80]. Research by Harting et al. pushes
+popular for BMS applications: they are flexible in terms of how they                   this idea further by utilizing nonlinear frequency response for SoH
+can be used, and they excel at navigating the tradeoffs between model                  estimation [81]. The ability to predict long-term battery cycle life
+fidelity and tractability.                                                             using early cycling data can be a particularly important aspect of
+                                                                                       SoH monitoring, and is explored by researchers including Celik
+
+                                                                             6
+Z. Nozarijouybari and H.K. Fathy                                                                        Journal of Power Sources 601 (2024) 234272
+
+                                  Fig. 6. Example of machine learning-based online battery management.
+
+  et al. [82]. Fei et al. argue that the nonlinearity of battery aging               aging mode identification [95] where important features from
+  and the low variability in initial battery aging data can cause                    battery cycling such as  , Coulombic efficiency, capacity
+  such battery life prediction from early cycling data to be very                    fade, etc. can assist with differentiating distinct aging phenomena
+  difficult [83]. To address this difficulty, Fei et al. suggest that the            from Li-plating, in particular [96].
+  careful selection of specific features from a manually compiled
+  list of battery cycling features can help with the early prediction             To summarize, machine learning has emerged as a very popular
+  of battery lifetime using machine learning [83]. This idea that             tool for managing battery aging, safety, reliability, and end of life. One
+  careful feature selection is a critical precursor for the successful        important reason for this popularity is the fact that it is very difficult
+  application of machine learning to battery SoH estimation ap-               to build comprehensive physics-based models of battery degradation,
+  pears frequently in the literature. For instance, Choi et al. and Hu        given the multiplicity and complexity of fundamental phenomena con-
+  et al. utilize selective features to perform capacity estimation [84]       tributing to this degradation. Machine learning provides an attractive
+  and SoH estimation [85] for battery life prediction.                        alternative to such physics-based modeling by inferring battery health,
+� Third, machine learning methods are particularly valuable for               remaining useful life, and degradation projections from data. As battery
+  predicting the remaining useful life (RUL) of a battery. For                systems see growing deployment in the field, coupled with growing
+  example, Bai et al. harness machine learning for battery capacity           communication network connectivity, very extensive data sets are be-
+  fade prognostics and estimating RUL [86], Aitio et al. forecast the         coming available to industry practitioners capturing field degradation
+  end of life for grid-connected lead-acid batteries [87], and Li et al.      data. This underscores the potential utilization of machine learning
+  estimate RUL using thermal voltammetry [88]. Facilitated by the             algorithms as a catalyst for incorporating field-acquired data and ex-
+  compatibility of machine learning methods with large-scale data,            perimental battery cycling data as schematically shown in Fig. 5. This
+  Zhang et al. adopt cloud-connected li-ion battery data for RUL              integration is instrumental in formulating the BMS design, enabling
+  prediction [89]. Aykol et al. integrate machine learning methods            efficient control of battery performance by integrating monitoring data
+  with physics-based models for improved prediction of remaining              from battery sensors. Subsequently, this information can be seam-
+  useful life [1]. Similar to other machine learning applications, re-        lessly integrated into cloud databases, paving the way for forthcoming
+  searchers such as Yang et al. worked through feature selection for          modeling practices. Such cloud-based integration of battery data sets
+  battery RUL prediction [90], and Zhao et al. even highlighted that          promises a new era for machine learning-based battery management in
+  the ideal feature selection might be different for cell versus pack         industry, but raises an important question regarding academic research
+  level estimation [91]. Additionally, Yang et al. exploited machine          in this field. Specifically, the question arises of whether the scientific
+  learning for binning or screening electrochemical batteries based           community can potentially access similarly large and rich battery aging
+  on RUL performance [90].                                                    databases, to the point of being able to continue to push this particular
+� Fourth, machine learning is also particularly valuable for fault            field of research forward in the open literature. As discussed in the next
+  detection, classification, and diagnosis in battery systems. For            section of this paper, this is one of several critical questions that must
+  example, Samanta et al. review different methods for machine                be addressed as the battery machine learning literature continues to
+  learning-based battery fault detection and diagnosis [92]. An               evolve.
+  interesting application of machine learning in this regard is identi-
+  fying/classifying failure modes in different chemistries (including         3. Critical requirements in machine learning for battery systems
+  Li-S, e.g., [93]). The literature also explores machine learning
+  capabilities to assist with battery degradation modeling [94] and               In order for machine learning to generate precise predictions of
+                                                                              battery behaviors and dynamics, the data sets and algorithms used for
+
+                                                                           7
+Z. Nozarijouybari and H.K. Fathy                                                                                                              Journal of Power Sources 601 (2024) 234272
+
+machine learning must satisfy multiple key prerequisites. Examining                    � The ability to transfer knowledge from one portfolio of bat-
+the literature helps identify some of these critical prerequisites as                    tery tests and/or applications to another is particularly criti-
+follows:                                                                                 cal for the long-term success of battery machine learning meth-
+                                                                                         ods. Battery testing is expensive and time consuming: a fact
+     � Large data sets are often needed for machine learning to gen-                     that makes it potentially prohibitive to revisit such testing from
+       uinely impact the battery field [7]. This becomes even more                       scratch in every new battery application or for every new battery
+       crucial when using machine learning for modeling battery aging                    design/chemistry. Therefore, the degree to which one can trans-
+       and predicting battery life, where large data sets covering diverse               fer knowledge from one set of battery tests to another and/or
+       cycling conditions over long time durations are needed for model                  merge knowledge from multiple sources of battery data is vi-
+       accuracy [97]. Berecibar et al. reviewed machine learning tech-                   tally important in practice. Transfer learning has emerged as
+       niques to predict battery life and highlighted the fact that a large              a popular solution to this problem in the literature. It lever-
+       cycling data set is an important key to effectiveness [98]. Given                 ages knowledge gained from a source task to improve learning
+       the cost of generating such data sets, researchers have worked                    for a related but different target task and is well-established
+       towards remedies that can reduce the size of these required data                  in the field of battery dynamics modeling using machine learn-
+       sets. Tang et al., for instance, highlight that machine learning                  ing [75,104,108-120]. One application of transfer learning is
+       facilitates data fusion from the field to provide extensive data sets             to retrain a machine learning model for a new battery of in-
+       for model training [99]. Additionally, Zhu et al. explored active                 terest (i.e., target battery) with a limited amount of data by
+       querying for intelligent fault prognostics and reported that this                 transferring the knowledge contained in a well-studied battery
+       method can be a remedy when facing data limitations [100].                        (i.e., source battery) with sufficient data [121-123]. Moreover,
+                                                                                         transfer learning facilitates generalizability of battery SoC and
+     � Rich data sets covering a broader spectrum of battery cycles                      SoH estimations to different battery chemistries [124-127], var-
+       are particularly valuable for enabling machine learning algo-                     ious charging/discharging protocols [128,129] or new untested
+       rithms to discern subtle differences between these cycles, thereby                temperatures [130] as well as adapting to cell variability [131-
+       enhancing modeling accuracy. In fact, one can argue that the                      134]. To exemplify, Chen et al. use transfer learning for adaptive
+       richness of a data set is potentially much more important than                    online capacity prediction under fast charging which amplifies
+       its size, and that the need for ``rich data'' in battery machine                  cell-to-cell variability [135], since transfer learning allows for
+       learning supercedes that for ``big data''. Divena et al. for instance,            using prior knowledge followed by fine-tuning. On top of that,
+       suggest that more aggressive cycling (which is closer to real-life                transfer learning facilitates dealing with long-term dependencies
+       cycling condition) can help improve the learning accuracy for                     in battery aging dynamics [136,137] in different ways: first, it
+       SoC prediction by improving the richness of the underlying data                   enables machine learning methods to utilize different datasets for
+       set [101]. Similarly, Harting et al. suggest that optimizing the                  training versus testing for SoH estimation [138,139]. This can
+       frequencies used in nonlinear frequency response can facilitate                   be training and fine-tuning on separate datasets such as labo-
+       SOH estimation [81]. In order for rich battery data sets to produce               ratory versus real-world data [140], synthetic versus real-world
+       the greatest value for the scientific community, it is important for              data [141], or accelerated versus normal-speed datasets [40,142].
+       richness to be coupled with uniformity in areas such as which                     Second, it allows for cloud-based learning transferred to collective
+       battery signals are measured, how the test results are converted to               battery data [143]. Finally, transfer learning empowers BMS algo-
+       data archives, etc. Dufek et al. argue that such uniformity is still              rithms to be trained offline and tuned online for fast and accurate
+       lacking in areas such as battery test protocols, and suggest that                 future capacity prediction [144]. These capabilities significantly
+       deeper community commitment to uniformity in battery testing                      reduce the data collection challenges typically linked to battery
+       is necessary, as a precursor to the sharing of battery test data for              cycling. Additionally, Wang et al. find the potential in transfer
+       applications including machine learning [102].                                    learning to be used to reduce the computational burden when
+                                                                                         predicting battery core temperature [145] and Ma et al. exploit
+     � Proper selection of features and/or health indicators is an                       transfer learning for optimally selecting historical test data to
+       important aspect of using machine learning since it can add to                    train the machine learning model [146].
+       the richness of the dataset, which ultimately affects the quality of
+       algorithm outcomes [84,85]. Multiple researchers, for example,                  � Finally, algorithm certifications is highlighted by Raoofi et al.
+       recognize that the good selection and optimization of health indi-                as a critical prerequisite for the deployment of battery machine
+       cators is essential for accurate battery health management and                    learning in safety-critical applications, one example being electri-
+       prediction [103,104]. Fig. 7 illustrates five features commonly                   fied aviation [44].
+       used in the literature for battery aging and SoH prediction. The
+       idea is that a battery cell's capacity, dV/dQ slope, impedance, and        4. Battery machine learning databases
+       rate of change of capacity/impedance with cycling can all serve as
+       examples of simple but common features extracted from battery                  The above survey highlights the sheer number of ways in which
+       cycling data for the purpose of machine learning. That said,               machine learning can support battery systems engineering and applica-
+       there is certainly room in the literature for additional innovative        tions. Given this large volume of applications, there is a need for both
+       and/or optimal choices of features for battery machine learn-              rich and large databases supporting battery machine learning efforts.
+       ing. Some examples of innovative attempts at optimal feature               Multiple efforts exist supporting the creation and open sharing of such
+       selection are: () the use of automated partitioning of battery             databases among scholars in the scientific community. Hasib et al.
+       discharge and/or characteristic curves to facilitate feature selec-        summarize the main datasets associated with lithium batteries in the
+       tion by Sheikh et al. [105], () feature selection for efficient            public domain [147]. Some of these efforts that we found commonly
+       utilization of cloud computing settings by Shu et al. [106], and           used in the reviews literature are listed below:
+       () time-frequency image analysis (TFI) of multi-domain features
+       to extract diagnostic characteristics on the degradation of LiBs                � The NASA Prognostics Center of Excellence database: NASA
+       beneficial for capacity prediction by El-Dalahmeh et al. [107]. It                provides datasets related to the health and performance of lithium-
+       is also important to tailor feature selection to the specific battery             ion batteries used in aerospace applications. This database is
+       problem at hand. Zhao et al., for instance, suggest that there is                 valuable for research in battery prognostics and health manage-
+       a distinction between proper features for pack versus cell RUL                    ment, as it provides records of impedance as a damage criterion
+       prediction even for the same battery chemistry [91].                              during the charging and discharging of Li-ion batteries at different
+                                                                                         temperatures [148].
+
+                                                                               8
+Z. Nozarijouybari and H.K. Fathy                                           Journal of Power Sources 601 (2024) 234272
+
+                                  Fig. 7. Various selection of features for machine learning algorithms in battery modeling and prediction.
+
+� Battery test data from CALCE, the center for Advanced Life                   Table 1 summarizes the focus field of each dataset and provides a
+  Cycle Engineering: the CALCE battery team at the University of           brief description of the specification of the data provided by each of
+  Maryland offers various datasets for battery reliability, aging, and     the references.
+  life cycle analysis. These datasets include information on different
+  battery chemistries, cycling profiles, and temperatures [149].               Collectively, the above databases are useful for battery modeling,
+                                                                           diagnostics, and machine learning research in general. The availability
+� The NREL transportation and mobility research databases:                 of these databases is important because they can potentially facilitate
+  The National Renewable Energy Laboratory (NREL), provides                the entry of academic researchers into the battery machine learning
+  access to a wide range of battery datasets for Li-ion batteries.         field, even if such researchers are unable to access the much larger pro-
+  It offers data on battery performance, aging, and degradation            prietary data sets potentially available to the battery industry. In fact,
+  under various conditions. For example, the Battery Microstruc-           these databases are already seeing extensive use in today's published
+  ture Library contains X-ray nano-CT data of calendared and               battery machine learning literature. An opportunity exist for further
+  uncalendared positive and negative electrodes from lithium-ion           growth in the literature grounded in the use of these databases to define
+  batteries [150]. The Battery Failure Databank [151] contains             ``benchmark problems'' for battery machine learning, in a manner akin
+  radiography and calorimetry data from several hundred abuse              to the use of large databases to define benchmark problems in other
+  tests conducted on lithium-ion batteries. Finally, the database          machine learning domains, such as machine vision. Such a potential
+  for Battery Capacity from Electrochemical Impedance Spec-                future research direction can be valuable, as the literature matures,
+  troscopy [152] contains hundreds of measurements from com-               in terms of helping understand the benefits and tradeoffs between
+  mercial cells, recorded at varying temperatures, states of charge,       different machine learning algorithms for different battery applications.
+  and health.
+                                                                           5. Discussion and lessons learned
+� The Sandia R&D data repository: the research and development
+  data repository from Sandia National Laboratories [153] offers               To summarize the above literature survey, machine learning (i)
+  a rich resource for battery thermal analysis as well as cycling,         already adds significant value to the battery systems domain, with the
+  abuse, and EIS tests.                                                    caveat that (ii) different machine learning approaches and algorithms
+                                                                           may be better suited for different applications. Moreover, there are
+� The Stanford University Li-ion Battery Dataset: the Stanford             many (iii) novel potential battery applications of machine learning that
+  Energy Control Lab offers experimental data of Li-ion batter-            remain relatively unexplored. This section revisits each of these three
+  ies. This includes galvanostatic discharge test data at different        important facets of the literature, with a particular focus on future
+  rates and temperatures of operation for NMC, LFP, and NCA as             opportunities for machine learning research in the battery systems
+  well as an aging dataset based on electric vehicle real-driving          discipline.
+  profiles [154].
+                                                                           5.1. A perspective on the value added by machine learning in the battery
+� The MIT-Stanford LFP Battery Fast Charge Dataset: this is                domain
+  an extensive dataset consisting of 124 commercial lithium iron
+  phosphate/graphite cells cycled under fast-charging conditions,              The role of machine learning in the battery domain has been a topic
+  valuable for life cycle and capacity degradation analysis [23,155].      of increasing interest and scrutiny. Gasper et al.'s study undertook a
+                                                                           comparative analysis of machine learning models in battery lifetime
+� The PNNL Battery Data Center: the Pacific Northwest National             modeling, pitting them against models developed by human subject
+  Laboratory (PNNL) provides a collection of battery datasets that         matter experts. The results of this study strongly advocate for the
+  mainly facilitates cell performance research for vanadium redox          adoption of machine learning, citing its significantly superior accuracy
+  flow batteries [156].                                                    and resource efficiency in battery modeling [65]. Furthermore, the
+                                                                           transformative potential of machine learning in the battery domain
+� The UW-Madison experimental dataset: this Panasonic 18650PF              is demonstrated by Tang et al., who suggest that machine learning
+  Li-ion data set offers a series of tests including HPPC and EIS per-     can revolutionize how field data is processed, effectively creating a
+  formed at five different temperatures, specifically on Panasonic
+  18650PF battery cells. [157].
+
+� The Oxford dataset: the Oxford battery dataset records the bat-
+  tery aging experiment data produced by the University of Oxford,
+  beneficial for battery degradation modeling [158].
+
+                                                                        9
+Z. Nozarijouybari and H.K. Fathy                                                                                                        Journal of Power Sources 601 (2024) 234272
+
+Table 1                                                                            Specifications
+Summary of datasets for battery machine learning applications.                     Charge and discharge profile under multiple temperatures
+                                                                                   with impedance records
+Data source                       Focus                                            Multiple cycle profile (low-current and dynamic cycles),
+                                                                                   multiple chemistries (NMC, LFP, LCO), and multiple
+NASA                              Cell performance and damage                      temperatures
+                                  prognostics                                      Battery Microstructure Library (X-ray and nano-CT data), . . .
+
+CALCE                             Cell performance, aging,                         Thermodynamic reactions and calorimetric data
+                                  reliability
+                                                                                   Galvanostatic discharge test (NMC, LFP, NCA), electric
+NREL                              Cell performance, material                       vehicle real-driving profiles aging data (NMC)
+                                  microstructure, failure, aging                   Fast charge cycle data (124 LFP cells)
+SANDIA National                   Cell performance, aging,
+Lab                               thermochemical, safety                           Multiple charge-discharge cycles for hundreds of cells,
+Stanford Energy                   Cell performance, aging                          performance data of vanadium redox flow battery with
+Control Lab                                                                        various current densities
+MIT-Stanford                      Cell Performance, aging, fast                    HPPC, drive cycles, and impedance spectroscopy at five
+                                  charge                                           different temperatures for Panasonic 18650PF cell
+PNNL Battery                      Material performance                             Long term battery aging data for SLPB533459H4 lithium-ion
+Data Center                                                                        pouch cells
+
+UW-Madison                        Cell performance
+
+University of                     Cell performance, aging
+Oxford
+
+vast distributed cyber-physical battery testing facility. This can be              be well-suited to different battery chemistries, the literature predom-
+accomplished by applying classical machine learning techniques to a                inantly focuses on Li-ion batteries. This skewed emphasis neglects the
+smaller laboratory dataset to identify critical features, which in turn            nuanced differences even among various Li-ion chemistries. As a result,
+enables the utilization of field data for more comprehensive learning              the question of whether machine learning algorithm can be tailored
+and predictive purposes [99]. Additionally, Zhang et al.'s work high-              for different chemistries, even within the family of Li-ion chemistries,
+lights the capabilities of machine learning in the hierarchical modeling           remains open for future research.
+of battery aging and degradation. By harnessing machine learning, a
+broad population-wide model can be initially trained on an extensive                   With the above caveats in mind, it is exciting to note that there are
+dataset, and subsequently refined using more individualized aging and              some examples of emerging consensus in the literature regarding the
+degradation models. This hierarchical approach not only improves                   suitability of different machine learning algorithms to different battery
+the overall accuracy of predictions but also allows for a more nu-                 applications. Drawing from the literature, one can see the following
+anced understanding of battery performance at both the population                  collective insights regarding specific roles for the different categories
+and individual levels [34]. In summary, the collective evidence from               of machine learning algorithms highlighted in Fig. 8:
+the literature suggests that machine learning has the potential to add
+significant value in the battery domain by enhancing accuracy, resource                 � Ensemble Learning can help with addressing battery heterogeneity:
+utilization, and the utilization of field data.                                           Ensemble learning is gaining prominence in the literature because
+                                                                                          of its potential to help with addressing the battery heterogene-
+5.2. Perspectives on the choices of machine learning algorithms for different             ity challenge. Researchers advocate for its utility as it enables
+battery systems applications                                                              the training of multiple models to recognize diverse degradation
+                                                                                          mechanisms within a battery system. Moreover, the adaptability
+    The selection of machine learning algorithms in battery systems is                    of adjusting model weights in real-time applications enhances the
+a nuanced process, where the intricacies of specific applications and                     robustness of this approach.
+the underlying principles of different algorithms play crucial roles. To
+use a simple analogy, a good carpenter always knows when to use a                       � Gaussian Process Regression (GPR) can help with capturing complex
+hammer versus a screwdriver or a saw. Similarly, making the best use of                   inter-dependencies in battery systems: Within the battery machine
+machine learning algorithms for different battery systems applications                    learning literature, a notable emphasis is placed on Gaussian
+requires a deep understanding of which algorithms are best suited                         process regression. This preference is attributed to the suitability
+for each application. In certain battery machine learning application                     of GPR for representing nonlinear maps within a given state
+domains, this understanding is still evolving. As a result, there is a                    space. Its application extends to capturing complex relationships
+notable lack of clear consensus within the academic community regard-                     inherent in battery systems.
+ing which machine learning tools to use for those applications. A case
+in point is the set of diverse perspectives on machine learning-based                   � Long Short-Term Memory (LSTM) networks can help facilitate bat-
+SoC estimation algorithms. Numerous studies within the literature                         tery health modeling : LSTM networks find particular relevance in
+extensively evaluate machine learning algorithms for estimating the                       health modeling within the broader battery research field. Given
+state of charge. However, the absence of a unanimous identification                       the dynamic nature of degradation, often embedded in time series
+of the proper algorithm underscores the context-dependent nature of                       data, LSTMs offer a solution for capturing temporal dependencies
+this selection. Different algorithms may demonstrate superiority under                    influenced by the historical usage patterns of the battery.
+distinct conditions, emphasizing the ongoing quest for a universally
+applicable solution. As another case in point, the exploration of the                   � Classification algorithms can help with enabling fault diagnostics: In
+suitability of any given machine learning algorithm across different                      the realm of fault diagnostics, the application of classification
+battery chemistries remains relatively unexplored in the literature.                      algorithms, such as support vector machines, is well-justified. The
+While it is plausible that diverse machine learning algorithms may                        inherent characteristics of fault diagnosis, where discrete classes
+                                                                                          of faults need identification, align well with the capabilities of
+                                                                                          classification algorithms.
+
+                                                                                        � Transfer learning can help address dataset multiplicity and inter-
+                                                                                          chemistry dynamic modeling : A growing body of research is dedi-
+                                                                                          cated to understanding the dynamics of one battery chemistry and
+
+                                                                               10
+Z. Nozarijouybari and H.K. Fathy                                                                       Journal of Power Sources 601 (2024) 234272
+
+                                  Fig. 8. Machine learning methods applied to battery systems domain.
+
+       leveraging transfer learning to adapt to another. This exploration          For example, it is not clear which algorithms would be best suited
+       addresses the challenge of knowledge transfer between different             for such practical implementation, and why. Finally, the current
+       chemistries within the machine learning framework for batteries,            literature has a predominantly ``inward'' focus on the battery as
+       opening avenues for cross-chemistry model adaptation and un-                the subject of battery machine learning. This comes at the price
+       derstanding. Moreover, transfer learning is employed to solve the           of less emphasis on the ``outward'' focus on how battery behavior
+       challenge posed by dataset diversity. This approach is particularly         may be driven by factors such as battery user behaviors. There
+       well-suited when combining data from disparate sources, such                is untapped potential, for instance, in using machine learning
+       as laboratory and field datasets or multiple laboratory datasets.           for user education and training to optimize electric vehicle or
+       Transfer learning facilitates the adaptation of knowledge gained            airplane performance. This area presents a wide-open field for in-
+       from one dataset to another, enhancing model generalization.                vestigation into the implications of introducing machine learning
+     � Feature selection can help boost battery data utilization: Feature          to battery applications through a user-centric perspective rather
+       selection is rapidly emerging as a critical aspect of battery ma-           than a singular focus on the battery itself.
+       chine learning. Various methods, including gradient boosting and          � Second, there is a need for more extensive research on safe and
+       manual selection, are employed to automate or manually curate               bounded machine learning for batteries. Despite the critical role
+       relevant features. Despite its recognized importance, the literature        that safety plays in battery applications, the literature on safe
+       on this topic is still evolving, with no consensus on a definitive          machine learning for batteries is surprisingly sparse, with the
+       algorithm for feature selection.                                            exception of fast-charging applications where safety is considered
+                                                                                   a main factor. This sparsity might be a result of the limited ex-
+5.3. Open challenges and opportunities for battery machine learning re-            ploration of active machine learning in the literature (where the
+search                                                                             machine learning algorithm actively probes the battery to maxi-
+                                                                                   mize the richness of the resulting test information). Such active
+    Machine learning has emerged as a transformative force in battery              learning, in and of itself, can be an extremely worthwhile research
+research, offering unprecedented potential for enhancing performance,              path. Furthermore, explainable and trustworthy machine learn-
+efficiency, and reliability. However, a comprehensive review of the                ing is particularly valuable in the battery context, because of its
+literature reveals several open challenges and untapped opportunities              safety implications. For example, a machine learning algorithm
+that merit attention for the advancement of this field. At least seven             that can provide not just a warning against catastrophic battery
+clusters of research topics are particularly promising for future battery          failure events (e.g., thermal runaway) but also an explanation
+machine learning research:                                                         for this warning that can potentially better help human battery
+                                                                                   operators in avoiding these events. This is widely recognized as
+     � First, there is a need for more studies quantifying the benefits            important in the broader machine learning literature, but remains
+       of machine learning for battery applications through rigorous               an open research topic in the battery area. The absence of a robust
+       assessments of these benefits versus the associated costs. One              emphasis on safety considerations in battery machine learning
+       example of such costs is the large energy usage associated with             poses a potential risk to the robustness and dependability of the
+       the large-scale training and deployment of battery machine learn-           resulting battery systems. Similarly, significant gaps persist in the
+       ing algorithms. This energy cost remains inadequately explored              realm of bounded machine learning. The lack of constraints on
+       in the literature, necessitating a deeper understanding of the              data during algorithm training is a noteworthy issue, as it raises
+       sustainability and efficiency gains of machine learning in battery          concerns about the generalizability and adaptability of models
+       systems. Most of the literature on assessing battery machine learn-         in real-world scenarios. Therefore, the exploration of safe and
+       ing algorithms focuses on comparing one algorithm to another,               bounded machine learning approaches in battery research stands
+       often in terms of metrics such as performance and accuracy as               as a promising and open avenue for future investigation.
+       opposed to data efficiency or energy needs. Moreover, with any            � Third, there is a significant potential for advancing multi-scale,
+       machine learning algorithm, especially transfer learning, there             multi-domain (MSMD) battery modeling by facilitating seam-
+       is a tradeoff between how much it costs in terms of computa-                less connections between different aspects of battery behavior,
+       tions and data offline, prior to deployment, versus online, after           such as mechanical deformation, electrical characteristics, and
+       deployment. This kind of tradeoff analysis has not yet been ex-             thermal dynamics using machine learning algorithms. Despite the
+       plored in depth in the literature. The question of the feasibility          excitement surrounding this application, it remains relatively un-
+       of implementing machine learning algorithms online, either on               explored in the literature, potentially due to its intersectionality
+       embedded platforms or on the cloud or both, for real-time BMS               across multiple domains. That said, even in the battery control
+       applications, has not yet been fully addressed in the literature.           domain, machine learning has been underutilized for the integra-
+                                                                                   tion of multi-level control algorithms. For example, integrating
+
+                                                                             11
+Z. Nozarijouybari and H.K. Fathy                                                                                                                 Journal of Power Sources 601 (2024) 234272
+
+       a predictive model of stationary battery pack performance into                       it comes to battery material design, is the degree to which it can
+       a higher-level model for grid energy management remains rela-                        give the battery designer insights regarding how to improve the
+       tively unexplored. This includes the regulation of energy demand                     material design, and why.
+       at the battery pack level based on predictions of grid load and/or                 � Finally, while the existing literature applies many machine learn-
+       renewable energy availability, etc.                                                  ing algorithms to the battery systems domain, one can argue
+     � Fourth, the transition from cell-level to pack-level behaviors                       that specific algorithms remain relatively less explored. Examples
+       remains a relatively underexplored area in the battery machine                       of such relatively less-explored algorithms include the use of
+       learning literature. This is unfortunate, given the degree to which                  regularization, Bayesian approaches, and uncertainty quan-
+       machine learning algorithms (especially ensemble learning) could                     tification approaches for battery machine learning. Incorporating
+       play a pivotal role in addressing this challenge. Opportunities                      these methods could contribute to more stable models, as well
+       lie in utilizing these algorithms to bridge the gap and enable                       as address challenges related to overfitting and uncertainty in
+       more accurate predictions and optimizations at larger scales while                   battery systems. Additionally, integrating physics-based and
+       utilizing the cell-level model findings. Moreover, ML is not ex-                     machine learning models deserves more attention from the
+       tensively utilized in battery pack design and optimization.                          research community as it helps leverage the strengths of both
+       Applying machine learning to questions of layout optimization,                       approaches and offers the potential to advance modeling accu-
+       thermal management system design, and safety packaging of the                        racy and reliability. Exploring the linkage between low-order and
+       pack/enclosure, etc. could lead to more efficient and reliable bat-                  high-order battery models can also provide an enhanced balance
+       tery packs. Machine learning can also serve as a strong enabler for                  between computational efficiency and a robust connection to the
+       detecting and analyzing heterogeneity in a battery pack, before                      underlying physics. The development of a systematic integration
+       and after development, including for applications such as pack                       approach for this purpose can, therefore, be a valuable addition
+       balancing and outlier detection. Machine learning can addition-                      to the existing literature. The extensive dependency of machine
+       ally help with analyzing and comparing battery performance data                      learning to data for accurate performance is commonly deemed
+       with databases to detect battery flaws, for reliability reasons, and                 as a limitation, but it also provides the unprecedented advantage
+       even for the prediction of imminent failure, at the full pack (as                    of enabling the use of large scale could data. The literature lacks
+       opposed to cell) level. As an illustration, a given machine learning                 a rigorous examination of these opposing perspectives, leading to
+       algorithm can be trained to do early anticipation of venting,                        a deeper understanding of when to deploy machine learning and
+       thermal runaway, etc., for reliability purposes. The proven ca-                      when to refrain from doing so. The integration of ML with cloud
+       pabilities of machine learning in image analysis can furthermore                     computing is an emerging topic, but its exploration is still in its
+       be employed for the visual inspection and visual inspection-based                    early stages. Addressing challenges related to feature selection for
+       quality control of battery system products. This includes detecting                  minimalistic yet useful communications is crucial for advancing
+       events like the swelling of battery cells, cracks and leaks in battery               this area. Cloud computation enabled by machine learning can
+       cells, flaws in battery material structure, etc.                                     be effectively tuned to combine learning from field data and
+     � Fifth, the utilization of cloud-based machine learning algorithms,                   experimental test data. This in turn brings up a noteworthy con-
+       particularly in the context of online battery management appli-                      cern as there can potentially be a very significant variability in
+       cations, remains a relatively unexplored research area. Questions                    the quality and integrity of different datasets used for battery
+       such as which portions of a machine learning algorithm to de-                        ML. For example, datasets generated in the laboratory will often
+       ploy onboard versus on the cloud, in a robust manner, are only                       employ much higher-fidelity sensors than field datasets. However,
+       beginning to receive attention in the literature. Furthermore,                       laboratory cells still undergoing experimental research can be of
+       such cloud computation requires a degree of attention to the                         much lower quality control than commercial cells. In this regard,
+       cybersecurity of battery machine learning algorithms: a topic                        there is a very slim body of research focusing on: (i) the fusion of
+       that also remains relatively unexplored in the literature.                           different battery databased in a manner that explicitly accounts
+     � Sixth, one of the main difficulties when using machine learning                      for the heterogeneity in their quality. (ii) the sanitization of
+       models is the fact that they are not always easy to interpret by                     battery datasets to remove outlier patterns happening in batteries
+       a human user. This stands in contrast to both physics-based and                      under development stage, e.g., ``glitches" in cycling data resulting
+       equivalent circuit models, where the scientific community has de-                    from internal shorts, etc.
+       veloped a deep understanding of either the physical mechanisms
+       being modeled or the intuitive meaning of different elements in                   Addressing these open challenges and capitalizing on the identified
+       a given model or both. There is certainly some research on the                opportunities has the potential to propel battery machine learning
+       interpretability of machine learning models of battery systems                research into a new era in terms of the value it adds to the overall
+       (see, e.g., [22,93]), as part of the broader domain of research               battery systems discipline. In fact, one can argue that the biggest gaps
+       on the interpretability of machine learning models in general.                and opportunities in battery machine learning involve exploring new
+       However, one can argue that much remains to be explored in this               problems such as those listed above, as opposed to new solutions to
+       research area. Key challenges include developing models that can              problems that are already well-explored.
+       offer a deeper, more nuanced understanding of the complex rela-
+       tionships between material properties, manufacturing parameters,              6. Conclusions
+       and their outcomes. There is also a significant need for ma-
+       chine learning methods that can provide clear insights into how                   This article examines the substantial body of literature devoted
+       different variables interact and affect material performance. Op-             to the application of machine learning within the battery domain. A
+       portunities lie in creating more transparent, explainable models              significant portion of this research is directed towards the invention
+       that facilitate the identification of critical factors for optimization,      and discovery of innovative battery materials, the predictive charac-
+       enabling a more informed and efficient discovery process for                  terization of material behaviors, the estimation of critical battery state
+       new materials. To provide maximum benefit to their users, inter-              variables such as state of charge (SOC) and state of health (SOH), and
+       pretable battery models should not only uncover hidden patterns               the modeling and prediction of battery aging. The comprehensive scope
+       in complex battery chemistries, but also translate learned patterns           of application areas is supported by a diverse array of machine learning
+       into useful knowledge for the user. For example, perhaps the                  approaches, indicating a relative maturity in the field concerning both
+       greatest benefit of an interpretable machine learning model, when             the foundational tools and their practical applications. Nevertheless, as
+
+                                                                                 12
+Z. Nozarijouybari and H.K. Fathy                                                                                                                          Journal of Power Sources 601 (2024) 234272
+
+elucidated in the latter sections of this article, significant opportunities                     [18] M. Lin, J. Xiong, M. Su, F. Wang, X. Liu, Y. Hou, R. Fu, Y. Yang, J. Cheng,
+exist for machine learning to make further contributions to the realm of                                 A machine learning protocol for revealing ion transport mechanisms from
+battery systems. These potential advancements encompass areas such as                                    dynamic NMR shifts in paramagnetic battery materials, Chem. Sci. 13 (26)
+battery cell to pack up-scaling, quantifying machine learning benefits                                   (2022) 7863-7872.
+and costs including energy implications, and delving into user-centric
+applications.                                                                                    [19] S.S. Manna, S. Manna, B. Pathak, Molecular dynamics-machine learning ap-
+                                                                                                         proaches for the accurate prediction of electrochemical windows of ionic
+CRediT authorship contribution statement                                                                 liquid electrolytes for dual-ion batteries, J. Mater. Chem. A 11 (40) (2023)
+                                                                                                         21702-21712.
+    Zahra Nozarijouybari: Writing - original draft, Visualization, Val-
+idation, Investigation, Formal analysis, Data curation, Conceptualiza-                           [20] A. Mistry, A.A. Franco, S.J. Cooper, S.A. Roberts, V. Viswanathan, How machine
+tion. Hosam K. Fathy: Writing - review & editing, Supervision, Project                                   learning will revolutionize electrochemical sciences, ACS Energy Lett. 6 (4)
+administration, Investigation, Funding acquisition, Formal analysis,                                     (2021) 1422-1431.
+Conceptualization.
+                                                                                                 [21] V.L. Deringer, Modelling and understanding battery materials with machine-
+Declaration of competing interest                                                                        learning-driven atomistic simulations, J. Phys. Energy 2 (4) (2020)
+                                                                                                         041003.
+    The authors declare that they have no known competing finan-
+cial interests or personal relationships that could have appeared to                             [22] K. Liu, M.F. Niri, G. Apachitei, M. Lain, D. Greenwood, J. Marco, Interpretable
+influence the work reported in this paper.                                                               machine learning for battery capacities prediction and coating parameters
+                                                                                                         analysis, Control Eng. Pract. 124 (2022) 105202.
+Data availability
+                                                                                                 [23] K.A. Severson, P.M. Attia, N. Jin, N. Perkins, B. Jiang, Z. Yang, M.H. Chen, M.
+    No data was used for the research described in the article.                                          Aykol, P.K. Herring, D. Fraggedakis, et al., Data-driven prediction of battery
+                                                                                                         cycle life before capacity degradation, Nature Energy 4 (5) (2019) 383-391.
+References
+                                                                                                 [24] S. Stock, S. Pohlmann, F.J. Guenter, L. Hille, J. Hagemeister, G. Reinhart, Early
+    [1] M. Aykol, C.B. Gopal, A. Anapolsky, P.K. Herring, B. van Vlijmen, M.D. Berliner,                 quality classification and prediction of battery cycle life in production using
+          M.Z. Bazant, R.D. Braatz, W.C. Chueh, B.D. Storey, Perspective--combining                      machine learning, J. Energy Storage 50 (2022) 104144.
+          physics and machine learning to predict battery lifetime, J. Electrochem. Soc.
+          168 (3) (2021) 030525.                                                                 [25] S. Chen, J. Xiong, Y. Qiu, Y. Zhao, S. Chen, A bibliometric analysis of
+                                                                                                         lithium-ion batteries in electric vehicles, J. Energy Storage 63 (2023) 107109.
+    [2] C. Xue, B. Jiang, J. Zhu, X. Wei, H. Dai, An enhanced single-particle model
+          using a physics-informed neural network considering electrolyte dynamics for           [26] K. Shivam, J.-C. Tzou, S.-C. Wu, A multi-objective predictive energy manage-
+          lithium-ion batteries, Batteries 9 (10) (2023) 511.                                            ment strategy for residential grid-connected PV-battery hybrid systems based
+                                                                                                         on machine learning technique, Energy Convers. Manage. 237 (2021) 114103.
+    [3] H. Tu, S. Moura, Y. Wang, H. Fang, Integrating physics-based modeling with
+          machine learning for lithium-ion batteries, Appl. Energy 329 (2023) 120289.            [27] T. Gao, W. Lu, Machine learning toward advanced energy storage devices and
+                                                                                                         systems, Iscience 24 (1) (2021).
+    [4] O. Ahmadzadeh, R. Rodriguez, Y. Wang, D. Soudbakhsh, A physics-inspired
+          machine learning nonlinear model of Li-ion batteries, in: 2023 American Control        [28] J. Zhao, A.F. Burke, Electric vehicle batteries: Status and perspectives of
+          Conference, ACC, IEEE, 2023, pp. 3087-3092.                                                    data-driven diagnosis and prognosis, Batteries 8 (10) (2022) 142.
+
+    [5] C. Lv, X. Zhou, L. Zhong, C. Yan, M. Srinivasan, Z.W. Seh, C. Liu, H. Pan,               [29] N. Zhang, T. Deng, S. Zhang, C. Wang, L. Chen, C. Wang, X. Fan, Critical
+          S. Li, Y. Wen, et al., Machine learning: an advanced platform for materials                    review on low-temperature Li-ion/metal batteries, Adv. Mater. 34 (15) (2022)
+          development and state prediction in lithium-ion batteries, Adv. Mater. 34 (25)                 2107899.
+          (2022) 2101474.
+                                                                                                 [30] M. Ghalkhani, S. Habibi, Review of the Li-ion battery, thermal management,
+    [6] S.M. Moosavi, K.M. Jablonka, B. Smit, The role of machine learning in the                        and AI-based battery management system for EV application, Energies 16 (1)
+          understanding and design of materials, J. Am. Chem. Soc. 142 (48) (2020)                       (2022) 185.
+          20273-20287.
+                                                                                                 [31] Y. Zheng, Y. Che, X. Hu, X. Sui, R. Teodorescu, Sensorless temperature mon-
+    [7] M. Aykol, P. Herring, A. Anapolsky, Machine learning for continuous innovation                   itoring of lithium-ion batteries by integrating physics with machine learning,
+          in battery technologies, Nat. Rev. Mater. 5 (10) (2020) 725-727.                               IEEE Trans. Transp. Electrification (2023).
+
+    [8] I.A. Moses, R.P. Joshi, B. Ozdemir, N. Kumar, J. Eickholt, V. Barone, Machine            [32] Z. Wei, X. Yang, Y. Li, H. He, W. Li, D.U. Sauer, Machine learning-based
+          learning screening of metal-ion battery electrode materials, ACS Appl. Mater.                  fast charging of lithium-ion battery by perceiving and regulating internal
+          Interfaces 13 (45) (2021) 53355-53362.                                                         microscopic states, Energy Storage Mater. 56 (2023) 62-75.
+
+    [9] M.-F. Ng, Y. Sun, Z.W. Seh, Machine learning inspired battery materials                  [33] X. Tang, Q. Guo, M. Li, C. Wei, Z. Pan, Y. Wang, Performance analysis on liquid-
+          innovation, Energy Adv. (2023).                                                                cooled battery thermal management for electric vehicles based on machine
+                                                                                                         learning, J. Power Sources 494 (2021) 229727.
+  [10] A.D. Sendek, B. Ransom, E.D. Cubuk, L.A. Pellouchoud, J. Nanda, E.J. Reed,
+          Machine learning modeling for accelerated battery materials design in the small        [34] Y. Zhang, T. Wik, J. Bergstr�m, M. Pecht, C. Zou, A machine learning-based
+          data regime, Adv. Energy Mater. 12 (31) (2022) 2200553.                                        framework for online prediction of battery ageing trajectory and lifetime using
+                                                                                                         histogram data, J. Power Sources 526 (2022) 231110.
+  [11] Y. Liu, Q. Zhou, G. Cui, Machine learning boosting the development of advanced
+          lithium batteries, Small Methods 5 (8) (2021) 2100442.                                 [35] F. Heinrich, P. Klapper, M. Pruckner, A comprehensive study on battery electric
+                                                                                                         modeling approaches based on machine learning, Energy Informatics 4 (2021)
+  [12] H. Guo, Q. Wang, A. Stuke, A. Urban, N. Artrith, Accelerated atomistic modeling                   1-17.
+          of solid-state battery materials with machine learning, Front. Energy Res. 9
+          (2021) 695902.                                                                         [36] M.-K. Tran, S. Panchal, V. Chauhan, N. Brahmbhatt, A. Mevawalla, R. Fraser,
+                                                                                                         M. Fowler, Python-based scikit-learn machine learning models for thermal and
+  [13] S. Hu, C. Huang, Machine-learning approaches for the discovery of electrolyte                     electrical performance prediction of high-capacity lithium-ion battery, Int. J.
+          materials for solid-state lithium batteries, Batteries 9 (4) (2023) 228.                       Energy Res. 46 (2) (2022) 786-794.
+
+  [14] Y. Qiu, X. Zhang, Y. Tian, Z. Zhou, Machine learning promotes the development             [37] Z. Nozarijouybari, H.K. Fathy, Li-S battery outlier detection and voltage
+          of all-solid-state batteries, Chin. J. Struct. Chem. (2023) 100118.                            prediction using machine learning, IFAC-PapersOnLine 56 (2023) 349-354.
+
+  [15] A. Kilic, B. Oral, D. Eroglu, R. Yildirim, Machine learning for beyond li-ion             [38] W. Li, D.W. Limoge, J. Zhang, D.U. Sauer, A.M. Annaswamy, Estimation of
+          batteries: powering the research, J. Energy Storage 73 (2023) 109057.                          potentials in lithium-ion batteries using machine learning models, IEEE Trans.
+                                                                                                         Control Syst. Technol. 30 (2) (2021) 680-695.
+  [16] Y. Huang, D. Perlmutter, A. Fei-Huei Su, J. Quenum, P. Shevchenko, D.Y.
+          Parkinson, I.V. Zenyuk, D. Ushizima, Detecting lithium plating dynamics in a           [39] S.R. Hashemi, A. Bahadoran Baghbadorani, R. Esmaeeli, A. Mahajan, S.
+          solid-state battery with operando X-ray computed tomography using machine                      Farhad, Machine learning-based model for lithium-ion batteries in BMS of
+          learning, npj Comput. Mater. 9 (1) (2023) 93.                                                  electric/hybrid electric aircraft, Int. J. Energy Res. 45 (4) (2021) 5747-5765.
+
+  [17] Q. Sun, Y. Xiang, Y. Liu, L. Xu, T. Leng, Y. Ye, A. Fortunelli, W.A. Goddard III,         [40] D. Guo, G. Yang, X. Han, X. Feng, L. Lu, M. Ouyang, Parameter identification
+          T. Cheng, Machine learning predicts the x-ray photoelectron spectroscopy of                    of fractional-order model with transfer learning for aging lithium-ion batteries,
+          the solid electrolyte interface of lithium metal battery, J. Phys. Chem. Lett. 13              Int. J. Energy Res. 45 (9) (2021) 12825-12837.
+          (34) (2022) 8047-8054.
+                                                                                                 [41] M.A. Hannan, M.H. Lipu, A. Hussain, P.J. Ker, T.I. Mahlia, M. Mansor, A. Ayob,
+                                                                                                         M.H. Saad, Z. Dong, Toward enhanced state of charge estimation of lithium-ion
+                                                                                                         batteries using optimized machine learning techniques, Sci. Rep. 10 (1) (2020)
+                                                                                                         4687.
+
+                                                                                                 [42] T. Zahid, K. Xu, W. Li, C. Li, H. Li, State of charge estimation for electric vehicle
+                                                                                                         power battery using advanced machine learning algorithm under diversified
+                                                                                                         drive cycles, Energy 162 (2018) 871-882.
+
+                                                                                                 [43] X. Hu, S.E. Li, Y. Yang, Advanced machine learning approach for lithium-ion
+                                                                                                         battery state estimation in electric vehicles, IEEE Trans. Transp. Electrification
+                                                                                                         2 (2) (2015) 140-149.
+
+                                                                                                 [44] T. Raoofi, M. Yildiz, Comprehensive review of battery state estimation strategies
+                                                                                                         using machine learning for battery management systems of aircraft propulsion
+                                                                                                         batteries, J. Energy Storage 59 (2023) 106486.
+
+                                                                                             13
+Z. Nozarijouybari and H.K. Fathy                                                                                                                         Journal of Power Sources 601 (2024) 234272
+
+  [45] S.S. Mansouri, P. Karvelis, G. Georgoulas, G. Nikolakopoulos, Remaining useful           [69] J. Zhao, X. Feng, Q. Pang, J. Wang, Y. Lian, M. Ouyang, A.F. Burke, Battery
+          battery life prediction for UAVs based on machine learning, IFAC-PapersOnLine                 prognostics and health management from a machine learning perspective, J.
+          50 (1) (2017) 4727-4732.                                                                      Power Sources 581 (2023) 233474.
+
+  [46] E. Kim, M. Kim, J. Kim, J. Kim, J.-H. Park, K.-T. Kim, J.-H. Park, T. Kim, K.            [70] S. Jafari, Z. Shahbazi, Y.-C. Byun, Lithium-ion battery health prediction on
+          Min, Data-driven methods for predicting the state of health, state of charge,                 hybrid vehicles using machine learning approach, Energies 15 (13) (2022) 4753.
+          and remaining useful life of Li-ion batteries: A comprehensive review, Int. J.
+          Precis. Eng. Manuf. (2023) 1-24.                                                      [71] U.D. Joshi, A.V. Gambhir, A. Mandhana, Machine Learning Approaches for
+                                                                                                        Lithium-Ion Battery Health Parameters Estimation, Tech. Rep., SAE Technical
+  [47] Z. Ren, C. Du, A review of machine learning state-of-charge and state-of-                        Paper, 2022.
+          health estimation algorithms for lithium-ion batteries, Energy Rep. 9 (2023)
+          2993-3021.                                                                            [72] H. Pan, Z. L�, H. Wang, H. Wei, L. Chen, Novel battery state-of-health online
+                                                                                                        estimation method using multiple health indicators and an extreme learning
+  [48] Z. Nozarijouybari, C. Fang, M. Doosthosseini, C. Xu, H.K. Fathy, An algorithm                    machine, Energy 160 (2018) 466-477.
+          for dip point detection in lithium-sulfur battery cells, J. Energy Storage 55
+          (2022) 105665.                                                                        [73] Q. Xue, J. Li, P. Xu, Machine learning based swift online capacity prediction
+                                                                                                        of lithium-ion battery through whole cycle life, Energy 261 (2022) 125210.
+  [49] M.S. Sidhu, D. Ronanki, S. Williamson, State of charge estimation of lithium-ion
+          batteries using hybrid machine learning technique, in: IECON 2019-45th Annual         [74] D. Roman, S. Saxena, V. Robu, M. Pecht, D. Flynn, Machine learning pipeline
+          Conference of the IEEE Industrial Electronics Society, vol. 1, IEEE, 2019, pp.                for battery state-of-health estimation, Nat. Mach. Intell. 3 (5) (2021) 447-456.
+          2732-2737.
+                                                                                                [75] Y. Li, K. Li, X. Liu, Y. Wang, L. Zhang, Lithium-ion battery capacity estimation--
+  [50] V. Chandran, C.K. Patil, A. Karthick, D. Ganeshaperumal, R. Rahim, A. Ghosh,                     A pruned convolutional neural network approach assisted with transfer learning,
+          State of charge estimation of lithium-ion battery for electric vehicles using                 Appl. Energy 285 (2021) 116410.
+          machine learning algorithms, World Electric Vehicle Journal 12 (1) (2021) 38.
+                                                                                                [76] T. Sun, S. Wang, S. Jiang, B. Xu, X. Han, X. Lai, Y. Zheng, A cloud-edge
+  [51] E. Chemali, P.J. Kollmeyer, M. Preindl, A. Emadi, State-of-charge estimation of                  collaborative strategy for capacity prognostic of lithium-ion batteries based on
+          Li-ion batteries using deep neural networks: A machine learning approach, J.                  dynamic weight allocation and machine learning, Energy 239 (2022) 122185.
+          Power Sources 400 (2018) 242-255.
+                                                                                                [77] Y. Li, K. Li, X. Liu, X. Li, L. Zhang, B. Rente, T. Sun, K.T. Grattan, A hybrid
+  [52] I. Babaeiyazdi, A. Rezaei-Zare, S. Shokrzadeh, State of charge prediction of EV                  machine learning framework for joint SOC and SOH estimation of lithium-ion
+          Li-ion batteries using EIS: A machine learning approach, Energy 223 (2021)                    batteries assisted with fiber sensor measurements, Appl. Energy 325 (2022)
+          120116.                                                                                       119787.
+
+  [53] Y. Li, M. Maleki, S. Banitaan, M. Chen, Data-driven state of charge estimation           [78] K.S.S. Alamin, Y. Chen, E. Macii, M. Poncino, S. Vinco, A machine learning-
+          of Li-ion batteries using supervised machine learning methods, in: 2021 20th                  based digital twin for electric vehicle battery modeling, in: 2022 IEEE
+          IEEE International Conference on Machine Learning and Applications, ICMLA,                    International Conference on Omni-Layer Intelligent Systems, COINS, IEEE, 2022,
+          IEEE, 2021, pp. 873-878.                                                                      pp. 1-6.
+
+  [54] E. Galiounas, T.G. Tranter, R.E. Owen, J.B. Robinson, P.R. Shearing, D.J. Brett,         [79] Y. Zhang, Q. Tang, Y. Zhang, J. Wang, U. Stimming, A.A. Lee, Identifying
+          Battery state-of-charge estimation using machine learning analysis of ultrasonic              degradation patterns of lithium ion batteries from impedance spectroscopy using
+          signatures, Energy AI 10 (2022) 100188.                                                       machine learning, Nature Commun. 11 (1) (2020) 1706.
+
+  [55] P.M. Attia, A. Grover, N. Jin, K.A. Severson, T.M. Markov, Y.-H. Liao, M.H.              [80] I. Babaeiyazdi, A. Rezaei-Zare, S. Shokrzadeh, Transfer learning with deep neu-
+          Chen, B. Cheong, N. Perkins, Z. Yang, et al., Closed-loop optimization of fast-               ral network for capacity prediction of li-ion batteries using EIS measurement,
+          charging protocols for batteries with machine learning, Nature 578 (7795)                     IEEE Trans. Transp. Electrification 9 (1) (2022) 886-895.
+          (2020) 397-402.
+                                                                                                [81] N. Harting, R. Schenkendorf, N. Wolff, U. Krewer, State-of-health identification
+  [56] E.J. Dufek, D.P. Abraham, I. Bloom, B.-R. Chen, P.R. Chinnam, A.M. Colclasure,                   of lithium-ion batteries based on nonlinear frequency response analysis: First
+          K.L. Gering, M. Keyser, S. Kim, W. Mai, et al., Developing extreme fast charge                steps with machine learning, Appl. Sci. 8 (5) (2018) 821.
+          battery protocols-A review spanning materials to systems, J. Power Sources 526
+          (2022) 231129.                                                                        [82] B. Celik, R. Sandt, L.C.P. dos Santos, R. Spatschek, Prediction of battery cycle
+                                                                                                        life using early-cycle data, machine learning and data management, Batteries 8
+  [57] M. Bibinsha, P. Sivraj, Machine learning based battery aging management                          (12) (2022) 266.
+          strategy for electric vehicles, in: 2021 Second International Conference on
+          Electronics and Sustainable Communication Systems, ICESC, IEEE, 2021, pp.             [83] Z. Fei, F. Yang, K.-L. Tsui, L. Li, Z. Zhang, Early prediction of battery lifetime
+          128-134.                                                                                      via a machine learning based framework, Energy 225 (2021) 120205.
+
+  [58] X. Fafoutis, L. Marchegiani, A. Elsts, J. Pope, R. Piechocki, I. Craddock,               [84] Y. Choi, S. Ryu, K. Park, H. Kim, Machine learning-based lithium-ion battery
+          Extending the battery lifetime of wearable sensors with embedded machine                      capacity estimation exploiting multi-channel charging profiles, IEEE Access 7
+          learning, in: 2018 IEEE 4th World Forum on Internet of Things, WF-IoT, IEEE,                  (2019) 75143-75152.
+          2018, pp. 269-274.
+                                                                                                [85] X. Hu, Y. Che, X. Lin, S. Onori, Battery health prediction using fusion-based
+  [59] X. Sui, S. He, S.B. Vilsen, J. Meng, R. Teodorescu, D.-I. Stroe, A review of                     feature selection and machine learning, IEEE Trans. Transp. Electrification 7
+          non-probabilistic machine learning-based state of health estimation techniques                (2) (2020) 382-398.
+          for lithium-ion battery, Appl. Energy 300 (2021) 117346.
+                                                                                                [86] G. Bai, Y. Su, M.M. Rahman, Z. Wang, Prognostics of lithium-ion batteries
+  [60] M.S. Hosen, R. Youssef, T. Kalogiannis, J. Van Mierlo, M. Berecibar, Battery                     using knowledge-constrained machine learning and Kalman filtering, Reliab.
+          cycle life study through relaxation and forecasting the lifetime via machine                  Eng. Syst. Saf. 231 (2023) 108944.
+          learning, J. Energy Storage 40 (2021) 102726.
+                                                                                                [87] A. Aitio, D.A. Howey, Predicting battery end of life from solar off-grid system
+  [61] R. Swarnkar, R. Harikrishnan, P. Thakur, G. Singh, Electric vehicle lithium-ion                  field data using machine learning, Joule 5 (12) (2021) 3204-3220.
+          battery ageing analysis under dynamic condition: A machine learning approach,
+          SAIEE Afr. Res. J. 114 (1) (2022) 4-13.                                               [88] X. Li, C. Yuan, Z. Wang, J. He, S. Yu, Lithium battery state-of-health estimation
+                                                                                                        and remaining useful lifetime prediction based on non-parametric aging model
+  [62] S. Harippriya, E.E. Vigneswaran, S. Jayanthy, Battery management system to                       and particle filter algorithm, Etransportation 11 (2022) 100156.
+          estimate battery aging using deep learning and machine learning algorithms,
+          in: Journal of Physics: Conference Series, vol. 2325, (1) IOP Publishing, 2022,       [89] Y. Zhang, M. Zhao, Cloud-based in-situ battery life prediction and classification
+          012004.                                                                                       using machine learning, Energy Storage Mater. (2023).
+
+  [63] Y. Xue, H. Zhou, Y. Luo, J. Lam, Battery degradation modelling and prediction            [90] F. Yang, D. Wang, F. Xu, Z. Huang, K.-L. Tsui, Lifespan prediction of lithium-ion
+          with combination of machine learning and semi-empirical methods, in: 2022                     batteries based on various extracted features and gradient boosting regression
+          12th International Conference on Power, Energy and Electrical Engineering,                    tree model, J. Power Sources 476 (2020) 228654.
+          CPEEE, IEEE, 2022, pp. 78-85.
+                                                                                                [91] J. Zhao, H. Ling, J. Liu, J. Wang, A.F. Burke, Y. Lian, Machine learning for
+  [64] S. Kohtz, Y. Xu, Z. Zheng, P. Wang, Physics-informed machine learning model                      predicting battery capacity for electric vehicles, ETransportation 15 (2023)
+          for battery state of health prognostics using partial charging segments, Mech.                100214.
+          Syst. Signal Process. 172 (2022) 109002.
+                                                                                                [92] A. Samanta, S. Chowdhuri, S.S. Williamson, Machine learning-based data-driven
+  [65] P. Gasper, N. Collath, H.C. Hesse, A. Jossen, K. Smith, Machine-learning                         fault detection/diagnosis of lithium-ion battery: A critical review, Electronics 10
+          assisted identification of accurate battery lifetime models with uncertainty, J.              (11) (2021) 1309.
+          Electrochem. Soc. 169 (8) (2022) 080518.
+                                                                                                [93] X. Liu, H.-J. Peng, B.-Q. Li, X. Chen, Z. Li, J.-Q. Huang, Q. Zhang, Untangling
+  [66] S. Shen, M. Sadoughi, M. Li, Z. Wang, C. Hu, Deep convolutional neural                           degradation chemistries of lithium-sulfur batteries through interpretable hybrid
+          networks with ensemble learning and transfer learning for capacity estimation                 machine learning, Angew. Chem. 134 (48) (2022) e202214037.
+          of lithium-ion batteries, Appl. Energy 260 (2020) 114296.
+                                                                                                [94] A.G. Li, A.C. West, M. Preindl, Towards unified machine learning characteriza-
+  [67] C. She, Y. Li, C. Zou, T. Wik, Z. Wang, F. Sun, Offline and online blended                       tion of lithium-ion battery degradation across multiple levels: A critical review,
+          machine learning for lithium-ion battery health state estimation, IEEE Trans.                 Appl. Energy 316 (2022) 119030.
+          Transp. Electrification 8 (2) (2021) 1604-1618.
+                                                                                                [95] B.-R. Chen, C.M. Walker, S. Kim, M.R. Kunz, T.R. Tanim, E.J. Dufek, Battery
+  [68] C. Vidal, P. Malysz, P. Kollmeyer, A. Emadi, Machine learning applied to                         aging mode identification across NMC compositions and designs using machine
+          electrified vehicle battery state of charge and state of health estimation:                   learning, Joule 6 (12) (2022) 2776-2793.
+          State-of-the-art, IEEE Access 8 (2020) 52796-52814.
+                                                                                                [96] B.-R. Chen, M.R. Kunz, T.R. Tanim, E.J. Dufek, A machine learning frame-
+                                                                                                        work for early detection of lithium plating combining multiple physics-based
+                                                                                                        electrochemical signatures, Cell Rep. Phys. Sci. 2 (3) (2021).
+
+                                                                                            14
+Z. Nozarijouybari and H.K. Fathy                                                                      Journal of Power Sources 601 (2024) 234272
+
+ [97]  M.-F. Ng, J. Zhao, Q. Yan, G.J. Conduit, Z.W. Seh, Predicting the state of charge       [124]  Y. Liu, J. Li, G. Zhang, B. Hua, N. Xiong, State of charge estimation of lithium-
+ [98]  and health of batteries using data-driven machine learning, Nat. Mach. Intell.          [125]  ion batteries based on temporal convolutional network and transfer learning,
+ [99]  2 (3) (2020) 161-170.                                                                   [126]  IEEE Access 9 (2021) 34177-34187.
+[100]  M. Berecibar, Machine-Learning Techniques Used to Accurately Predict Battery            [127]  S. Kim, Y.Y. Choi, K.J. Kim, J.-I. Choi, Forecasting state-of-health of lithium-
+[101]  Life, Nature Publishing Group UK London, 2019.                                          [128]  ion batteries using variational long short-term memory with transfer learning,
+       X. Tang, K. Liu, K. Li, W.D. Widanage, E. Kendrick, F. Gao, Recovering                  [129]  J. Energy Storage 41 (2021) 102893.
+[102]  large-scale battery aging dataset with machine learning, Patterns 2 (8) (2021).         [130]  C. Luo, Z. Zhang, S. Zhu, Y. Li, State-of-health prediction of lithium-ion batteries
+[103]  R. Zhu, W. Peng, D. Wang, C.-G. Huang, Bayesian transfer learning with active           [131]  based on diffusion model with transfer learning, Energies 16 (9) (2023) 3815.
+[104]  querying for intelligent cross-machine fault prognosis under limited data, Mech.               Z. Ni, B. Li, Y. Yang, Deep domain adaptation network for transfer learning
+[105]  Syst. Signal Process. 183 (2023) 109628.                                                [132]  of state of charge estimation among batteries, J. Energy Storage 61 (2023)
+[106]  A. Dineva, B. Csom�s, S.K. Sz, I. Vajda, Investigation of the performance of            [133]  106812.
+[107]  direct forecasting strategy using machine learning in state-of-charge prediction        [134]  J. Yao, T. Han, Data-driven lithium-ion batteries capacity estimation based
+[108]  of Li-ion batteries exposed to dynamic loads, J. Energy Storage 36 (2021)               [135]  on deep transfer learning using partial segment of charging/discharging data,
+[109]  102351.                                                                                 [136]  Energy 271 (2023) 127033.
+[110]  E.J. Dufek, T.R. Tanim, B.-R. Chen, S. Kim, Battery calendar aging and machine          [137]  D. Pan, H. Li, S. Wang, Transfer learning-based hybrid remaining useful life
+[111]  learning, Joule 6 (7) (2022) 1363-1367.                                                 [138]  prediction for lithium-ion batteries under different stresses, IEEE Trans. Instrum.
+[112]  N.H. Paulson, J. Kubal, L. Ward, S. Saxena, W. Lu, S.J. Babinec, Feature                [139]  Meas. 71 (2022) 1-10.
+[113]  engineering for machine learning enabled early prediction of battery lifetime,          [140]  Y. Qin, S. Adams, C. Yuen, Transfer learning-based state of charge estimation for
+[114]  J. Power Sources 527 (2022) 231127.                                                     [141]  lithium-ion battery at varying ambient temperatures, IEEE Trans. Ind. Inform.
+[115]  Y. Che, Z. Deng, X. Lin, L. Hu, X. Hu, Predictive battery health management             [142]  17 (11) (2021) 7304-7315.
+[116]  with transfer learning and online model correction, IEEE Trans. Veh. Technol.           [143]  X. Shu, J. Shen, G. Li, Y. Zhang, Z. Chen, Y. Liu, A flexible state-of-health
+[117]  70 (2) (2021) 1269-1277.                                                                [144]  prediction scheme for lithium-ion battery packs with long short-term memory
+       S.S. Sheikh, M. Anjum, M.A. Khan, S.A. Hassan, H.A. Khalid, A. Gastli, L.               [145]  network and transfer learning, IEEE Trans. Transp. Electrification 7 (4) (2021)
+[118]  Ben-Brahim, A battery health monitoring method using machine learning: A                       2238-2248.
+[119]  data-driven approach, Energies 13 (14) (2020) 3658.                                     [146]  A.A. Chehade, A.A. Hussein, A collaborative Gaussian process regression model
+       X. Shu, S. Shen, J. Shen, Y. Zhang, G. Li, Z. Chen, Y. Liu, State of health                    for transfer learning of capacity trends between Li-ion battery cells, IEEE Trans.
+[120]  prediction of lithium-ion batteries based on machine learning: Advances and             [147]  Veh. Technol. 69 (9) (2020) 9542-9552.
+[121]  perspectives, Iscience 24 (11) (2021).                                                         K. Huang, K. Yao, Y. Guo, Z. Lv, State of health estimation of lithium-
+[122]  M. El-Dalahmeh, M. Al-Greer, M. El-Dalahmeh, M. Short, Time-frequency image             [148]  ion batteries based on fine-tuning or rebuilding transfer learning strategies
+[123]  analysis and transfer learning for capacity prediction of lithium-ion batteries,        [149]  combined with new features mining, Energy 282 (2023) 128739.
+       Energies 13 (20) (2020) 5447.                                                           [150]  Z.E. Amogne, F.-K. Wang, J.-H. Chou, Transfer learning based on transferability
+       K. Liu, Q. Peng, Y. Che, Y. Zheng, K. Li, R. Teodorescu, D. Widanage, A. Barai,         [151]  measures for state of health prediction of lithium-ion batteries, Batteries 9 (5)
+       Transfer learning for battery smarter state estimation and ageing prognostics:                 (2023) 280.
+       Recent progress, challenges, and prospects, Adv. Appl. Energy (2022) 100117.                   Z. Chen, W. Shen, L. Chen, S. Wang, Adaptive online capacity prediction based
+       Y. Liu, X. Shu, H. Yu, J. Shen, Y. Zhang, Y. Liu, Z. Chen, State of charge                     on transfer learning for fast charging lithium-ion batteries, Energy 248 (2022)
+       prediction framework for lithium-ion batteries incorporating long short-term                   123537.
+       memory network and transfer learning, J. Energy Storage 37 (2021) 102494.                      Y. Tan, G. Zhao, Transfer learning with long short-term memory network for
+       Y.-X. Wang, Z. Chen, W. Zhang, Lithium-ion battery state-of-charge estimation                  state-of-health prediction of lithium-ion batteries, IEEE Trans. Ind. Electron. 67
+       for small target sample sets using the improved GRU-based transfer learning,                   (10) (2019) 8723-8731.
+       Energy 244 (2022) 123178.                                                                      Z. Deng, X. Lin, J. Cai, X. Hu, Battery health estimation with degradation
+       S. Shen, M. Sadoughi, C. Hu, Online estimation of lithium-ion battery capacity                 pattern recognition and transfer learning, J. Power Sources 525 (2022) 231027.
+       using transfer learning, in: 2019 IEEE Transportation Electrification Conference               G. Ma, S. Xu, T. Yang, Z. Du, L. Zhu, H. Ding, Y. Yuan, A transfer learning-based
+       and Expo, ITEC, IEEE, 2019, pp. 1-4.                                                           method for personalized state of health estimation of lithium-ion batteries, IEEE
+       G. Zou, Z. Yan, C. Zhang, L. Song, Transfer learning with CNN-LSTM model for                   Trans. Neural Netw. Learn. Syst. (2022).
+       capacity prediction of lithium-ion batteries under small sample, in: Journal of                A. Mondal, A. Routray, S. Puravankara, State-of-health estimation of li-ion
+       Physics: Conference Series, vol. 2258, (1) IOP Publishing, 2022, 012042.                       batteries using semi-parametric adaptive transfer learning, IEEE Trans. Transp.
+       S. Su, W. Li, J. Mou, A. Garg, L. Gao, J. Liu, A hybrid battery equivalent circuit             Electrification (2023).
+       model, deep learning, and transfer learning for battery state monitoring, IEEE                 S.B. Vilsen, D.-I. Stroe, Transfer learning for adapting battery state-of-
+       Trans. Transp. Electrification 9 (1) (2022) 1113-1127.                                         health estimation from laboratory to field operation, IEEE Access 10 (2022)
+       Z. Li, F. Bai, H. Zuo, Y. Zhang, Remaining useful life prediction for lithium-ion              26514-26528.
+       batteries based on iterative transfer learning and mogrifier LSTM, Batteries 9                 X. Lu, J. Qiu, G. Lei, J. Zhu, State of health estimation of lithium iron phosphate
+       (9) (2023) 448.                                                                                batteries based on degradation knowledge transfer learning, IEEE Trans. Transp.
+       S. Zhang, H. Zhu, J. Wu, Z. Chen, Voltage relaxation-based state-of-health                     Electrification (2023).
+       estimation of lithium-ion batteries using convolutional neural networks and                    Y. Li, J. Tao, CNN and transfer learning based online SOH estimation for
+       transfer learning, J. Energy Storage 73 (2023) 108579.                                         lithium-ion battery, in: 2020 Chinese Control and Decision Conference, CCDC,
+       Y. Li, H. Sheng, Y. Cheng, D.-I. Stroe, R. Teodorescu, State-of-health estimation              IEEE, 2020, pp. 5489-5494.
+       of lithium-ion batteries based on semi-supervised transfer component analysis,                 S. Li, H. He, P. Zhao, S. Cheng, Health-conscious vehicle battery state estimation
+       Appl. Energy 277 (2020) 115504.                                                                based on deep transfer learning, Appl. Energy 316 (2022) 119120.
+       J. Zhu, Y. Wang, Y. Huang, R. Bhushan Gopaluni, Y. Cao, M. Heere, M.J.                         J.-H. Chou, F.-K. Wang, S.-C. Lo, A novel fine-tuning model based on transfer
+       M�hlbauer, L. Mereacre, H. Dai, X. Liu, et al., Data-driven capacity estimation                learning for future capacity prediction of lithium-ion batteries, Batteries 9 (6)
+       of commercial lithium-ion batteries from voltage relaxation, Nature Commun.                    (2023) 325.
+       13 (1) (2022) 2261.                                                                            N. Wang, G. Zhao, Y. Kang, W. Wang, A. Chen, B. Duan, C. Zhang, Core
+       F. Yao, D. Meng, Y. Wu, Y. Wan, F. Ding, Online health estimation strategy                     temperature estimation method for lithium-ion battery based on long short-
+       with transfer learning for operating lithium-ion batteries, J. Power Electron.                 term memory model with transfer learning, IEEE J. Emerg. Sel. Topics Power
+       (2023) 1-11.                                                                                   Electron. (2021).
+       M. Savargaonkar, A. Chehade, An adaptive deep neural network with trans-                       J. Ma, P. Shang, X. Zou, N. Ma, Y. Ding, J. Sun, Y. Cheng, L. Tao, C. Lu, Y. Su,
+       fer learning for state-of-charge estimations of battery cells, in: 2020 IEEE                   et al., A hybrid transfer learning scheme for remaining useful life prediction
+       Transportation Electrification Conference & Expo, ITEC, IEEE, 2020, pp.                        and cycle life test optimization of different formulation Li-ion power batteries,
+       598-602.                                                                                       Appl. Energy 282 (2021) 116167.
+       Q. Wang, M. Ye, M. Wei, G. Lian, Y. Li, Deep convolutional neural network                      S.A. Hasib, S. Islam, R.K. Chakrabortty, M.J. Ryan, D.K. Saha, M.H. Ahamed,
+       based closed-loop SOC estimation for lithium-ion batteries in hierarchical                     S.I. Moyeen, S.K. Das, M.F. Ali, M.R. Islam, et al., A comprehensive review of
+       scenarios, Energy 263 (2023) 125718.                                                           available battery datasets, RUL prediction approaches, and advanced battery
+       Y. Wang, J. Zhu, L. Cao, B. Gopaluni, Y. Cao, Long short-term memory network                   management, IEEE Access 9 (2021) 86166-86193.
+       with transfer learning for lithium-ion battery capacity fade and cycle life                    B. Saha, K. Goebel, ``Battery data set'', 2007, NASA Prognostics Data Repository,
+       prediction, Appl. Energy 350 (2023) 121660.                                                    NASA Ames Research Center, Moffett Field, CA.
+       M. Azkue, M. Lucu, E. Martinez-Laserna, I. Aizpuru, Calendar ageing model for                  CALCE Battery Data, https://calce.umd.edu/battery-data#Storage.
+       Li-ion batteries using transfer learning methods, World Electr. Veh. J. 12 (3)                 NREL Battery Microstructures Library, https://www.nrel.gov/transportation/
+       (2021) 145.                                                                                    microstructure.html.
+       D. Ji, Z. Wei, C. Tian, H. Cai, J. Zhao, Deep transfer ensemble learning-based                 NREL Battery Failure Databank, https://www.nrel.gov/transportation/battery-
+       diagnostic of lithium-ion battery, IEEE/CAA J. Autom. Sin. (2022).                             failure.html.
+
+                                                                                           15
+Z. Nozarijouybari and H.K. Fathy                                                                Journal of Power Sources 601 (2024) 234272
+
+[152]  NREL Battery Capacity from Electrochemical Impedance Spectroscopy (EIS),          [155]  MIT-Stanford LFP Cycle Data, https://data.matr.io/1/.
+[153]  https://github.com/NREL/battery_capacity_from_eis.                                [156]  Pathific Northwest National Laboratory DataHub, https://data.pnnl.gov/?keys=
+[154]  Sandia National Laboratory R&D Data Repository, https://www.sandia.gov/                  battery&f%5B0%5D=content_type%3Apacifica_data_set.
+       energystoragesafety/rd- data- repository/.                                        [157]  P. Kollmeyer, Panasonic 18650PF Li-ion Battery Data, Mendeley Data, Version
+       E. Catenaro, G. Pozzato, A. Allam, S. Onori, Stanford Energy Control Lab                 1, 2018. http://dx.doi.org/10.17632/wykht8y7tg.1.
+       Lithium-ion Data Sets, https://onorilab.stanford.edu/products/code-and-data-      [158]  C. Birkl, Oxford Battery Degradation Dataset 1, University of Oxford, 2017.
+       set.
+
+                                                                                     16
+

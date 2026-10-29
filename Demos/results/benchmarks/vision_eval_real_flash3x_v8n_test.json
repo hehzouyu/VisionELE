@@ -1,0 +1,32 @@
+{
+  "generated_at": "2026-10-29T19:45:33+08:00",
+  "script": "scripts/evaluate_vision.py",
+  "date_tag": "real_flash3x_v8n_test",
+  "results_root": "E:\\创新创业\\Demos\\results",
+  "result": {
+    "weights": "E:\\创新创业\\Demos\\insulator_guardian\\..\\results\\runs\\real_flash3x_v8n\\weights\\best.pt",
+    "split": "test",
+    "mAP50": 0.9043102816959453,
+    "mAP50_95": 0.6026612453953389,
+    "per_class": {
+      "normal": {
+        "map50": 0.9948295454545456,
+        "map50_95": 0.9594908848494883,
+        "precision": 0.9943432419678855,
+        "recall": 0.998750288055267
+      },
+      "flashover": {
+        "map50": 0.8304713758706637,
+        "map50_95": 0.3651253729961127,
+        "precision": 0.8474048043810675,
+        "recall": 0.7995865775228436
+      },
+      "broken": {
+        "map50": 0.8876299237626264,
+        "map50_95": 0.48336747834041666,
+        "precision": 0.888394295893119,
+        "recall": 0.8645833333333334
+      }
+    }
+  }
+}

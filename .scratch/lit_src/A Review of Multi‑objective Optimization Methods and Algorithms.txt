@@ -1,0 +1,1514 @@
+Archives of Computational Methods in Engineering (2022) 29:2285-2308
+https://doi.org/10.1007/s11831-021-09663-x
+
+ REVIEW ARTICLE
+
+A Review of Multiobjective Optimization: Methods and Algorithms
+in Mechanical Engineering Problems
+
+Jo�o Luiz Junho Pereira1 � Guilherme Ant�nio Oliver1 � Matheus Brendon Francisco1 � Sebasti�o Sim�es Cunha Jr1 �
+Guilherme Ferreira Gomes1
+
+Received: 30 December 2020 / Accepted: 1 October 2021 / Published online: 21 October 2021
+� CIMNE, Barcelona, Spain 2021
+
+Abstract
+
+The optimization problems that must meet more than one objective are called multi-objective optimization problems and
+may present several optimal solutions. This manuscript brings the most important concepts of multi-objective optimization
+and a systematic review of the most cited articles in the last years in mechanical engineering, giving details about the main
+applied multi-objective optimization algorithms and methods in this field. Some of the applications that can be found in
+this study are: (i) problems in design optimization, (ii) problems in manufacturing: welding, machining and molding and
+(iii) problems in structural health monitoring. It can be seen that classic optimization methods had their importance in the
+past, but lost space for new algorithms that emerged with the advancement of computing, better able to deal with a greater
+number of variables, objectives and nonlinearities. These powerful algorithms, still little used in Mechanical Engineering,
+showed significant improvement where they were applied. Meta-heuristics with a posteriori decision-making techniques
+proved to be a modern trend in solving multi-objective problems, although it is not limited due to the constant battle of new
+algorithms more adapted to specific problems.
+
+Abbreviations                                                         SPEA (I and II)Strength Pareto Evolutionary
+                                                                                             Algorithm
+MOPMulti-objective Problems
+PFPareto Front                                                        MOPSOMulti-objective Particle Swarm
+ZDTZitzler-Deb-Thiele test function                                                          Optimization
+DMDecision Maker
+NBINormal Boundary Intersection                                       MOGWOMulti-objective Grey Wolf Optimizer
+GAGenetic Algorithm                                                   MOALOMulti-objective Ant Lion Optimizer
+MOEAMulti-objective Evolutionary                                      OMOrthogonal Method
+                                                                      FGFunctionally Graded
+                       Algorithm                                      TOPSISTechnique to Order of Preference by
+VEGAVector Evaluation GA
+MOGAMulti-objective GA                                                                       Similarity to Ideal Solution
+NSGA (I and II)Non-dominated Sorting GA                               ORCOrganic Rankine Cycles
+                                                                      DMSDirect Multi-Search
+* Jo�o Luiz Junho Pereira                                             SAWSubmerge Arc Welding
+     joaoluizjp@gmail.com                                             FCAWFlux Cored Arc Welding
+                                                                      GMAWGas Metal Arc Welding
+     Guilherme Ant�nio Oliver                                         FEMFinite Element Method
+     gaoliver@unifei.edu.br                                           DOEDesign of Experiments
+                                                                      ANOVAAnalysis of Variance
+     Matheus Brendon Francisco                                        FSWFriction Stir Welding
+     matheus_brendon@unifei.edu.br                                    ANNArtificial Neural Network
+                                                                      NSTLBONon-dominated Teaching-Learning
+     Sebasti�o Sim�es Cunha Jr
+     sebas@unifei.edu.br                                                                     Based Algorithm
+                                                                      TLBOTeaching-Learning Based Optimization
+     Guilherme Ferreira Gomes                                         HMOGWOHybrid grey wolf optimizer
+     guilhermefergom@unifei.edu.br                                    SHMStructural Health Monitoring
+
+1 Mechanical Engineering Institute, Federal University
+     of Itajub� (UNIFEI), Itajub�, Brazil
+
+                                                                                           Vol.:(011233 456789)
+2286                                                             J. L. J. Pereira et al.
+
+1Introduction                                                       This manuscript summarizes the most cited applications
+                                                                 in the last five years and some others which, although not so
+Optimization can be described as a process of searching for      recent, have great relevance in mechanical engineering. The
+the best solution within a set of possible solutions [7]. As in  main focus is to highlight the most modern and efficient trends
+practical engineering problems most applications are non-        on algorithms and decision-making techniques used, indicat-
+linear, have complicated or nonexistent analytical solutions     ing precisely the decision variables and objective functions
+and must often serve more than one objective or function         in real multi-objective optimization problems in mechanical
+that may even be in conflict with each other, they require       engineering.
+sophisticated optimization tools to be determined [65, 179].
+                                                                    Some of the applications that can be found in this work
+   In optimizing a single objective, it is possible to deter-    are: (i) problems in design optimization: meta-materials, func-
+mine given one set of solutions, which is better than oth-       tionally graded plates, airfoils, wind turbines, fan and pumps,
+ers. As result, a single solution is usually obtained. How-      security and support structures, suspensions, exchangers and
+ever, in multi-objective optimization there is no direct         expanders, beams, composites, etc. (ii) problems in process
+method to determine if one solution is better than another       engineering: welding, machining and molding and (iii) prob-
+because the answer is a set of solutions that involve multi-     lems in structural health monitoring.
+ple conflicting objectives considered simultaneously [66].
+                                                                    So this paper review has two purposes: (i) to synthesize
+   There are several techniques, between algorithms and          the main concepts of multi-objective optimization: multi-
+decision-making techniques, for dealing with a multi-            objective problem; Pareto front and its types; decision-making
+objective optimization problem and even more recently.           techniques--no preference, a priori, interactive and a poste-
+The methods can be divided into optimization processes in        riori techniques and algorithms--enumerative, deterministic
+which an operator can participate at any time: not partici-      (gradient-based) and especially stochastic (evolutionary and
+pating, participating at the beginning of the optimization       others meta-heuristics) with examples and a critical discus-
+process, during or only at the end. The solutions found          sion of its drawbacks and (ii) situate which techniques and
+depend heavily on when the problem operator acts [31].           algorithms within this vast area have been applied to problems
+                                                                 in mechanical engineering, pointing out modern and more effi-
+   Regardless of how the operator works, there are several       cient trends.
+optimization algorithms that can work with him according
+to the methodology adopted. Understanding the basic con-            This manuscript is organized as follows: Sect. 2 presents a
+cepts of multi-objective optimization that are available in      general theoretical background review about multi-objective
+the literature is extremely important to situate the operator    optimization. Section 3 presents a systematic review of the
+of the problem and provide support for him to choose the         literature on the main applications of multi-objective optimi-
+best possible approach to his problem.                           zation in Mechanical Engineering detailing which algorithms,
+                                                                 techniques, decision variables and objectives were used in each
+   Mechanical engineering is a vast and complex area with        of the problems and Sect. 4 brings conclusions.
+numerous possible applications for multi-objective optimiza-
+tion. Nowadays, according to the author's best knowledge,        2Backgrounds
+there is no work in the literature that compiles the main
+applications and allows the researcher an overview of the        The optimization problems that must meet more than one
+subject in this area. The review works found, and some are       objective are called Multi-objective Optimization Problems
+even out of date, usually focus on the (i) multi-objective       (MOPs) and present several optimal solutions [28]. The solu-
+optimization itself: Long et al. [102], Gunantara [68], Wang     tion is the determination of a vector of decision variables
+et al. [175], Marler and Arora [108] focusing on engineering     X={x1, x2, ..., xn} (variable decision space) that optimizes
+in general, (ii) in algorithms and where they have already       the vector of objective functions F(X)={f1(x), f2(x), ..., fn(x)}
+been applied: Liu et al. [101] in meta-heuristics for discrete   (objective function space) within a feasible region of solutions
+optimization, Mane and Rao [107] in Evolutionary Algo-           subject to equality hi(x) or inequalities gi(x) constraints where
+rithms, Tamaki et al. [165] in Genetic Algorithms, Song          xmin and xmax are the limits that determine the search space for
+and Gu [110] in Particle Swarm Optimization, Leguizam�n          each of the variables, or vector of variables [17]. As described
+and Coello [93] in Ant Colony Optimization,or (iii) spe-         in Eq. (1) [67].
+cific cases: Ridha et al. [148] in photovoltaic system, Kumar
+et al. [90] in machining, Ojstersek et al. [123] in production
+scheduling, Liu et al. [100, 101] in wind energy, Rangaiah
+et al. [140] in chemical process engineering, Afshari et al.
+[2] in concrete structures, Cui et al. [34] in energy saving,
+Fadaee et al. [46] in renewable energy.
+
+1 3
+A Review of Multiobjective Optimization: Methods and Algorithms in Mechanical Engineering...  2287
+
+min F( ) = f1( ), f2( ), ..., fn( )                                region. There may be voids without solutions, which con-
+                                                                   tribute to the discontinuity of the problem [17, 31]. Figure 2
+subject to  hi( ) = 0, i = 1, 2, ..., p                            illustrates this paragraph well.
+
+gi( )  x 0, i = 1, 2, ..., q                                          In mono-objective optimization, the specific param-
+                                                                   eters of each meta-heuristic must be correctly chosen for
+xmin   max                               (1)                       each problem to have the best exploration and exploitation
+                                                                   response. This is respectively, being able to escape from
+   This leads to a set of solutions called Pareto-optimal,         local minimums and still being able to improve the preci-
+which according to Rao [147] is a feasible region X that           sion of the solutions already found [125]. In MOP, this alone
+there is no other feasible region Y such that fi(Y)fi(X) for       is not enough. A good multi-objective optimization algo-
+i=1, 2, ..., k with fj(Y)fj(X) for at least one j. That is,        rithm when looking for a set of possible solutions forming
+there is no other feasible solution Y that would reduce some       the Pareto front, must be able to find a PF with precision
+objective function without causing an increase in at least one     (convergence) and good distribution of possible solutions
+other objective function at the same time. The method most         throughout the solution space (coverage) [22, 114, 115], as
+commonly used to compare solutions is Pareto Dominance             shown in Fig. 3.
+Relationship, which instead of determining a single optimal
+solution, leads to a set of optimal alternatives between the          Accurately determine the set of non-dominated solutions to
+objectives. These solutions are also called non-dominated          a problem is a hard task made possible by the development of
+solutions or Pareto Front (PF) [78] and any of these solu-         better computers and new techniques and algorithms. Zitzler
+tions are optimal and it is up to the operator of the problem      et al. [193] interested in testing and comparing evolutionary
+to choose the best one according to his preference. See the        multi-objective optimization algorithms has created six test
+variable decision space and the objective or solution space
+with examples of non-dominated solutions in blue (PF) in           Fig.2Regions of a design problem with two-variable and two objec-
+Fig. 1, where n is the number of design variables and k is the     tive functions [66]
+number of objective functions of the problem.
+
+   Possible solutions in variable decision space generate
+solutions in the objective space and dominance relations are
+analyzed to eliminate those that are not Pareto-optimal. As
+seen, this front is built through iterations and before having
+a final Pareto front, there are local Pareto fronts behind this.
+Each MOP has a characteristic PF, which can be continuous
+or discontinuous (disconnected) and convex or concave. A
+MOP will be considered convex if the viable set and the
+individual objective functions are convex (as in Fig. 1) and
+this leads to a convex PF. If the viable set is not convex, or at
+least one of the functions is non-convex, the problem will be
+considered concave. In general, for non-convex MOP, PF can
+be concave and disconnected [36]. Not every region of the
+objective space, including those above the PF, is a feasible
+
+Fig.1Regions of a design
+problem with two-variable and
+two objective functions [66]
+
+                                                                                              1 3
+2288                                                                                           J. L. J. Pereira et al.
+
+                                                                       2.1.1.1 Global Criterion MethodThe ideal point or ideal
+                                                                       vector is the utopia solution that contains each separately
+                                                                       minimum objective function value achieved at the same
+                                                                       point; see Eqs. (2) and (3) [31]. The Nadir point is the exact
+                                                                       opposite, is the vector that contains each separately maxi-
+                                                                       mum objective function value found.
+
+                                                                       f 0i (x0i) = min fi(x)  (2)
+
+Fig.3Capabilities that a meta-heuristic must have to be successful in  f 0 = f 01 , f 01 , f 01 , ..., f 0 T k (3)
+a MOP
+                                                                       Therefore, the best solution found in this method is seen in
+functions that are still one of the most popular ones for testing      Eq. (4) [113]:
+new algorithms [114, 115]. The ZDT (Zitzler-Deb-Thiele) test
+functions are a set of problems with very diverse Pareto fronts                           k
+in which the best algorithm is the one that has the Pareto front
+found closest to the true Pareto front. Figure 4 shows the true        Lp = min( |fi  | (x) - fi |0|)1p (4)
+Pareto front for some of these functions.                                          i=1 | |
+
+   Note that the Pareto fronts of the ZDT1 (Fig. 4a) and               where fi(x) is the objective function i evaluated for all x with
+ZDT2 (Fig. 4b) functions are continuous, however the first             i=1, 2, ..., k the number of objectives and fi0 the minimum
+is convex and the second is concave. The ZDT3 (Fig. 4c)                value found in the minimization separately of function i.
+represents the discreteness feature; its Pareto-optimal front          The solution obtained depends greatly on the value chosen
+consists of several noncontiguous convex parts and the                 for p, widely used choices are 1, 2 or . This is the function
+ZDT4 (Fig. 4d) contains �219 local Pareto-optimal front and,           that provides the shortest distance between the PF and the
+therefore, tests for the algorithm�s ability to deal with multi-       ideal point. If p is one, there is a linear distance and if 2, a
+modality. The first three have thirty design variables and the         Euclidean distances [113].
+last ten. Those functions that are well defined can check how
+well a new algorithm has convergence and coverage capa-                   The main drawback of these types of methods is to
+bilities. At the same time, it shows how diverse the Pareto            neglect all other solutions.
+fronts of a real engineering problem can be.
+                                                                       2.1.2A Priori Preference Articulation
+2.1Main Methods to Approach Multiobjective
+     Problems                                                          In a priori methods the DM need to input his preference
+                                                                       before optimization starts. This method have some difficul-
+There are several techniques for dealing with MOPs. In gen-            ties: (i) The DM, when initially taking his preferences, can
+eral, they are classified according to when the preferences of         neglect important aspects of the problem and consequently
+the problem operator (or decision maker, DM) are inserted              arrive at ineffective or even confusing results [167], (ii) An
+in the problem: a priori, interactive, a posteriori methods or         algorithm like this should be run multiple times to determine
+no preference method [32].                                             the PF and (iii) some special PF�s can not be determined
+                                                                       with this approach [36, 111]. The main drawbacks of these
+2.1.1No Preference Methods                                             methods are that: (i) an algorithm should be run multiple
+                                                                       times to determine the Pareto optimal set, (ii) there is a need
+In no preference methods the DM is not needed. Only one                to consult with an expert because an inexperienced DM can
+solution is computed and is usually as close as possible to            select bad regions for exploration and neglect better ones by
+the ideal point.                                                       inducing the optimization process in the wrong direction and
+                                                                       (iii) some special Pareto optimal fronts cannot be determined
+                                                                       with this approach [114].
+
+                                                                       2.1.2.1 Lexigraphic MethodIn Lexigraphic method the
+                                                                       DM must arrange the objective function according to their
+                                                                       absolute importance (best to worst). After, the most impor-
+                                                                       tant objective function is minimized subject to the original
+                                                                       constraints. If this problem has a unique solution, is the
+                                                                       solution of the whole MOP. Otherwise, the second most
+                                                                       important objective function is minimized. Now, in addition
+
+1 3
+A Review of Multiobjective Optimization: Methods and Algorithms in Mechanical Engineering...                        2289
+
+a) Convex PF                                                                                         b) Concave PF
+
+                     c) PF with several convex parts             d) PF with two difficulties: no uniformity of
+                                                                       search space and lowest density of the
+Fig.4Main ZDT test functions for MOP                                           solutions near the true PF
+
+to the original constraints, a new constraint is added to guar-  tries to minimize the absolute deviations from the targets
+antee that the most important objective function preserves       to the objectives. The simplest form of this method is in
+its optimal value. If this problem has a unique solution, is     Eq. (5) [31, 42]
+the solution of the original problem. Otherwise, the process
+goes on as above [145]                                                k
+
+2.1.2.2 Goal ProgrammingIn this method, DM has to                min             (x)  -
+assign targets or a goal that wishes to achieve for each
+objective. These values are incorporated into the problem                  ||fi               Ti  |                 (5)
+as additional constraints and then the objective function                                         |
+
+                                                                      i=1
+
+                                                                 where Ti denotes the target or goal set by the DM for the i-th
+                                                                 objective function fi(x).
+
+                                                                                                                    1 3
+2290                                                                                                                           J. L. J. Pereira et al.
+
+   Other less used a priori methods and references for          need to consult with an expert to find the best weights [116].
+knowing hands are: Min-Max Optimization [127, 146],             According to Miettinen [113], this method can be an a priori
+Multi-attribute Theory [121], ELECTRE (elimination and          method if the DM defines the weight he wants to transform
+choice translating algorithm) [19] and it is derivations;       a MOP into a mono-objective problem.
+PROMETHEE (Preference Ranking Organization Method
+for Enrichment Evaluations) [21], among others.                 2.1.4.2 Constraint Method This method was introduced
+                                                                by Haimes et al. [70] and only one of the objective functions
+2.1.3An Interactive Preference Articulation                     is selected to be optimized and all other objective functions
+                                                                are converted into constraints by setting an upper bound
+In Interactive methods the DM can to articulate his prefer-     to each of them. The problem to be solved has the form in
+ences during the optimization process, usually based on the     Eq. (7):
+domain knowledge acquired during the optimization [50,
+82]. These techniques normally operate in three stages: (i)     minimize fl(x)
+find a non-dominated solution, (ii) get the reaction of the     subject to fj(x)  j (7)
+DM regarding this solution and modify the preferences of
+the objectives according to his need and (iii) repeat the two   where for all j=1, ..., k, jl, l {1, ...,k}.
+previous steps until the DM is satisfied [32].
+                                                                2.1.4.3 Hybrid Method This method combines the Weight-
+   The main algorithms that use this technique are: (i) Prob-   ing Method and the -Constraint Method [113].
+abilistic Trade-Off Development Method (PROTRADE), (ii)
+STEP Method and (iii) Sequential Multi-objective Problem        2.1.4.4 Normal Boundary Intersection The Normal Bound-
+Solving Method, (iv) Interactive Surrogate Worth Trade-         ary Intersection (NBI) is proposed by Das and Dennis [36]
+Off Method (ISWT), (v) Geoffrion-Dyer-Feinberg Method           and according to the author, the method is independent of
+(GDF), (vi) Sequential Proxy Optimization Technique             the relative scales of the functions and is successful in pro-
+(SPOT), (vii) Tchebycheff Method, (viii) Reference Point        ducing an evenly distributed set of points in the Pareto set
+Method, among others [63, 31, 33, 113, 118].                    given an evenly distributed set of parameters, a property
+                                                                which the popular method of minimizing weighted combi-
+2.1.4A Posteriori Preference Articulation                       nations of objective functions lacks. However, according to
+                                                                Brito et al. [24], this method is extremely sensitive to the
+In a posteriori methods, a set of representatives Pareto opti-  presence of correlation between objective functions that are
+mal is obtained and the DM can analyze the trade-off rela-      used in the construction of PF.
+tionships between the objectives [32]. This method is the
+most used in the literature to solve real problems, since one      This method starts with the determination of the payoff
+of the advantages is to find PFs that no other method can find  matrix (). The vector of decision variables that minimizes
+and with just one program run [114, 115].                       the objective function fi (x) is represented by xi* and conse-
+                                                                quently the minimum value of fi (x) at this point is fi* (xi*).
+2.1.4.1 Weighting MethodThe idea is associate each              When replacing the individual point xi* in the other func-
+                                                                tions, there is fi (xi*), this is a non-optimal value of this func-
+objective function with a weighting coefficient and mini-       tion. Repeating the algorithm for all m functions, is obtained
+                                                                the payoff matrix represented in Eq. (8):
+mize the weighted sum of the objectives. The multiple
+                                                                       f 1 (x1)  f1(xi )  f1(xm ) 
+objective functions are transformed into a single objective               ...  
+                                                                 =  f i (x1)  f i (xi )  f i (xm )  (8)
+functions. The weights wi are positive real numbers for al              ...    
+                                                                       f m(x1)  fm(xi )  f m(xm) 
+i=1,..., k objective functions. The weights are normalized,
+                                                                   Each line of  is composed of minimum and maximum
+              k                                                 values of fi (x). These sets of extreme points are used to
+                                                                normalize objective functions. Considering a set of weights
+                                                                wi, the * wi will represent a point on the utopia line. Since
+that is, wi = 1. So, here is the Eq. (6) [184]:                  is a unit vector in the direction of origin and normal to the
+                                                                utopia line at points * wi, is obtained that * w+D*  will
+            i=1                                                 represent the set of points in that normal. The point where
+
+k
+
+
+min wifi(x)
+                                                 (6)
+
+i=1
+
+   However, the main drawbacks of this approach are the
+need to run an algorithm multiple times to find multiple
+Pareto optimal solutions, dealing with all the challenges
+in every run, lack of information exchange between Pareto
+optimal solutions during optimization cause weights are
+always positive and concave PF can not be found and the
+
+1 3
+A Review of Multiobjective Optimization: Methods and Algorithms in Mechanical Engineering...  2291
+
+the normal intersects the boundary of the viable region          making the MOP solution extremely costly and slows even
+closest to the origin will be the point corresponding to the     computationally [31]. Deterministic methods are those based
+maximization of the distance between the utopia line and         on gradient or derivatives and the most used in MOP are:
+the PF [36, 24]. Therefore, the NBI method can be written        (i) Greedy, (ii) Hill Climbing algorithms, (iii) Branch and
+as a constrained nonlinear maximization problem defined          Bound, (iv) Depth-First and (v) Breadth-First, (vi) best-first
+as in Eq. (9):                                                   and (vii) calculations-based [23, 64]. However according
+                                                                 Parkinson et al. [136] and Coello et al. [31], deterministic
+Max(x,t)D                                                        algorithms have difficulty for optimization problems with: (i)
+s.t.    w + D  = F(x) (9)                                        discrete-valued design variables,(ii) large number of design
+                                                                 variables; (iii) multiple local minima, maxima, and saddle
+   This problem must be solved iteratively for different val-    points (multimodal); (iv) no differentiable objectives and
+ues of w to generate an equally spaced PF.                       constraints; (vi) discontinuities of functions or regions (vi)
+                                                                 analysis programs which crash for some designs. Therefore,
+2.1.4.5 Technique for Order of Preference by Similarity          enumerative and deterministic search techniques are unsuit-
+                                                                 able in real-world and engineering MOPs. Therefore they
+to Ideal Solution The Technique for the Order of Preference      will not be addressed in this paper.
+by Similarity to Ideal Solution (TOPSIS) was introduced by
+Hwang and Yoon [76] and became a classic multiple attrib-           Stochastic techniques have demonstrated great poten-
+ute decision making method with more than 4500 citations         tial for the solution of complex MOPs and are increasingly
+[183]. TOPSIS determines the positive ideal solution (A+)        gaining space with the increase in the speed and processing
+(Utopia point) as well as the negative ideal solution (A-)       capacity of computers. Today this is the main technique for
+(Nadir Point) and normalizes each of the objectives accord-      engineers and designers and although there are several algo-
+ing to itself and multiplies them by the weight assigned to      rithms, the basis of all of them consists in the initialization
+each objective, being the sum of all weights wi always one.      of the optimization process with a set of random candidate
+Then it calculates the Euclidian distance of each solution       solutions for a given problem and improves them over a pre-
+(Ai) in the Pareto front to the utopia point (originating S+i )  defined number of steps. To address the real-world issues,
+and to the Nadir point (originating S-i ) and calculates the     these algorithms should be equipped with different operators
+score Pi using Eq. (10):                                         [114, 115].
+
+S-i                                                                 The literature shows that almost all stochastic algorithms
+Pi = + -  (10)                                                   used in multi-objective optimization were inspired by some
+Si + Si                                                          optimal phenomena found in nature and are commonly
+                                                                 called meta-heuristics. In general, there are four main groups
+   If Pi=1, Ai=A+and if Pi=0, Ai=A(that is, the higher           that divide meta-heuristics according to the inspiration for
+Pi, the better the solution). In few words, TOPSIS deter-        their creation: (i) based on evolution, (ii) based on physical
+mines the best compromised solution, which was the closest       phenomena, (iii) based on behaviors related to humans and
+to (A+) and the furthest from (A-) based on the Pareto set       (iv) based on swarms [72]. For Yang [179], there is also a
+according to the objective weights and the normalization of      classification for meta-heuristic algorithms that can be based
+these solutions. Note that with the Score Pi of each solution,   on trajectories or population.
+it is possible to rank all solutions on the Pareto front from
+best to worst according to TOPSIS.                                  In the literature, an immense variety of meta-heuristics
+                                                                 can be found that are capable of solving mono-objective
+2.2Main Algorithms to Approach Multiobjective                    optimization problems, but the number of algorithms capa-
+     problems                                                    ble of solving a MOP is much less.
+
+Regardless of the way the DM approaches MOP, this as             2.2.1Evolutionary Algorithms
+an optimization problem and must have some technique
+of general search that should lead to the maximization or        Evolutionary algorithms were the first meta-heuristics
+minimization of the functions or their compositions. Just        created to deal with multi-objective optimization prob-
+like optimizing a single objective, The MOP can be clas-         lems and they drastically broke (and at the same time
+sified through 3 categories according to the applied search      can be used together) with most of the classic methods
+technique: enumerative, deterministic and stochastic.            presented earlier. They deal simultaneously with a set of
+                                                                 possible solutions (the so-called population). This allows
+   Enumerative is the simplest search strategy where each        finding several members of the Pareto optimal set in a
+possible solution is evaluated. However, this technique is
+inefficient or even unfeasible as search space becomes large,
+
+                                                                                              1 3
+2292                                                                                                                          J. L. J. Pereira et al.
+
+single run of the algorithm and are less susceptible to the    2.2.2Others Metaheuristics
+shape or continuity of the PF [31].
+                                                               Although there are good evolutionary algorithms for cer-
+   In short, they use paradigms from natural evolution,        tain types of problems, that are population-based and the
+such as selection, recombination and mutation to lead a        inspiration is natural evolution, it has been shown that there
+population (set) of individuals (decision vectors) towards     is still room for improvement for specific problems. Based
+optimal or near-optimal solutions [15]. The first meta-        on this, other important multi-objective optimization algo-
+heuristic created in this sense was by Holland [73], it        rithms found in the literature are: (i) Simulated Annealing
+dealt with mono-objective problems and is called Genetic       for Multi-objective Optimization (SAMO) [157],(ii) Multi-
+Algorithm (GA). The first to be developed to deal with         objective Tabu Search (MOTS) [56]; (iii) Multi-objective
+MOP�S is now called multi-objective evolutionary algo-         Ant-Q (MOAQ) [109], (iv) Vector Evaluated Particle
+rithm (MOEA) or Vector Evaluation Genetic Algorithm            Swarm (VEPSO) [56]; (v) MOPSO [120]; (vi) Adaptive
+(VEGA) [159]. VEGA was mainly aimed for solving prob-          Weighted Particle Swarm Optimization (AWPSO) [106].
+lems in machine learning [31].                                 2004); (vii) Artificial Immune Systems (AIS) [30]; (viii)
+                                                               Multi-objective Water Cycle Algorithm (MOWCA) [150],
+   After this, many other derivations with attempts at         (ix) Multi-Objective Grey Wolf Optimizer (MOGWO) [114,
+improvement came. The main ones are: (i) VEGA, (ii)            115],(x) Multi-objective Imperialist Competitive Algorithm
+Lexigraphic Ordering GA (LOGA- a priori preference)            (MOICA) [20], (xi) Self-adaptive Multi-objective Brain
+[52], (iii) Vector Optimized Evolution Strategy (VOES)         Storm Optimization (SMOBSO) [69], (xii) Multi-objective
+[91], (vi) Weight-Based GA (WBGA) [71], (v) Multi-             Ant Lion Optimization (MOALO) [115], (xiii) MOGOA
+ple Objective GA (MOGA) [50], (vi) Niched Pareto GA            [116], (xiv) Multi-objective Sine-Cosine algorithm (MO-
+(NPGA, NPGA 2 [74, 75], (vii) Non-dominated Sorting            SCA) [166], (xv) Multi-objective Stochastic Fractal Search
+GA (NSGA, NSGA II) [38, 163], (viii) Strength Pareto           (MOSFS) (Khalilpourazary et al. 2019), (xvi) Multi-objec-
+Evolutionary Algorithm (SPEA, SPEA II [193, 194], (ix)         tive Seagull Optimization Algorithm (MOSOA) [39], (xvii)
+Multi-objective Evolutionary algorithm Based on Decom-         Evolutionary MOSOA (EMOSOA) [39], (xviii) Differential
+position [189], (x) Pareto Archived Evolution Strategy         Evolution-Crossover Quantum Particle Swarm Optimization
+(PAES) [89], among others.                                     (DE-CQPSO) [171] (xix) Multi-objective Sunflower Opti-
+                                                               mization [53], etc. As well as the evolutionary algorithms,
+   With some exceptions, the distinction between all evo-      all of them have their internal parameters that regulate their
+lutionary multi-objective algorithms is mainly due to the      search according to their inspiration and then, these solu-
+differences in the paradigms used to define the selection      tions are compared using a Pareto dominance operator. All
+operators, whereas the choice of the variation operators is    are stochastic algorithms and most of them has a posteriori
+generic and dependent on the problem. As example, one          preference.
+of the most popular is the NSGA II which can be applied
+to continuous search spaces as well as to combinatorial        Fig.5Performance of the main evolutionary algorithms in the ZDT3
+search spaces, whereas the selection operators stay the        function [ adapted from Zitzler et al. [193]]
+same, the variations operators (mutation and combination)
+must be adapted to the representations of solutions in the
+decision space [45]. All population-based multi-objective
+algorithms are almost identical. They start the optimiza-
+tion process with multiple candidate solutions and such
+solutions are compared using the Pareto dominance opera-
+tor. The most well regarded ones are: SPEA, NSGA-II,
+MOEA/D and PAES [114, 115]
+
+   Although most of these algorithms are divided between
+a priori, interactive or a posteriori methods, most of them
+are like the latter. All are stochastic. According to the no-
+free-lunch theorem, none of them can be excellent at solv-
+ing any type of problem. Zitzler et al. [193] applied several
+evolutionary algorithms to identify the PF of the ZDT3
+function shown in Fig. 4c. Figure 5 has the result for each
+of these algorithms and also that of a random search. As
+evidenced, any evolutionary algorithm can be better than
+a rand, but there are significant differences between them
+and these differences can be very different from problem
+to problem.
+
+1 3
+A Review of Multiobjective Optimization: Methods and Algorithms in Mechanical Engineering...  2293
+
+   It is possible to observe a huge variety of stochastic          Fan et al. [47] designed a new mixed flow flan improv-
+algorithms found in the literature. For Yang [179], there       ing a currently standard model. The author increased the
+are no good or bad algorithms, but one more appropriate         efficiency by 11.71% and the pressure raised by 50.15%
+for a given optimization problem. It is a difficult task for a  using Orthogonal Method (OM). The purpose of this
+single algorithm to face any type of MOP with good bal-         method is to test the influence of a particular factor over
+ance of exploration, exploitation, convergence, coverage and    the whole outcome, with the view of obtaining optimal
+low computational cost at the same time. This fact suggests     configuration in terms of the performance levels [187].
+that there is always an opening for the development of new      Zhang et al. [186, 188, 191] also applied multi-objective
+meta-heuristics.                                                optimization using OM in design of Axial Flow Pump
+                                                                where the new design's head and efficiency increased by
+3Literature Review                                              17.8% and 4.26%, whilst the shaft power and the pressure
+                                                                pulsation coefficient reduced by 1.22% and 11%, respec-
+Multi-objective optimization has been improving and devel-      tively. Wang and Huo [177] used the same approach to
+oped for some decades as it faces several problems that may     improve the hydraulic performance of a centrifugal pump.
+be encountered. The number of applications has been grow-       Karimi et al. [84] proposed a design optimization approach
+ing in Mechanical Engineering and the following are those       for floating offshore wind turbine support structures,
+that are considered most relevant or recent, divided into       where the author found the locus of platform cost minima
+the subareas where multi-objective optimization is present:     and wind performance maxima for a given environmental
+design optimization, manufacturing and structural health        condition and sea state spectrum modifying the geometry
+monitoring.                                                     of the structure (multi-objective constrained problem).
+
+3.1Multiobjective Problems in Design                               Moleiro et al. [117] studied metal-ceramic function-
+     Optimization                                               ally graded (FG) plates, which are composed of a main
+                                                                functionally graded material layer and may include metal
+Undoubtedly one of the greatest applications in mechanical      and/or ceramic faces under thermo-mechanical loadings.
+engineering is in determining the geometry of structures to     Other authors who also studied this type of structure with
+obtain the best possible performances. Generally related to     a pit in multi-objective optimization were: Ashjari and
+weight, stiffness, aerodynamics and/or modal parameters.        Khoshravan [14] and Franco Correia [54, 55]. Both con-
+The more objectives that must be met at the same time, the      sidered constraints on the problem.
+more complex MOP becomes. The most relevant applica-
+tions are cited in the text and the objective functions, deci-     Multi-objective optimization is widely found in the
+sion variables and algorithm employed are in Table 1.           design of collision structures. Asanjarani et al. [13] pre-
+                                                                sented a crashworthiness optimization of the tapered thin-
+   Grachi et al. [62] found a design for a meta-material that   walled square tube with indentations using one and multi-
+found the viscoelastic with the highest vibration attenua-      objective approach, where the author found an optimized
+tion in a low-frequency range. Meta-materials are compos-       collision geometry. Zhang et al. [186] developed a hybrid
+ites that are artificially engineered to have unconventional    multi-objective optimization approach for absorbing struc-
+mechanical properties that stem from their microstructural      tures in train collisions that brought good results using
+geometry rather than from their chemical composition.           multi-objective artificial bee colony. Peng et al. [132]
+                                                                also studied structures for collision using NSGA-II with
+   Schlieter and Dlugosz [155] optimize the design of an        an approach using finite element methods and design of
+airfoil by proposing a new optimization methodology and         experiments (DOE).
+obtaining many optimal Pareto solutions for a large number
+of decision variables. Li et al. [97] proposed a new method        Ebrahimi-Nejad et al. [44] tried to found the best design
+for optimizing the design of wind turbine blades that sur-      of a sports car suspension system using simplified quarter-
+passed traditional methods, since in addition to optimizing     car models and TOPSIS. Other authors who studied sus-
+structural strength and stiffness of the blade also considers   pension designs using a multi-objective approach were: (i)
+the noise and power generation efficiency. Wang et al. [173,    Zhang et al. [188] performed the multi-objective suspension
+175] also studied multi-objective wind turbine blade design     system optimization for an in-wheel-motor driven electric
+proposing a novel gradient-based multi-objective evolution      vehicle, (ii) Zhang and Wang [189] conducted a parametric
+algorithm based on both uniform decomposition and differ-       study to optimize a half-vehicle suspension system model,
+ential evolution (MODE/D), which according to the author,       (iii) Fossati et al. [51] used NSGA-II and numerical compu-
+performed better than NSGA-II mainly when the number of         tational studies comprising the multi-objective optimization
+objectives is increased.                                        of a full-vehicle suspension, (iv) Jiang and Wang [79, 80]
+                                                                used TOPSIS to optimize the suspension system of a truck
+                                                                and also to optimize handling stability and ride comfort.
+
+                                                                                              1 3
+1 3  Table1Multi-objective optimization system in design problems                                                                                                                                 2294
+
+     Authors                         Objective functions                           Decision variables                         Optimization method                     Structure
+
+     Panagant et al. [130]           Structural mass and Compliance                Several variables related to the size and  Fourteen meta-heuristics                Truss                       J. L. J. Pereira et al.
+     Panagant et al. [129]                                                           number of trusses                        Fourteen meta-heuristics                Floor-flame
+     Grachi et al.[62]               Strucutural mass, welding cost and                                                       MO based on GA                          Metamaterial
+     Schlieter and Dlugosz [155]       compliance                                  Topology, shape and size                   MO based on DE                          Airfoil
+     Moleiro et al. [117]                                                                                                     Direct MultiSearch (DMS)                FG blades
+     Ashjari, Khoshravan [14]        Metamaterial inertia and Bragg scatter-       Layer thickness and number of layers       NSGA II                                 FG blades
+     Franco Correia et al. [54, 55]    ing effect                                                                             DMS                                     FG blades
+                                                                                   24 design variables (geometry)
+     Li et al. [97]                  Equivalent stress, displacement, fre-                                                    MOPSO and finite volume method          Wind turbine blade
+     Wang et al. [173, 175]            quency, mass                                Thickness, power-low distribution, the     MODE/D                                  Wind tubine blade
+     Fan et al. [47]                                                                 thickness of metal                       Orthogonal method                       Mixed flow FAN
+     Zhang et al. [191]              Mass, displacement and Tsai-Hill failure                                                 Orthogonal method                       Axial flow pump
+                                       criteria                                    FG core volume fractions and thickness
+     Wang and Huo [177]                                                              of the face sheets                       Orthogonal method                       Centrifugal pump
+     Karimi et al. [84]              Mass and deflection                                                                      NSGA-II                                 Offshore support
+     Asanjarani et al. [13]                                                        Index of the power-law of volume frac-     RSM, NSGA-II and desirability function  Tapered thin-walled square
+                                     Mass, cost, natural frequency                   tions, thickness of FGM layer and face
+     Zhang et al. [186]                                                              sheets                                   MOABC                                     tube
+     Ebrahimi-Nejad et al. [44]      Structural strength, stiffness, noise reduc-                                             TOPSIS                                  Train collision piece
+     Zhang et al. [187]                tion and aerodynamic performance            Chord length and twist angle (for each     NSGA-II                                 Sports car suspension
+     Fossati et al. [51]                                                             cross section)                           NSGA-II                                 Suspension system
+     Rao et al. [142, 144]           Energy production, blade mass, root                                                      Jaya algorithm                          Full-vehicle suspension
+                                       thrust, cost                                30 related to design                                                               Plate-fin heat exchangers
+
+                                     Efficiency and Pressure                       Hub angle of impeller (and wrap) and
+                                                                                     diffuser
+                                     Head, efficiency, shaft power and pres-
+                                       sure pulsation                              Number of blades, blade setting angle,
+                                                                                     hub ratio, distance between the blade
+                                     Indexes head, efficiency, shaft power and       and the guide vane
+                                       pump net positive suction head
+                                                                                   Impeller outlet width, blade inlet angle,
+                                     Cost model and wind turbine perfor-             blade outlet angle and cape angle
+                                       mance metric
+                                                                                   Nine geometric variables of multi-body
+                                     Specific energy absorption and ratio            platform
+                                       between average and maximum crush-
+                                       ing forces                                  Cross section, thickness, taper angle,
+                                                                                     number and radius of indentations
+                                     Capability of absorbing impact and
+                                       energy                                      Side length and wall thickness of hexago-
+                                                                                     nal tube
+                                     unsprung and sprung mass accelerations,
+                                       displacement and suspension travel          Stiffness and damping
+
+                                     Sensitive of the front double pivot and the   Eighteen parameters related to stiffness
+                                       rear double wishbone suspensions              and damping coefficients
+
+                                     Three objective functions related to com-     Six parameters being stiffness and damp-
+                                       fort and safety                               ing coefficients of each suspension
+
+                                     Total surface area, total annual cost, total  Seven design variables related to geom-
+                                       pressure drop and effectiveness               etry
+A Review of Multiobjective Optimization: Methods and Algorithms in Mechanical Engineering...  2295
+
+Structure                                                                      Panagant et al. [130] conducted a research using 14 types
+      Radial expanders                                                      of meta-heuristics in 8 types of classical trusses subject to
+                  Beam structure                                            bound and stress constraints and compared the results of
+                          Composite cylindrical                             each one, concluding that the algorithm proposed by them
+                              Composite plate                               was the one that had the best performance, the Success His-
+                                   Composite plate                          tory-based Adaptive Multi-objective Differential Evolution
+                                       Composite plate                      (SHAMODE-WO). Panagant et al. [129] also used 14 meta-
+                                           Composite plate                  heuristics, this time in an automotive floor-frame. The author
+                                                Composite plate             concluded that the meta-heuristic proposed in his work was
+                                                                            one of the best algorithms, the Real-code Population-Based
+Optimization method                                                         Incremental Learning hybridized with Adaptive Differential
+      Multi-objective firefly algorithm                                     evolution (RPBILADE).
+                  NSGA-II
+                          NSGA-II                                              In the thermal area some designs can be found. Rao et al.
+                              NSGA-II                                       [142, 144] applied single and multi-objective optimization
+                                   MOGA                                     in design of plate-fin heat Exchangers, which the design
+                                       VEPSO                                involves a number of geometric and physical parameters
+                                           NSGA-II                          with high complexity. The general approaches are based
+                                                GA                          and trial and few studies before him used multi-objective
+                                                                            optimization. One of these was Ahmadi et al. [5] who used
+Decision variables                                                          NSGA-II. However, Rao compared this study to his and
+      Different organic working fluids, mass                                concluded that Jaya had a better result. Bahadormanesh
+                                                                            et al. [16] applied multi-objective optimization in improve-
+          flow rate, evaporator temperature,                                ment design of radial expanders of Organic Rankine Cycles
+             maximum pressure                                               (ORC) using firefly algorithm, where it was possible to pre-
+                  Volume fractions, thickness and fiber                     select better parameters for the construction of these rotors.
+                     orientation angles                                     Wang et al. [174] also applied multi-objective optimization
+                          Cylinder thickness, radius and lenght             in ORC, but aiming to improve aspects thermodynamics and
+                              Fiber orientation                             economics using NSGA-II.
+                                   Stacking sequence, thickness, material
+                                       Fiber orientation                       Works in the field of composite materials can also be
+                                           Thickness, fiber and resin       found. Vo-duy et al. [170] optimized a beam structure made
+                                                Volume fraction, thickness  by laminated composite using finite element method. Gha-
+                                                                            semi and Hajmohammad [59] applied multi-objective opti-
+Objective functions                                                         mization in design of laminated composite cylindrical shell
+      Thermal efficiency and size parameter                                 under external hydrostatic pressure for minimum cost and
+                  Weight, natural frequency                                 maximum buckling pressure. Other actors who also worked
+                          Mass/cost, buckling                               with the optimization of carbon fiber structures using a
+                              Rigidity, buckling                            multi-objective approach were: Arian Nik et al. [12], Lee
+                                   Weight, deformation                      et al. [92], Omkar et al. [126], Kalantari et al. [83], Ikeya
+                                       Weight, cost                         et al. [77] and Diniz et al. [41].
+                                           Weight, cost
+                                                Mass, compliance            3.2Multiobjective Problems in Manufacturing
+
+Table1(continued)                                                           Processing engineering is an extensive area in Mechani-
+     Authors                                                                cal Engineering, the largest areas of which are Welding,
+            Bahadormanesh et al. [16]                                       Machining and Molding.
+                       Vo-duy et al. [170]
+                               Ghasemi [59]                                 3.2.1Welding
+                                    Arian Nik et al. [12]
+                                        Lee et al. [92]                     Welding is one of the most important areas of engineering
+                                             Omkar et al. [126]             and there are currently many types of processes. Some
+                                                 Kalantari et al. [83]      of these processes can have a large number of decision
+                                                      Ikeya et al. [77]     variables controlling the process, with high complexity
+                                                                            of correlation or analytical solutions. Still, you can have
+
+                                                                                              1 3
+2296                                                                                                                              J. L. J. Pereira et al.
+
+numerous objectives to be optimized simultaneously.                   Saha and Mondal [151] studied the optimization of
+Some of them are to increase productivity, decrease costs,         manual metal arc welding (MMAW) process parameters for
+reduce the thermally affected zone, increase the reinforce-        nanostructured hardfacing material using hybrid approach
+ment, decrease (or increase) the hardness, decrease the            with Taguchi, TOPSIS and PCA (Principal Component
+emission of toxic gases, decrease the consumption of               Analysis) identifying the optimal process parameters. The
+electric energy, increase the impact strength, increase            study of the optimization of welding parameters by a multi-
+the tensile strength, increase elongation in the weld area,        objective approach was found less frequently in other pro-
+reduce noise pollution, among others. As seen, the use of          cesses because they are not so common or are recent: (i)
+Meta-heuristics has collaborated a lot to deal with this           Laser-magnetic hybrid welding (LMW) by Yang et al. [180],
+extensive area. The most relevant applications are cited in        (ii) hot wire laser welding (HLW) by Yang et al. [181] (iii)
+the text and the objective functions, decision variables and       Hybrid laser-arc welding (HLAW) by Gao et al. [57], (vi)
+algorithm are in Table 2.                                          laser welding process (LW) by Jiang et al. [81] using FEM,
+                                                                   Kriging (a meta-model) and NSGA-II, (v) Micro resistance
+   Ahmad et al. [4] studied Submerge Arc Welding (SAW)             spot welding (MRSW) by Chen et al. [27] and (vi) Laser
+looking for optimal parameters to achieve productivity and         beam machining by Belinato et al. [18].
+weld quality. SAW is a versatile welding process widely
+used in fabrication and manufacturing of marine and pres-             Another type of multi-objective problem related to
+sure vessels, pipelines and offshore structures. Other authors     welding is the local scheduling. Lu et al. [104] studied an
+who also studied the SAW process aiming at multi-objective         approach to welding shop scheduling that according to the
+optimization, generally as weld quality, strength, hardness        authors, should simultaneously consider economic, environ-
+and/or productivity, were: Choudhary et al. [29], Ahire et al.     mental and social impacts. In this way, the authors proposed
+[3], Sailender et al. [153], Silva et al. [154], Rao et al. [142,  a multi-objective approach using a novel hybrid multi-objec-
+144], Al Dawood et al. [6], Yifei et al. [182] (welding robot      tive grey wolf optimizer (HMOGWO) for makespan (total
+parameters), Torres et al. [168], among others.                    sum time of each process), energy consumption and noise
+                                                                   pollution (ignores in previous studies). The same author
+   Sowrirajan et al. [162] applied multi-objective optimiza-       in Lu et al. [105] applied the same algorithm for dynamic
+tion to find the optimum clad layer dimensions in pressure         scheduling in a real-world welding industry. In both cases
+vessels using stainless steel that maximize clad height and        the authors concluded that the algorithm used outperforms
+clad width and minimize depth of penetration in a process          known EA's.
+FCAW (Flux Cored Arc Welding). Paula et al. [131] and
+Almeida et al. [11] also studied the optimization of the           3.2.2Machining
+parameters of this process.
+                                                                   Another major area of process engineering is machining.
+   Shao et al. [161] studied the optimization of gas metal         As with welding, machining has a wide range of processes
+arc welding (GMAW) parameters and sequences for low-               like milling, turning, drilling or cutting and each can have
+carbon steel (Q345D) T-joint using FEM and DOE conclud-            a great number of decision variables that control the pro-
+ing that the welding residual deformation and stress always        cesses. Some of the conflicting objectives to be optimized
+have opposite behavior and are very influence by the process       simultaneously are minimizing roughness, minimizing cost,
+parameters. Lorza et al. (2018) also studied the optimiza-         minimizing cutting force, increasing productivity, increasing
+tion of welded joints in GMAW using FEM, but another               material removal, decreasing process variability, reducing
+algorithm, the NSGA II. Like the previous author, this work        residual stress, among others. The most relevant applications
+approached a methodology to reduce the error between the           are cited in the text and the objective functions, decision
+FEM and a real case. Both seek the selection of optimal            variables and algorithm employed are in Table 3.
+process parameters.
+                                                                      Rao et al. [141] applied multi-objective optimization
+   Another welding process that many authors approached            using Non-dominated sorting Teaching-Learning Based
+to optimize their parameters was the friction stir weld-           algorithm (NSTLBO) in three machining process (turning,
+ing (FSW). Gupta et al. ([60] and [61]) studied this pro-          wire-eletric-discharge machining and laser cutting) and
+cess for joining different alloys in two works with different      two micro-machining process (ion beam micro-milling and
+approaches, but the same materials. In both studies, the opti-     micro wire-electric-discharge machining) looking for the
+mal parameters found were the same. Shanjeevi et al. [160]         best process parameters. The author compared this algorithm
+studied for AISI 304 l austenitic stainless steel and copper       with NSGA-II and others algorithms.
+points. Wakchaure et al. [172] for Alloy 6082 using Tagu-
+chi-GRA and artificial neural network (ANN) and Senthil               Lin et al. [98] studied machining parameters in multi-
+et al. [156] for AA6063-T6 pipes using Analysis of Variance        pass turning operations for low carbon manufacturing
+(ANOVA) and RSM.                                                   considering reducing machine cost, energy consumption
+
+1 3
+A Review of Multiobjective Optimization: Methods and Algorithms in Mechanical Engineering...                                            2297
+
+Table2Multi-objective optimization system in welding process
+
+Authors                  Objective functions                   Decision variables                    Optimization method                Process
+
+Choudhary et al. [29]    Bead width, reinforcement and         Voltage, feed, speed, nozzle to       GA, JAYA Algorithm and desir-      SAW
+                           penetration                           plate distance, flux condition and    ability function
+Ahmad et al.[4]                                                  plate distance                                                         SAW
+                         UTS, Hardness, deposition rate,                                             Taguchi-desirability function
+Ahire et al. [3]           reinforcement height and bead       Current, voltage, speed and heat                                         SAW
+Sailender et al. [153]     width                                 input                               Response Surface and GA            SAW
+Silva et al. [154]                                                                                                                      SAW
+Rao et al. [142, 144]    Welding strength, welding deposi-     Current, speed, root gap and elec-    Taguchi                            SAW
+                           tion rate                             trode angle
+Al Dawood et al. [6]                                                                                 ANOVA                              SAW
+Yifei et al. [182]       UTS and Hardness                      Voltage, feed, speed and nozzle to                                       SAW
+Torres et al. [168]                                              plate distance                      JAYA, GA, PSO and Imperialist      SAW
+Rivas et al. [149]       Dilution, reinforcement and bead                                              Competitive Algorithm            SAW
+                           width radio                         Voltage, feed and nozzle to plate
+Sowrirajan et al. [162]                                          distance                            Taguchi-fuzzy interference system  FCAW
+                         Bead width, weld reinforcement,                                             GA, Particle Swarm optimization
+Shao et al. [161]          weld penetration, tensile strength  Current, speed and feed               Generalized reduced gradient       GMAW
+Lorza et al. [103]         and weld hardness                                                                                            GMAW
+Gupta et al. [60]                                              Current, voltage, speed                 (GRG)                            FSW
+                         UTS and hardness                      Welding path                          NSGA II, MOEA/D, MOPSO,
+Gupta et al. [61]        Productivity and cost                 Voltage, speed, wire feed rate,                                          FSW
+Shanjeevi et al. [160]   Joint dimensions and dilution                                                 SPEA II and PESA II              FSW
+Wakchaure et al. [172]                                           contact distance                                                       FSW
+Senthil et al. [156]     Carbon dioxide emissions, slag,       Current, voltage, welding speed       RSM and NSGA-II                    FSW
+Saha and Mondal [151]      wastes, electric power, material,                                                                            MMAW
+Yang et al. [180]          labor and energy cost,              Open circuit voltage, wire feed       DOE and MOPSO                      LMW
+Yang et al. [181]                                                rate, welding speed, distance and                                      HLW
+Chen et al. [27]         Clad height, clad width and depth       electrode angle                     NSGA II                            MRSW
+Gao et al. [57]            of penetration                                                                                               HLAW
+                                                               Current, voltage, speed, sequence     Grey relational analysis coupled
+Jiang et al. [81]        Welding stress and deformation          and direction                         with PCA and Taguchi             LW
+Lu et al. [104]                                                                                                                         -
+                         Temperature field and angular         Current and voltage                   Artificial Intelligence and NSGA
+                           distortion                                                                  II
+                                                               Rotational speed, welding speed,
+                         Tensile strength, average hardness      shoulder and pin diameter           TOPSIS and Taguchi
+                           and average grain size at weld
+                           nugget zone                         Idem Gupta et al. [60]                ANN, GRA and Taguchi
+
+                         Tensile strength, micro-hardness      Friction and upset pressure, rota-    ANOVA and RSM
+                           and grain size                        tional speed
+                                                                                                     TOPSIS-PCA
+                         Tensile strength, metal loss and      Tool rotation speed, welding speed
+                           weld time                             and tilt angle                      NSGA II and Taguchi
+
+                         Tensile strength and impact           Rotational and weld speed             Meta-models and NSGA II
+                           strength
+                                                               Current, voltage and welding          NSGA-II
+                         Yield, tensile strength and elonga-     speed
+                           tion                                                                      NSGA II and Taguchi
+                                                               Magnetic flux density, laser power,
+                         Weld bead width, reinforcement          welding speed                       Kriging and NSGA-II
+                           and bead hardness
+                                                               Laser power, welding speed, hot-      HMOGWO
+                         Macro-weld profile, microstructure      wire current
+                           and hardness
+                                                               Ramp time, welding time, current
+                         Welding depth and reinforcement         and force
+                           and strength
+                                                               Laser power, current, distance
+                         Tensile-shear, weld nugget size,        between laser and arc and travel-
+                           failure energy                        ling speed
+
+                         Depth of penetration, bead width      Laser power and position and
+                           and bead reinforcement                welding speed
+
+                         Bead width and depth of penetra-      Permutation of tasks, actual
+                           tion                                  quantify of the welders and the
+                                                                 starting time
+                         Makespan, total penalty of
+                           machine load and instability
+
+                                                                                                                          1 3
+2298               Objective functions                          Decision variables                   Optimization method     J. L. J. Pereira et al.
+                                                                                                     HMOGWO
+Table2(continued)  Makespan, noise pollution, energy            Actual, start and finish processing                                    Process
+Authors              consumption                                  time                                                                 -
+Lu et al. [105]
+
+Table3Multi-objective optimization system in machining process
+
+Authors                        Objective functions              Decision variables                 Optimization method       Process
+
+Rao et al. [141]               Tool flank wear and surface      Cutting speed, feed and depth      NSTLBO and NSGA II        5 different
+                                 roughness                        of cut                                                       machining
+Lin et al. [98]                                                                                    MOTLBO                      process -txt
+                               Carbon emissions, operation      Velocity, feed rate, dept of
+Sahu and Andhare [152]           time and cost                    cut and spindle speed of         TLBO, JAYA, GA and RSM    Turning
+Sivaiah and Chakradhar [158]                                      machine tools                    Taguchi and TOPSIS
+Mia et al. [112]               Roughness and force of                                              Gray-Taguchi              Turning
+                                 cutting                        Speed of cutting, feed rate                                  Cryogenic turning
+Gaud�ncio et al. [58]                                             and depth of cut                 RSM, GRG and NBI          Cryogenic turning
+Almeida et al. [10]            roughness, flank wear and                                           RSM
+Park et al. [135]                remove rate                    Speed of cutting, feed rate        RSM, NSGA-II and TOPSIS   Turning
+                                                                  and depth of cut
+Warsi et al. [178]             Cutting force, specific energy,                                     Gray-RSM                  Turning
+Qu et al. [139]                  temperature, surface rough-    Cutting speed, feed rate and       NSGA-II
+Montalvo-Urquizo et al. [119]    ness, material removal           number of jets                   Simulation-based multi-   Turning
+Niu et al. [122]                                                                                                             Milling
+                               Roughness and MMSE               Cutting speed, cutting feed,         objective optimization  Milling
+Prakash et al. [138]                                              machining depth                  NSGA II                   Milling
+                               Mean and deviation of rough-
+Tripathy and Tripathy [169]      ness                           Cutting speed, feed and depth      Taguchi, RSM and NSGA-II  PMEDM
+                                                                  of cut
+Abidi et al. [1]               Cutting energy and energy                                           ANOVA, GRA and TOPSIS     PMEDM
+Prakash et al. [137]             efficiency                     Cutting speed, feed rate, nose
+                                                                  radius, edge radius, rake        MOGA II                   EDM
+Dumbhare et al. [43]           Cutting energy, material           and relief angles                MOPSO                     Mixed-EDM
+                                 removal and roughness
+Rao et al. [142, 144]                                           Cutting speed, feed and depth      ANOVA and RSM             AWJM
+                               Cutting force, roughness,          of cut
+                                 milling efficiency                                                MO-Jaya and PROMETHEE     AWJM
+                                                                Spindle speed, feed per tooth,
+                               Deformation, stress, shape         axial depth of cut
+                                 error and tool wear
+                                                                Cutting velocity and axial
+                               Residual stress, material          cutting depth
+                                 removal rate, roughness and
+                                 surface hardness               Milling speed, feed per tooth,
+                                                                  width of cut, depth of cut
+                               Surface roughness and micro-       and amplitude ultrasonic
+                                 hardness
+                                                                Peak current, pulse dura-
+                               Material removal rate, tool        tion, duty cycle and silicon
+                                 wear rate, electrode wear        powder concentration
+                                 ratio and surface roughness
+                                                                Powder concentration, peak
+                               Material removal rate, rough-      current, pulse on time, duty
+                                 ness and tool wear rate          cycle and gap voltage
+
+                               Material removal rate and        Capacitance, electrode mate-
+                                 surface roughness                rial and discharge
+
+                               Surface roughness and kerf       Peak current, pulse-on, duty
+                                 taper angle                      cycle and powder concen-
+                                                                  tration
+                               Surface roughness and kerf
+                                 taper angle                    Abrasive flow rate, standoff
+                                                                  distance and transverse
+                                                                  speed
+
+                                                                Transverse speed, pressure,
+                                                                  stand-off distance, tilt angle,
+                                                                  surface speed and abrasive
+                                                                  flow rate
+
+1 3
+A Review of Multiobjective Optimization: Methods and Algorithms in Mechanical Engineering...                                             2299
+
+and environmental impacts using a multi-objective teach-           Other welding processes can be found in the literature
+ing-learning-based optimization algorithm (MOTLBO)              that have gained more space and multi-objective approaches,
+in dry and wet cut. Sahu & Andhare [152] applied multi-         but even less common, such as: (i) powder mixed electric
+objective optimization to improve the machinability of          discharge (PMEDM)--studied by Prakash et al. [138](first
+Titanium alloy in cryogenic turning process using Teach-        in this process to use NSGA-II) and Tripathy and Tripathy
+ing-Learning Based Optimization (TLBO), JAYA, GA and            [169], (ii) electrical discharge machine--studied by Abidi
+RSM. Mia et al. [112] also studied cryogenic turning of a       et al. [1] and Prakash et al. [137] and (iii) Abrasive Water
+Titanium alloy. Sivaiah and Chakradhar [158] improved the       jet Machine (AWJM)--studied by Dumbhare et al. [43] and
+cryogenic turning process during machining of hardened          Rao et al. [142, 144].
+stainless steel.
+                                                                3.2.3Molding
+   Gaud�ncio et al. [58] proposed a model for machin-
+ing quality in the AISI 12L14 steel turning process using       Molding is another area in which multi-objective optimiza-
+fuzzy multivariate mean square error, that is, the objectives   tion is not yet fully explored. It also has a significant num-
+are decrease roughness to minimize the roughness and its        ber of decision variables that control the process and many
+own variability (Multivariate mean square error--MMSE).         objectives to be optimizing simultaneously. Among the ana-
+Almeida et al. [10] used this same steel and mean and stand-    lyzed processes, this process had the least number of studies.
+ard deviation roughness objectives to optimize parameters in    Most were in the injection process and aimed at reducing
+turning. Park et al. [135] studied turning process of hardened  the warpage, minimizing the cycle time or reducing costs,
+material aiming to resolve environmental issues reducing        materials or energy used. The most relevant applications are
+the consumed energy and improving energy efficiency. The        cited in the text and the objective functions, decision vari-
+energy decreased 16% and the efficiency could be improved       ables and algorithm employed are in Table 4.
+11% compared to the non-optimized system. Warsi et al.
+[178] studied a sustainable turning of Al 6061 T6 where the        Li et al. [96] proposed an approach to optimize the fiber-
+proposed parameters resulted in reduction of specific cutting   reinforced composite injection molding process. Kitayama
+energy by 5% and improvement of 33% in material removal         et al. [87] proposed another methodology to multi-objective
+rate while surface roughness remained unaffected.               optimization of injection parameters for short cycle time and
+                                                                warpage reduction using conformal cooling channel. The
+   Another machining process is the milling. Qu et al. [139]    same author in Kitayama et al. [88] used the same method-
+applied multi-objective optimization to select optimum          ology to found the optimal parameters in plastic injection
+parameters in milling thin-walled plates. Montalvo-Urquizo      molding for minimizing warpage and cycle time. Zhang
+et al. [119] also studied milling creating a simulation model   et al. [192] studied the optimization of the injection molding
+with FEM that the accuracy of the method compares very          process parameters for diesel engine oil cooler. Okabe et al.
+well with experimental data.
+
+Table4Multi-objective optimization system in molding process
+
+Authors               Objective functions                   Decision variables                    Optimization method           Process
+
+Li et al. [96]        Warpage, volumetric shrinkage         Fiber content, fiber aspect ratio,    Taguchi, RSM and NSGA-II      Injection (fiber-
+Kitayama et al. [87]    and residual stress                   melt temperature, injection pres-                                   reinforce
+Kitayama et al. [88]                                          sure and cooling time               Sequential approximate opti-    composite)
+Zhang et al. [192]    Cycle time and warpage                                                        mization and radial basis
+Li et al. [94]                                              Melt temperature, injection time,       function                    Injection (plastic)
+Okabe et al. [124]    Packing pressure profile and            packing pressure, packing time,
+                        warpage                               cooling time, cooling tempera-      Sequential approximate opti-  Injection (plastic)
+                                                              ture                                  mization and radial basis
+                      Warpage and clamping force                                                    function                    Injection (plastic)
+                                                            Packing pressure profile, melt
+                      Stent expansion in a stenotic artery    temperature, injection time, cool-  Neural network and MOPSO      Microinjection
+                        and molding quality                   ing temperature of coolant and                                    Resin-transfer
+                                                              cooling time                        Kriging Surrogate
+                      Fill time, dry spot, weld line and                                          MOGA
+                        wasted resin                        Gate open time, molding tempera-
+                                                              ture, melt temperature, injection
+                                                              time, packing pressure and time,
+                                                              cooling time
+
+                                                            Length, thickness and outer
+                                                              diameter
+
+                                                            Injection points
+
+                                                                                                                                1 3
+2300                                                                                                                             J. L. J. Pereira et al.
+
+[124] proposed a new multi-objective optimization approach        methodology. The first stage is to detect the occurrence of
+for resin transfer molding process using FEM, MOGA, self-         damage and the location of damaged zones by FE model
+organizing map and scatter plot matrix.                           updating using damage functions [164]. The use of damage
+                                                                  functions avoids adjusting the possible damage values of all
+   Li et al. [94] applied multi-objective optimization in         the elements separately. This results in a reduced number
+a biodegradable polymer stent structure and stent micro-          of parameters to determine which contributes to avoiding
+injection molding process using FEM, DOE and Kriging              optimization numerical problems and makes its application
+surrogate method. The author improved the expansion per-          to large-scale structures easier. In the second stage, refined
+formance and the microinjection molding process of the            location of damage and estimation of severity, a standard FE
+biresorbable polymeric stent with tiny struts.                    model updating technology with independent adjustment of
+                                                                  the design variables is applied but, in this case, the num-
+3.3Multiobjective Problems in Structural Health                   ber of variables is much reduced because only the elements
+     Monitoring                                                   belonging to the zones identified previously as damaged are
+                                                                  now assumed to be damaged.
+Structural Health Monitoring (SHM) is a structural inspec-
+tion methodology that allows an early diagnosis of structural        Kim and Park [85] made a very interesting study of iden-
+health through non-destructive techniques, algorithms and         tifying a crack on a rectangular plate where they addressed
+the use of sensors in real time. The application of multi-        the multi-objective problem in two ways: comparing the
+objective optimization can be in the numerical analysis of        two objectives into one using the method of weighting sum
+the collected data and also in the optimization of the reading    method and without composing them, leaving them free and
+of the structure through, for example, positioning of the sen-    on analysis of the dominance relationship. They reported
+sors [66]. The most relevant applications are cited in the text   that the proposed multi-objective EA was more efficient than
+and the objective functions, decision variables and algorithm     the single objective EA.
+employed are in Table 5.
+                                                                     Some authors have analyzed three-dimensional steel
+   The study of the positioning of the sensors aims cost          structures: (i) Cha and Buyukozturk [26] showed a method-
+reduction by minimizing the number of sensors by improv-          ology that could be used effectively for detecting minor local
+ing the efficiency of data reading. In the literature some        damage, although real-world validation using experimental
+cases can be found considering multi-objective optimization.      data is still needed, (ii) Alkayem et al. [8] studied 3D steel
+In highlight are: (i) Ferentinos and Tsiligiridis [48] (wire-     structures through two algorithms applying them in their
+less sensors subject to the connectivity and spatial density      mono and multi-objective versions and concluded that in
+constraints), (ii) Gomes et al. [66] (composite plates), (iii)    this case PSO and MOPSO had more accurate results and
+Lin et al. [99] (truss structure--3D), (iv) Zhou et al. [185]     less computational cost, (iii) Wang et al. [176] compared
+(wireless sensors) and (v) Li et al. [95, 96] also studied com-   FE model updating using NSGA-II, differential evolution
+posite plates and used wavelet decomposition.                     for multi-objectives (DEMO) and multi-objective particle
+                                                                  swarm optimization (MOPSO) and noted that DEMO out-
+   With positioned sensors, the numerical approach to the         performed NSGA-II and MOPSO for all damage patterns
+treatment of these data considering inverse methods can           and (iv) Alkayem et al. [9] used a methodology that uses at
+have a multi-objective approach. It is important to note that     the same time two meta-heuristics and the TOPSIS getting
+these data can be acquired directly in the structure and/or       good results even with bad conditions or with incomplete
+through finite element (FE) model updating procedure. As          date.
+can be seen in Alexandrino et al. [66], where the authors
+proposed a robust method of identifying ellipses and circu-          Slipping away from the application of multi-objective
+lar holes in composite plates. The ellipse having one of its      optimization in the positioning of sensors or in the iden-
+rays much larger than the other could be considered in the        tification of damage itself, a relevant article was found on
+authors' work as a crack.                                         the planning application of the SHM methodology: Kim
+                                                                  and Frangopol [86] proposed a probabilistic optimum SHM
+   Figure 6 shows a summary of a standard methodology             planning based on the probabilistic fatigue damage assess-
+applied in SHM when using a multi-objective approach.             ment which aimed to determine the most important param-
+First, the structure to be analyzed is defined. Then, a study of  eters and their weights in order to have the best possible
+the strategy to be adopted in relation to the sensors is made.    planning of methodology.
+Finally, an iterative process takes place using an optimiza-
+tion algorithm, usually a meta-heuristic, until some conver-         According to Alkayem et al. [8], some of the studies
+gence criterion is reached (number of iterations or stipulated    in Table 5 have effectively demonstrated the advantage of
+difference).                                                      multi-objective functions rather than conversion into sin-
+                                                                  gle-objective functions using the weighted sum method.
+   Perera and Ruiz [133] successfully applied a methodol-         This is because when using a combination between a
+ogy to large structures such as bridges through a two-step
+
+1 3
+     Table5Multi-objective optimization system in structural health monitoring                                                                                                                        A Review of Multiobjective Optimization: Methods and Algorithms in Mechanical Engineering...
+
+     Authors                           Objective functions                             Decision variables                                Optimization method                         Object
+
+     Ferentinos and Tsiligiridis [48]  Total energy related to parameters and sens-    Uniformity of sensors points, number of           GA (mono-objective) with weighted sum       Composite
+                                         ing points uniformity                           sensors, operational energy consumption           method                                      plates
+     Gomes et al. [66]                                                                   battery energy consumption
+     Lin et al. [99]                   Fisher information matrix and difference                                                          NSGA                                        Composite
+     Zhou et al. [185]                   module of mode shapes                         Location and number of sensors                                                                  plates
+                                                                                                                                         NSGA-II
+     Li et al. [95, 96]                Response covariance sensitivity and correla-    Location and number of sensors                                                                Truss structure
+                                         tion analysis                                                                                   MO discrete firefly algorithm based on
+                                                                                       Location and number of sensors                      neighboring information (MDFA/NS) and     Composite
+                                       Information effectiveness (mode shapes) and                                                         NSGA II                                     plates
+                                         network performance (standard deviation of    Location and number of sensors
+                                         total energy)                                                                                   NSGA-II and Wavelet decomposition           Composite
+                                                                                                                                                                                       plates
+                                       Number of sensors and vibration response
+                                                                                                                                                                                     Composite
+     Alexandrino et al. [66]           Differences in the mean stress and variance     x, y, r (circular hole) x, y, a, b,  (elliptical  NSGA II, neural networking and fuzzy deci-    plates
+     Kim and Park [85]                                                                   hole)                                             sion making
+                                       Difference module of the natural frequencies                                                                                                  Composite
+     Perera and Ruiz [133]               and Modal Assurance Criterion (MAC)--         Element position and stiffness reduction fac-     GA with sum method and MOGA                   plates
+     Cha and Buyukozturk [26]            related to mode shapes                          tor in this element
+     Wang et al. [176]                                                                                                                                                               Truss structure
+     Alkayem et al. [8]                Modal frequencies and mode shapes               Element location and damage index                 SPGA                                        Truss structure
+     Alkayem et al.[9]                 Modal Strain Energy and mode shapes                                                               Implicit Redundant Representation GA and
+     Kim and Frangopol [86]                                                            Structural element and Young�s modulus                                                        Truss structure
+                                       Natural Frequencies and accumulative MAC          reduction                                         NSGA-II                                   Truss structure
+                                       Difference module of the natural frequencies                                                      MOPSO, NSGA-II and MODE
+                                                                                       Truss element and reduction ration                GA, MOGA, PSO and MOPSO                     Truss structure
+                                         and MAC
+                                       Modal strain energy and mode shape              Truss element and Young's modulus reduc-          MOPSO and L�vy flights                      -
+                                                                                         tion
+                                       Expected damage detection delay, expected                                                         Multi-objective probabilistic optimization
+                                         maintenance delay, damage detection time-     Truss element and Young's modulus reduc-            process (MOPOP)
+                                         based reliability index, expected total life    tion
+                                         extension and expected life cycle cost
+                                                                                       Uncertainties of fatigue damage, maintenance
+                                                                                         delay, damage detection delay, effects if
+                                                                                         maintenance actions, service life and costs,
+                                                                                         maintenance and structural failure
+
+1 3                                                                                                                                                                                                   2301
+2302                                                             J. L. J. Pereira et al.
+
+Fig.6Framework for SHM in a
+multi-objective approach
+
+single-objective optimization algorithm (such EA) and the        However, the amount of information in the literature can
+weighting sum method to solve multiple objectives, the out-      make the choice of a methodology to address a problem
+come is a sub-set of total Pareto optimal solutions, while       confusing and this work aimed to show through a system-
+a powerful multi-objective meta-heuristic algorithm can          atic and detailed review of the literature what are the most
+generate the whole Pareto optimal solutions or at least the      used algorithms, techniques, decision variables and objec-
+majority of them.                                                tive functions employed in ninety different research papers
+                                                                 in mechanical engineering.
+3.4General Discussion
+                                                                    It can be seen that classic optimization methods, such
+All recent or relevant publications found for multi-objective    as gradient-based methods, that had their importance in
+optimization in mechanical engineering in this work are in       the past lost space for new algorithms that emerged with
+Tables 1, 2, 3, 4 and 5, where it contains the decision varia-   the advancement of computing, better able to deal with a
+bles, the objective functions, the algorithms and the structure  greater number of variables, multiple objectives and nonlin-
+or process to be optimized employed. In total, 90 researches     earities. Meta-heuristics are the most suitable to deal with
+were detailed from the point of view of the multi-objective      multi-objective optimization problems, being evolution-
+approach.                                                        ary algorithms the most used in the literature, mainly the
+                                                                 NSGA-II. Next comes a swarm algorithm, MOPSO. Even
+   Of these works, 23 different algorithms were used and         the evolutionary and swarm algorithms are being challenged
+since in some works more than one is used, it totaled 102        by new and more powerful meta-heuristics with more appro-
+applications. NSGA-II was the most used, appearing in 32         priate routines for specific problems, such as Jaya algorithm,
+researches, just behind came MOPSO with 11 appearances,          Multi-objective Grey Wolf Optimizer, Success History-
+MOGA with 5, Jaya with 5, MODE with 3 and Ortoghonal             based Adaptive Multi-objective Differential Evolution,
+Method with 3. The other algorithms found in the Table           Real-code Population-Based Incremental Learning hybrid-
+appeared less than twice and this includes the only gradient-    ized with Adaptive Differential evolution or Non-dominated
+based method in the list: the GRG. Note that of the 23 algo-     sorting Teaching-Learning Based algorithm. Since most of
+rithms found, 18 appeared less than twice.                       these algorithms use the Pareto dominance relationship to
+                                                                 find non-dominated solutions, the overwhelming majority of
+   A widely used methodology was that of RSM, where the          recent problems use a posteriori decision-making technique,
+authors performed analysis using DOE or Taguchi and found        where the decision maker tries to come up with all possible
+polynomial regression curves that were optimized using           optimal solutions to the problem before choosing the best
+desirability function or other algorithms. In all, 18 studies    one. A widely used a posteriori decision-making technique
+followed this methodology. Of those who used and detailed        is TOPSIS.
+the decision-making technique adopted, TOPSIS was the
+most present, being in 6 of the works found.                        Even so, it was possible to verify that these powerful
+                                                                 tools of multi-objective optimization are still little used in
+4Conclusion                                                      mechanical engineering and who made their use, obtained
+                                                                 great improvement in the object in which they work.
+Multi-objective optimization is an area that has been highly
+developed in the last decades and several methodologies,         Acknowledgements The authors would like to acknowledge the
+algorithms and decision techniques have been created.            financial support from the Brazilian agency CNPq (Conselho
+                                                                 Nacional de Desenvolvimento Cient�fico e Tecnol�gico), CAPES
+
+1 3
+A Review of Multiobjective Optimization: Methods and Algorithms in Mechanical Engineering...  2303
+
+(Coordena��o de Aperfei�oamento de Pessoal de N�vel Superior)                 loading in the presence of stress constraint. J Mech Behav Mater
+and FAPEMIG (Funda��o de Amparo � Pesquisa do Estado de Minas                 26(3-4):79-93
+Gerais--APQ-00385-18).                                                   15. Back T (1996) Evolutionary algorithms in theory and practice:
+                                                                              evolution strategies, evolutionary programming, genetic algo-
+Declarations                                                                  rithms. Oxford University Press, Oxford
+                                                                         16. Bahadormanesh N, Rahat S, Yarali M (2017) Constrained
+Conflict of interest The authors declare that they have no conflict of        multi-objective optimization of radial expanders in organic
+interest.                                                                     Rankine cycles by firefly algorithm. Energy Convers Manage
+                                                                              148:1179-1193
+References                                                               17. Baril C, Yacout S, Cl�ment B (2011) Design for Six Sigma
+                                                                              through collaborative multi-objective optimization. Comput
+   1. Abidi MH, Al-Ahmari AM, Umer U, Rasheed MS (2018) Multi-                Ind Eng 60:43-55
+       objective optimization of micro-electrical discharge machining    18. Belinato G, Almeida FA, Paiva AP, Freitas Gomes JH, Bal-
+       of nickel-titanium-based shape memory alloy using MOGA-II.             estrassi PP, Rosa PARC (2018) A multivariate normal bound-
+       Measurement 125:336-349                                                ary intersection PCA-based approach to reduce dimensional-
+                                                                              ity in optimization problems for LBM process. Eng Comput
+   2. Afshari H, Hare W, Tesfamariam S (2019) Constrained multi-              35(4):1533-1544
+       objective optimization algorithms: review and comparison with     19. Benayoun B, Sussman B (1966) Electre: Une methode pour
+       application in reinforced concrete structures. Appl Soft Comput        guider le choix en presence de points de vue multiple. Direc-
+       83:105631                                                              tion Scientifique, Note de Travail, No. 49
+                                                                         20. Bilel N, Mohamed N, Zouhaier A, Lotfi R (2016) An improved
+   3. Ahire PG, Patil US, Kadam MS (2018) Genetic algorithm based             imperialist competitive algorithm for multi-objective optimiza-
+       optimization of the process parameters for manual metal arc            tion. Eng Optim 48(11):1823-1844. https://doi.org/10.1080/
+       welding of dissimilar metal joint. Procedia Manuf 20:106-112           0305215x.2016.1141204
+                                                                         21. Brans JP, Vincke P, Mareschal B (1986) How to select and how
+   4. Ahmad MA, Sheikh AK, Nazir K (2019) Design of experiment                to rank projects: the PROMETHEE method. Eur J Oper Res
+       based statistical approaches to optimize submerged arc welding         24(2):228-238
+       process parameters. ISA Trans. https://doi.org/10.1016/j.isatra.  22. Branke J, Kau�ler T, Schmeck H (2001) Guidance in evolution-
+       2019.04.003                                                            ary multi-objective optimization. Adv Eng Softw 32:499-507
+                                                                         23. Brassard G, Bratley P (1988) Algorithmics: theory and prac-
+   5. Ahmadi P, Hajabdollahi H, Dincer I (2011) Cost and entropy              tice. Prentice-Hall, Englewood Cliffs, New Jersey
+       generation minimization of a cross flow plate fin heat exchanger  24. Brito TG, Paiva AP, Ferreira JR, Gomes JHF (2014) Balestrassi
+       using multi-objective genetic algorithm. J Heat Transfer               PPA normal boundary intersection approach to multiresponse
+       133(2):021801-021810                                                   robust optimization of the surface roughness in end milling
+                                                                              process with combined arrays. Precis Eng 38(3):628-638
+   6. Al Dawood ZIA, Saadoon AM (2017) Multi response optimiza-          25. Brito TG, Paiva AP, Paula TI, Dalosto DN, Ferreira JR,
+       tion of submerged arc welding using Taguchi fuzzy logic based          Balestrassi PP (2016) Optimization of AISI 1045 end mill-
+       on utility theory. Int J Sci Res 6(12):475-481                         ing using robust parameter design. Int J Adv Manuf Technol
+                                                                              84(5-8):1185-1199
+   7. Alexandrino PDSL, Gomes GF, Cunha SS Jr (2020) A robust            26. Cha Y, Buyukozturk O (2015) Structural damage detection
+       optimization for damage detection using multi-objective genetic        using modal strain energy and hybrid multi-objective optimiza-
+       algorithm, neural network and fuzzy decision making. Inverse           tion. Comput Aided Civ Infrastruct Eng 30:347-358
+       Prob Sci Eng 28(1):21-46                                          27. Chen F, Wang Y, Sun S, Ma Z, Huang X (2018) Multi-objec-
+                                                                              tive optimization of mechanical quality and stability during
+   8. Alkayem NF, Cao M, Zhang Y, Bayat M, Su Z (2017) Struc-                 micro resistance spot welding. Int J Adv Manuf Technol
+       tural damage detection using finite element model updating             101(5):1903-1913
+       with evolutionary algorithms: a survey. Neural Comput Appl        28. Chiandussi G, Codegone M, Ferrero S, Varesio FE (2012)
+       30(2):389-411                                                          Comparison of multi-objective optimization methodologies
+                                                                              for engineering applications. [S.I.]. pp 912-942, Elsevier,
+   9. Alkayem NF, Cao M, Ragulskis M (2018) Damage diagnosis in               Amsterdam
+       3D structures using a novel hybrid multiobjective optimization    29. Choudhary A, Kumar M, Unune DR (2019) Experimental
+       and FE model updating framework. Complexity. https://doi.org/          investigation and optimization of weld bead characteristics
+       10.1155/2018/3541676                                                   during submerged arc welding of AISI 1023 steel. Defence
+                                                                              Technol 15(1):72-82
+ 10. Almeida FA, Gomes GF, Paula VR, Correa JE, Paiva AP,                30. Coello Coello CA, Corte�s NC, (2005) Solving multi-objec-
+       Gomes JHF, Turrioni JB (2018) A weighted mean square error             tive optimization problems using an artificial immune system.
+       approach to the robust optimization of the surface roughness in        Genet Program Evol Mach 6(2):163-190
+       an AISI 12L14 free-machining steel-turning process. J Mech Eng    31. Coello C, Lamont B, Van Veldhuizen D (2007) Evolutionary
+       64(3):147-156                                                          algorithms for solving multi-objective problems. Springer,
+                                                                              New York. https://doi.org/10.1007/978-0-387-36797-2.
+ 11. Almeida FA, Santos ACO, Paiva AP, Gomes GF, Gomes JHF               32. Cohon JL, Marks DH (1975) A review and evaluation of
+       (2020) Multivariate Taguchi loss function optimization based on        multi-objective programming techniques. Water Resour Res
+       principal components analysis and normal boundary intersection.        11(2):208-220
+       Eng Comput, pp 1-17                                               33. Cohon JL (1978) Multi-objective programming and planning.
+                                                                              Academic Press, Cambridge
+ 12. Arian Nik M, Fayazbakhsh K, Pasini D, Lessard L (2012) Surro-
+       gatebased multi-objective optimization of a composite laminate
+       with curvilinear fibers. Compos Struct 94(8):2306-2313
+
+ 13. Asanjarani A, Dibajian SH, Mahdian A (2017) Multi-objective
+       crashworthiness optimization of tapered thin-walled square tubes
+       with indentations. Thin-Walled Struct 116:26-36
+
+ 14. Ashjari M, Khoshravan MR (2017) Multi-objective optimiza-
+       tion of a functionally graded sandwich panel under mechanical
+
+                                                                                              1 3
+2304                                                                                                                                   J. L. J. Pereira et al.
+
+ 34. Cui Y, Geng Z, Zhu Q, Han Y (2017) Review: multi-objective               and their applications: proceedings of the first international con-
+       optimization methods and application in energy saving. Energy          ference on genetic algorithms, pp 141-153. Lawrence Erlbaum,
+       125:681-704                                                            Hillsdale, New Jersey
+                                                                         53. Francisco MB, Pereira JLJ, Oliver GA, Silva FHS, Cunha SS,
+ 35. Cust�dio AL, Madeira JFA, Vaz AIF, Vicente LN (2011) Direct              Gomes GF (2021) Multi-objective design optimization of crp
+       multisearch for multi-objective optimization. SIAM J Optim             isogrid tubes using sunflower multi-objective optimization based
+       21(3):1109-1140                                                        on metamodel. Comput Struct 249:106508
+                                                                         54. Franco Correia VM, Aguilar Madeira JF, Ara�jo AL, Mota
+ 36. Das I, Dennis JE (1998) Normal-boundary intersection: a new              Soares CM (2018) Multi-objective optimization of ceramic-metal
+       method for generating the pareto surface in nonlinear multicri-        functionally graded plates using a higher order model. Compos
+       teria optimization problems. SIAM J Optim 8(3):631-657                 Struct 183:146-160
+                                                                         55. Franco Correia VM, Aguilar Madeira JF, Ara�jo AL, Mota
+ 37. Deb K (2008) Introduction to evolutionary multi-objective opti-          Soares CM (2019) Multi-objective optimization of functionally
+       mization. multi-objective optimization. Springer, Berlin, pp           graded material plates with thermo-mechanical loading. Compos
+       59-96                                                                  Struct 207:845-857
+                                                                         56. Gandibleux X, Mezdaoui N, Fr�eville A (1997) A tabu search
+ 38. Deb K,Agrawal S, Pratab A,Meyarivan T (2000) A fast elitist              procedure to solve combinatorial optimisation problems. In:
+       non dominated sorting genetic algorithm for multi-objective            Caballero R, Ruiz F, References 667 Steuer RE (eds) Advances
+       optimization: NSGA-II. In:Schoenauer M, Deb K,Rudolph G,               in multiple objective and goal programming, volume 455 of lec-
+       Yao X, Lutton E, Merelo JJ, Schwefel H-P (eds) Proceedings             ture notes in economics and mathematical systems, pp 291-300.
+       of the parallel problem solving from nature VI conference, pp          Springer-Verlag
+       849-858, Paris, France. Lecture Notes in Computer Science No.     57. Gao Z, Shao X, Jiang P, Wang C, Zhou Q, Cao L, Wang Y (2016)
+       1917, Springer, Berlin                                                 Multi-objective optimization of weld geometry in hybrid fiber
+                                                                              laser-arc butt welding using Kriging model and NSGA-II. Appl
+ 39. Dhiman G, Singh KK, Soni M, Nagar A, Dehghani M, Slowik A,               Phys A 122(6):1-12
+       Cengiz K (2020) MOSOA: a new multi-objective seagull optimi-      58. Gaud�ncio DJH, Almeida FA, Turrioni JB, Costa Quinino R,
+       zation algorithm. Expert systems with applications, p 114150           Balestrassi PP, Paiva AP (2019) A multiobjective optimization
+                                                                              model for machining quality in the AISI 12L14 steel turning
+ 40. Dhiman G, Singh KK, Slowik A, Chang V, Yildiz AR, Kaur A,                process using fuzzy multivariate mean square error. Precis Eng
+       Garg M (2020) EMOSOA: a new evolutionary multi-objective               56:303-320
+       seagull optimization algorithm for global optimization. Int J     59. Ghasemi AR, Hajmohammad MH (2016) Multi-objective optimi-
+       Mach Learn Cybern 12(2):571-596                                        zation of laminated composite shells for minimum mass/cost and
+                                                                              maximum buckling pressure with failure criteria under external
+ 41. Diniz CA, Mendez YAD, Almeida FA, Cunha Jr SS (2021) Opti-               hydrostatic pressure. Struct Multidiscip Optim 55(3):1051-1062
+       mum design of composite structures with ply dropp-offs using      60. Gupta SK, Pandey K, Kumar R (2016) Multi-objective opti-
+       responde surface methodology. Eng Comput                               mization of friction stir welding process parameters for join-
+                                                                              ing of dissimilar AA5083/AA6063 aluminum alloys using
+ 42. Duckstein L (1984) Multi-objective optimization in structural            hybrid approach. Proc Inst Mech Eng Part L J Mater Des Appl
+       design: the model choice problem. In: Atrek E, Gallagher RH,           232(4):343-353
+       Ragsdell KM, Zienkiewicz OC (eds) New directions in optimum       61. Gupta SK, Pandey K, Kumar R (2016) Artificial intelligence-
+       structural design. John Wiley and Sons, New Jersey, pp 459-481         based modelling and multi-objective optimization of friction
+                                                                              stir welding of dissimilar AA5083-O and AA6063-T6 alu-
+ 43. Dumbhare AP, Dubey S, Deshpande V, Y., Andhare, A. B., &                 minium alloys. Proc Inst Mech Eng Part L J Mater Des Appl
+       Barve, P. S. (2018) Modelling and multi-objective optimization         232(4):333-342
+       of surface roughness and kerf taper angle in abrasive water jet   62. Ghachi RF, Alnahhal WI, Abdeljaber O, Renno J, Haque ABMT,
+       machining of steel. J Braz Soc Mech Sci Eng 40(5):259                  Shim J, Aref A (2020) Optimization of viscoelastic metamateri-
+                                                                              als for vibration attenuation properties. Int J Appl Mech
+ 44. Ebrahimi-Nejad S, Kheybari M, Borujerd SVN (2020) Multi-            63. Goicoechea A, Duckstein L, Fogel M (1976) Multi-objective pro-
+       objective optimization of a sports car suspension system using         gramming in watershed management: a study of the Charleston
+       simplified quarter-car models. Mech Ind 21(4):412                      watershed. Water Resour Res 12(6):1085-1092
+                                                                         64. Goldberg DE (1989) Genetic algorithms in search, optimization
+ 45. Emmerich MTM, Deutz AH (2018) A tutorial on multi-objective              and machine learning. Addison-Wesley Publishing Company,
+       optimization: fundamentals and evolutionary methods. Nat Com-          Reading, Massachusetts
+       put 17(3):585-609. https://doi.org/10.1007/s11047-018-9685-y      65. Gomes GF, Giovani RS (2020) An efficient two-step damage
+                                                                              identification method using sunflower optimization algorithm
+ 46. Fadaee M, Radzi MAM (2012) Multi-objective optimization                  and mode shape curvature (MSDBI-SFO). Eng Comput. https://
+       of a stand-alone hybrid renewable energy system by using               doi.org/10.1007/s00366-020-01128-2
+       evolutionary algorithms: a review. Renew Sustain Energy Rev       66. Gomes GF, Almeida FA, Alexandrino PSL, Cunha SS, Sousa BS,
+       16(5):3364-3369                                                        Ancelotti AC (2018) A multi-objective sensor placement optimi-
+                                                                              zation for SHM systems considering Fisher information matrix
+ 47. Fan H, Zhang J, Zhang W, Liu B (2020) Multiparameter and                 and mode shape interpolation. Eng Comput 35(2):519-535
+       multiobjective optimization design based on orthogonal method     67. Gomes J (2013) M�todo dos polin�mios can�nicos de misturas
+       for mixed flow fan. Energies 13(11):2819                               para otimiza��o multi-objetivo. Itajub�, Minas Gerais, Brasil:
+                                                                              Doctoral Thesis - Postgraduate Program in Production Engineer-
+ 48. Ferentinos KP, Tsiligiridis TA (2007) Adaptive design optimiza-          ing - Universidade Federal de Itajub�
+       tion of wireless sensor networks using genetic algorithms. Com-
+       put Netw 51(4):1031-1051
+
+ 49. Fonseca CM, Fleming PJ (1994) An overview of evolutionary
+       algorithms in multi-objective optimization. Technical report,
+       department of automatic control and systems engineering, Uni-
+       versity of Sheffield, Sheffield, UK
+
+ 50. Fonseca CM, Fleming PJ (1993) Genetic algorithms for multi-
+       objective optimization: Formulation discussion and generaliza-
+       tion. In: Proceedings of the international conference on genetic
+       algorithms, vol 93. Citeseer, pp 416-423
+
+ 51. Fossati GG, Miguel LFF, Casas WJP (2019) Multi-objective opti-
+       mization of the suspension system parameters of a full vehicle
+       model. Optim Eng 20:151-177
+
+ 52. Fourman MP (1985) Compaction of symbolic layout using
+       genetic algorithms. In: Grefenstette JJ (ed) Genetic algorithms
+
+1 3
+A Review of Multiobjective Optimization: Methods and Algorithms in Mechanical Engineering...  2305
+
+68. Gunantara N (2018) A review of multi-objective optimization:         88. Kitayama S, Yokoyama M, Takano M, Aiba S (2017) Multi-
+     Methods and its applications. Cogent Eng 5(1):1-16                        objective optimization of variable packing pressure profile
+                                                                               and process parameters in plastic injection molding for mini-
+69. Guo X, Wu Y, Xie L, Cheng S, Xin J (2015) An adaptive brain                mizing warpage and cycle time. Int J Adv Manuf Technol
+     storm optimization algorithm for multi-objective optimization             92(9-12):3991-3999
+     problems. Lecture notes in computer science, pp 365-372
+                                                                         89. Knowles JD, Corne DW (2000) Approximating the nondomi-
+70. Haimes YY, Lasdon LS, Wismer DA (1971) On a bicriterion for-               nated front using the Pareto archived evolution strategy. Evol
+     mulation of the problems of integrated system identification and          Comput 8:149-172
+     system optimization. IEEE Trans Syst Man Cybern 1(3):296-297
+                                                                         90. Kumar R, Singh S, Bilga PS, Singh J, Singh S, Scutaru M-L,
+71. Hajela P, Lin CY (1992) Genetic search strategies in multicrite-           Pruncu CI (2021) Revealing the benefits of entropy weights
+     rion optimal design. Struct Optim 4:99-107                                method for multi-objective optimization in machining operations:
+                                                                               a critical review. J Mater Res Technol 10:1471-1492
+72. Heidari AA, Mirjalili S, Faris H, Aljarah I, Mafarja M, Chen H
+     (2019) Harris hawks optimization: algorithm and applications.       91. Kursawe F (1991) A variant of evolution strategies for vector
+     Futur Gener Comput Syst 97:849-872                                        optimization. In: Schwefel H-P, Manner R (eds) Parallel prob-
+                                                                               lem solving from nature. 1st Workshop, PPSN I, pp 193-197,
+73. Holland J (1975) Adaptation in natural and artificial systems.             Dortmund, Germany. Springer-Verlag. Lecture notes in computer
+     University of Michigan Press, Ann Arbor                                   science No. 496
+
+74. Horn J, Nafpliotis N (1993) Multi-objective optimization using       92. Lee D, Morillo C, Bugeda G, Oller S, Onate E (2012) Multilay-
+     the niched pareto genetic algorithm. Technical Report IlliGAl             ered composite structure design optimisation using distributed/
+     Report 93005, University of Illinois at Urbana-Champaign,                 parallel multi-objective evolutionary algorithms. Compos Struct
+     Urbana, Illinois, USA                                                     94(3):1087-1096
+
+75. Horn J, Nafpliotis N, Goldberg DE (1994) A niched pareto             93. Leguizam�n G, Coello CAC (2011) Multi-objective ant colony
+     genetic algorithm for multi-objective optimization. In: Proceed-          optimization: a taxonomy and review of approaches. Series in
+     ings of the first IEEE conference on evolutionary computation,            machine perception and artificial intelligence, pp 67-94
+     IEEE world congress on computational intelligence, vol 1, pp
+     82-87, Piscataway, New Jersey. IEEE Service Center                  94. Li H, Wang X, Wei Y, Liu T, Gu J, Li Z, Liu Y (2017) Multi-
+                                                                               objective optimizations of biodegradable polymer stent structure
+76. Hwang CL, Yoon KP (1981) Multiple attribute decision making:               and stent microinjection molding process. Polymers 9(12):20
+     methods and applications. Springer-Verlag, Berlin/Heidelberg/
+     New York                                                            95. Li P, Huang L, Peng J (2018) Sensor distribution optimization
+                                                                               for structural impact monitoring based on NSGA-II and wavelet
+77. Ikeya K, Shimoda M, Shi J-X (2016) Multi-objective free-form               decomposition. Sensors 18(12):4264
+     optimization for shape and thickness of shell structures with
+     composite materials. Compos Struct 135:262-275                      96. Li K, Yan S, Zhong Y, Pan W, Zhao G (2018) Multi-objective
+                                                                               optimization of the fiber-reinforced composite injection molding
+78. Jaimes AL, Martinez SZ, Coello CAC et al (2009) An introduc-               process using Taguchi method, RSM, and NSGA-II. Simulation
+     tion to multi-objective optimization techniques. Optim Polym              modelling practice and theory
+     Process, pp 29-57.
+                                                                         97. Li Y, Wei K, Yang W, Wang Q (2020) Improving wind turbine
+79. Jiang R, Wang D (2016) Optimization of suspension system                   blade based on multi-objective particle swarm optimization.
+     of self-dumping truck using TOPSIS-based Taguchi method                   Renew Energy. https://doi.org/10.1016/j.renene.2020.07.067
+     coupled with entropy measurement, SAE Technical Paper,
+     2016-2001-1385                                                      98. Lin W, Yu D, Zhang C, Zhang S, Tian Y, Liu S, Luo M (2016)
+                                                                               Multi-objective optimization of machining parameters in multi-
+80. Jiang R, Wang D (2015) Optimization of vehicle ride comfort                pass turning operations for low-carbon manufacturing. Proc Inst
+     and handling stability based on TOPSIS Method, SAE Technical              Mech Eng Part B J Eng Manuf 231(13):2372-2383
+     Paper, 2015-200-1348
+                                                                         99. Lin J-F, Xu Y-L, Law S-S (2018) Structural damage detection-
+81. Jiang P, Wang C, Zhou Q, Shao X, Shu L, Li X (2016) Optimiza-              oriented multi-type sensor placement with multi-objective opti-
+     tion of laser welding process parameters of stainless steel 316L          mization. J Sound Vib 422:568-589
+     using FEM, Kriging and NSGA-II. Adv Eng Softw 99:147-160
+                                                                        100. Liu H, Li Y, Duan Z, Chen C (2020) A review on multi-objective
+82. Jin Y, Sendhoff B (2002) Fuzzy preference incorporation into               optimization framework in wind energy forecasting techniques
+     evolutionary multi-objective optimization. In: Proceedings of the         and applications. Energy Conv Manage 224:113324
+     4th Asia-pacific conference on simulated evolution and learning,
+     vol 1, pp 26-30                                                    101. Liu Q, Li X, Liu H, Guo Z (2020) Multi-objective metaheuristics
+                                                                               for discrete optimization problems: a review of the state-of-the-
+83. Kalantari M, Dong C, Davies IJ (2016) Multi-objective robust               art. Appl Soft Comput 93:106382
+     optimisation of unidirectional carbon/glass fibre reinforced
+     hybrid composites under flexural loading. Compos Struct            102. Long Q, Wu X, Wu C (2021) Non-dominated sorting methods for
+     138:264-275                                                               multi-objective optimization: review and numerical comparison.
+                                                                               J Ind Manage Optim 17(2):1001
+84. Karimi M, Hall M, Buckham B, Crawford C (2016) A multi-
+     objective design optimization approach for floating offshore       103. Lostado Lorza R, Escribano Garc�a R, Fernandez Martinez R,
+     wind turbine support structures. J Ocean Eng Marine Energy                Mart�nez Calvo M (2018) Using genetic algorithms with multi-
+     3(1):69-87                                                                objective optimization to adjust finite element models of welded
+                                                                               joints. Metals 8(4):230
+85. Kim G, Park Y (2004) An improved updating parameters method
+     and finite element model updating using multi-objective optimi-    104. Lu C, Gao L, Li X, Zheng J, Gong W (2018) A multi-objective
+     sation technique. Mech Syst Signal Process 18(1):59-78                    approach to welding shop scheduling for makespan, noise pollu-
+                                                                               tion and energy consumption. J Clean Prod 196:773-787
+86. Kim S, Frangopol DM (2016) Efficient multi-objective optimisa-
+     tion of probabilistic service life management. Struct Infrastruct  105. Lu C, Gao L, Li X, Xiao S (2017) A hybrid multi-objective grey
+     Eng 13(1):147-159. https://doi.org/10.1080/15732479.2016.                 wolf optimizer for dynamic scheduling in a real-world welding
+     1198405                                                                   industry. Eng Appl Artif Intell 57:61-79
+
+87. Kitayama S, Miyakawa H, Takano M, Aiba S (2016) Multi-objec-        106. Mahfouf M-Y, Linkens DA (2004) Adaptive weighted particle
+     tive optimization of injection molding process parameters for             swarm optimisation for multi-objective optimal design of alloy
+     short cycle time and warpage reduction using conformal cooling            steels. In: Parallel problem solving from nature - PPSN VIII, pp
+     channel. Int J Adv Manuf Technol 88(5-8):1735-1744
+
+                                                                                              1 3
+2306                                                                                                                                    J. L. J. Pereira et al.
+
+       762-771, Birmingham, UK. Springer-Verlag. Lecture notes in               congress on evolutionary computation (IEEE World Congress on
+       computer science vol 3242                                                Computational Intelligence), IEEE, pp 1128-1134
+107. Mane SU, Rao MRN (2017) Many-objective optimization: prob-          126. Omkar S, Mudigere D, Naik GN, Gopalakrishnan S (2008)
+       lems and evolutionary algorithms - a short review. Int J Appl            Vector evaluated particle swarm optimization (VEPSO) for
+       Eng Res 12(20):9774-9793                                                 multi-objective design optimization of composite structures.
+108. Marler RT, Arora JS (2004) Survey of multi-objective opti-                 Comput Struct 86(1):1-14
+       mization methods for engineering. Struct Multidiscip Optim        127. Osyczka A (1978) An approach to multicriterion optimization
+       26(6):369-395                                                            problems for engineering design. Comput Methods Appl Mech
+109. Mariano CE, Morales E (1999) MOAQ an ant-q algorithm for                   Eng 15:309-333
+       multiple objective optimization problems. In: Banzhaf W, Daida    128. Paiva AP, Gomes JHF, Peruchi RS, Leme RC, Balestrassi PP
+       J, Eiben AE, Garzon MH, Honavar V, Jakiela M, Smith RE (eds)             (2014) A multivariate robust parameter optimization approach
+       Genetic and evolutionary computing conference (GECCO 99),                based on principal component analysis with combined arrays.
+       vol 1, pp 894-901, San Francisco, California, Morgan Kaufmann            Comput Ind Eng 74:186-198
+110. Song M-P, Gu G-C (2004) Research on particle swarm optimiza-        129. Panagant N, Pholdee N, Wansasueb K, Bureerat S, Yildiz AR,
+       tion: a review. In: Proceedings of 2004 international conference         Sait SM (2019) Comparison of recent algorithms for many-
+       on machine learning and cybernetics (IEEE Cat. No.04EX826)               objective optimisation of an automotive floor-frame. Int J Vehi-
+111. Messac A, Mattson CA (2002) Generating well-distributed sets               cle Des 80(2/3/4):176
+       of Pareto points for engineering design using physical program-   130. Panagant N, Pholdee N, Bureerat S et al (2021) A comparative
+       ming. Optim Eng 3:431-450                                                study of recent multi-objective metaheuristics for solving con-
+112. Mia M, Gupta MK, Lozano JA, Carou D, Pimenov DY, Kr�l-                     strained truss optimisation problems. Arch Computat Methods
+       czyk G, Dhar NR (2018) Multi-objective optimization and life             Eng. https://doi.org/10.1007/s11831-021-09531-8
+       cycle assessment of eco-friendly cryogenic N2 assisted turning    131. Paula TI, Gomes GF, Freitas Gomes JH, Paiva AP (2019). A
+       of Ti-6Al-4V. J Clean Prod 210:121-133                                   mixture design of experiments approach for genetic algorithm
+113. Miettinen K (1998) No-preference methods. Int Ser Oper Res                 tuning applied to multi-objective optimization. Optim Complex
+       Manage Sci, pp 67-76                                                     Syst Theory Models Algorithms Appl, pp 600-610.
+114. Mirjalili S, Jangir P, Saremi S (2016) Multi-objective ant lion     132. Peng Y, Wang X, Xiong X, Xu P (2016) Crashing analysis and
+       optimizer: a multi-objective optimization algorithm for solving          multi-objective optimisation of duplex energy-absorbing struc-
+       engineering problems. Appl Intell 46(1):79-95. https://doi.org/          ture for subway vehicle. Int J Crashworthiness 21(4):338-352
+       10.1007/s10489-016-0825-8                                         133. Perera R, Ruiz A (2008) A multistage FE updating procedure for
+115. Mirjalili S, Saremi S, Mirjalili SM, Coelho LDS (2016) Grass-              damage identification in large-scale structures based on multi-
+       hopper optimization algorithm for multi-objective optimization           objective evolutionary optimization. Mech Syst Signal Process
+       problems. Expert Syst Appl 47:106-119                                    22(4):970-991. https://doi.org/10.1016/j.ymssp.2007.10.004
+116. Mirjalili SZ, Mirjalili S, Saremi S, Faris H, Aljarah I (2017)      134. Parsopoulos K, Vrahatis M (2002) Particle swarm optimiza-
+       Grasshopper optimization algorithm for multi-objective optimi-           tion method in multi-objective problems. In: Proceedings of the
+       zation problems. Appl Intell 48(4):805-820                               2002 ACM symposium on applied computing (SAC'2002), pp
+117. Moleiro F, Madeira JFA, Carrera E, Reddy JN (2020) Design                  603-607, Madrid, Spain, ACM Press, New York
+       optimization of functionally graded plates under thermo-mechan-   135. Park H-S, Nguyen T-T, Dang X-P (2016) Multi-objective opti-
+       ical loadings to minimize stress, deformation and mass. Compos           mization of turning process of hardened material for energy effi-
+       Struct p 112360                                                          ciency. Int J Precis Eng Manuf 17(12):1623-1631
+118. Monarchi DE, Kisiel CC, Duckstein L (1973) Interactive multi-       136. Parkinson AR, Balling RJ, Hedengren JD (2013) Optimiza-
+       objective programming in water resources: a case study. Water            tion methods for engineering design: applications and theory.
+       Resour Res 9(4):837-850                                                  Brigham Young University
+119. Montalvo-Urquizo J, Niebuhr C, Schmidt A, Villarreal-Marro-         137. Prakash C, Singh S, Singh M, Antil P, Aliyu AAA, Abdul-Rani
+       qu�n MG (2018) Reducing deformation, stress, and tool wear               AM, Sidhu SS (2018) Multi-objective optimization of MWCNT
+       during milling processes using simulation-based multiobjective           mixed electric discharge machining of Al-30SiCp MMC using
+       optimization. Int J Adv Manuf Technol 96(5-8):1859-1873                  particle swarm optimization. materials horizons: From Nature to
+120. Mostaghim S, Teich J (2003) Strategies for finding good local              Nanomaterials, pp 145-164
+       guides in multi-objective particle swarm optimization (MOPSO).    138. Prakash C, Kansal HK, Pabla BS, Puri S (2016) Multi-objective
+       In: 2003 IEEE swarm intelligence symposium proceedings, pp               optimization of powder mixed electric discharge machining
+       26-33, Indianapolis, Indiana, USA, IEEE Service Center                   parameters for fabrication of biocompatible layer on -Ti alloy
+121. Neumann and Morgenstern (1944) Theory of games and eco-                    using NSGA-II coupled with Taguchi based response surface
+       nomic behavior. Princeton University Press, Princeton, New               methodology. J Mech Sci Technol 30(9):4195-4204
+       Jersey                                                            139. Qu S, Zhao J, Wang T (2016) Experimental study and machining
+122. Niu Y, Jiao F, Zhao B, Wang D (2017) Multiobjective optimi-                parameter optimization in milling thin-walled plates based on
+       zation of processing parameters in longitudinal-torsion ultra-           NSGA-II. Int J Adv Manuf Technol 89(5-8):2399-2409
+       sonic assisted milling of Ti-6Al-4V. Int J Adv Manuf Technol      140. Rangaiah GP, Zemin F, Hoadley AF (2020) Multi-objective opti-
+       93(9-12):4345-4356                                                       mization applications in chemical process engineering: tutorial
+123. Ojstersek R, Brezocnik M, Buchmeister B (2020) Multi-objective             and review. J Process. https://doi.org/10.3390/pr8050508
+       optimization of production scheduling with evolutionary compu-    141. Rao RV, Rai DP, Balic J (2016) Multi-objective optimization of
+       tation: a review. Int J Ind Eng Comput 11(3):359-376                     machining and micro-machining processes using non-dominated
+124. Okabe T, Oya Y, Yamamoto G, Sato J, Matsumiya T, Matsu-                    sorting teaching-learning-based optimization algorithm. J Intell
+       zaki R, Obayashi S (2017) Multi-objective optimization for resin         Manuf 29(8):1715-1737
+       transfer molding process. Compos A Appl Sci Manuf 92:1-9          142. Rao RV, Saroj A, Oclo P, Taler J, Taler D (2017) Single- and
+125. Olorunda O, Engelbrecht AP (2008) Measuring exploration/                   multi-objective design optimization of plate-fin heat exchangers
+       exploitation in particle swarms using swarm diversity. In: IEEE          using jaya algorithm. Heat Transfer Eng 39(13-14):1201-1216
+
+1 3
+A Review of Multiobjective Optimization: Methods and Algorithms in Mechanical Engineering...  2307
+
+143. Rao RV, Rai DP (2017) Optimization of submerged arc welding           162. Sowrirajan M, Koshy Mathews P, Vijayan S (2018) Simultane-
+       process parameters using quasi-oppositional based jaya algo-               ous multi-objective optimization of stainless steel clad layer on
+       rithm. J Mech Sci Technol 31(5):2513-2522                                  pressure vessels using genetic algorithm. J Mech Sci Technol
+                                                                                  32(6):2559-2568
+144. Rao RV, Rai DP, Balic J (2017) Multi-objective optimization of
+       abrasive waterjet machining process using Jaya algorithm and        163. Srinivas N, Deb K (1994) Multi-objective optimization using
+       PROMETHEE Method. J Intell Manuf 30(5):2101-2127                           nondominated sorting in genetic algorithms. Evol Comput
+                                                                                  2(3):221-248
+145. Rao S (1984) Multi-objective optimization in structural design
+       with uncertain parameters and stochastic processes. AIAA J          164. Teughels A, Maeck J, Roeck G (2002) Damage assessment by
+       22(11):1670-1678                                                           FE model updating using damage functions. Comput Struct
+                                                                                  80:1869-1879
+146. Rao S (1986) Game theory approach for multi-objective struc-
+       tural optimization. Comput Struct 25(1):119-127                     165. Tamaki H, Kita H, Kobayashi S (1996). Multi-objective opti-
+                                                                                  mization by genetic algorithms: a review. In: Proceedings of
+147. Rao SS, Rao SS (2009) Engineering optimization: theory and                   IEEE international conference on evolutionary computation, pp
+       practice. John Wiley and Sons, New Jersey                                  517-522
+
+148. Ridha HM, Gomes C, Hizam H, Ahmadipour M, Heidari AA,                 166. Tawhid MA, Savsani V (2017) Multi-objective sine-cosine algo-
+       Chen H (2021) Multi-objective optimization and multi-criteria              rithm (MO-SCA) for multi-objective engineering design prob-
+       decision-making methods for optimal design of standalone                   lems. Neural Comput Appl 31(2):915-929
+       photovoltaic system: a comprehensive review. Renew Sustain
+       Energy Rev 135:110202                                               167. Thiele L, Miettinen K, Korhonen PJ, Molina J (2009) A prefer-
+                                                                                  ence-based evolutionary algorithm for multi-objective optimiza-
+149. Rivas D, Quiza R, Rivas M, Haber RE (2020) Towards sustain-                  tion. Evol Comput 17(3):411-436
+       ability of manufacturing processes by multi-objective optimi-
+       zation: a case study on a submerged arc welding process. IEEE       168. Torres AF, Rocha FB, Almeida FA, Gomes JHF, Paiva AP, Bal-
+       Access 8:212904-212916                                                     estrassi PP (2020) Multivariate stochastic optimization approach
+                                                                                  applied in a flux-cored arc welding process. IEEE Access
+150. Sadollah A, Eskandar H, Kim JH (2015) Water cycle algorithm                  8:61267-61276
+       for solving constrained multi-objective optimization problems.
+       Appl Soft Comput 27:279-298                                         169. Tripathy S, Tripathy DK (2017) Multi-response optimization
+                                                                                  of machining process parameters for powder mixed electro-dis-
+151. Saha A, Mondal SC (2017) Multi-objective optimization of                     charge machining of H-11 die steel using grey relational analysis
+       manual metal arc welding process parameters for nano-struc-                and topsis. Mach Sci Technol 21(3):362-384
+       tured hardfacing material using hybrid approach. Measurement
+       102:80-89                                                           170. Vo-Duy T, Duong-Gia D, Ho-Huu V, Vu-Do HC, Nguyen-Thoi
+                                                                                  T (2017) Multi-objective optimization of laminated compos-
+152. Sahu NK, Andhare AB (2018) Multiobjective optimization                       ite beam structures using NSGA-II algorithm. Compos Struct
+       for improving machinability of Ti-6Al-4V using RSM and                     168:498-509. https://doi.org/10.1016/j.compstruct.2017.02.038
+       advanced algorithms. J Comput Des Eng 6(1):1-12
+                                                                           171. Xin-Gang Z, Ji L, Jin M, Ying Z (2020) An improved quantum
+153. Sailender M, Reddy GC, Venkatesh S (2018) Influences of                      particle swarm optimization algorithm for environmental eco-
+       process parameters on weld strength of low carbon alloy steel              nomic dispatch. Exp Syst Appl 152:113370
+       in purged SAW. Mater Today Proc 5(1):2928-2937
+                                                                           172. Wakchaure KN, Thakur AG, Gadakh V, Kumar A (2018) Multi-
+154. Silva MM, Batista VR, Maciel TM, dos Santos MA, Brasileiro                   objective optimization of friction stir welding of aluminium
+       TL (2018) Optimization of submerged arc welding process                    alloy 6082-T6 using hybrid taguchi-grey relation analysis- ANN
+       parameters for overlay welding. Weld Int 32(2):122-129                     method. Mater Today Proc 5(2):7150-7159
+
+155. Schlieter T, Dlugosz A (2020) Structural optimization of aero-        173. Wang H, Olhofer M, Jin Y (2017) A mini-review on preference
+       foils for many criteria. 26�International Conference. Engineer-            modeling and articulation in multi-objective optimization: cur-
+       ing Mechanics 2020. Brno, Czech Republic                                   rent status and challenges. Complex Intell Syst 3(4):233-245
+
+156. Senthil SM, Parameshwaran R, Ragu Nathan S, Bhuvanesh                 174. Wang J, Yan Z, Wang M, Li M, Dai Y (2013) Multi-objective
+       Kumar M, Deepandurai K (2020) A multi-objective optimization               optimization of an organic Rankine cycle (ORC) for low grade
+       of the friction stir welding process using RSM-based-desirability          waste heat recovery using evolutionary algorithm. Energy Con-
+       function approach for joining aluminum alloy 6063-T6 pipes.                vers Manage 71:146-158
+       Struct Multidiscip Optim 62(3):1117-1133
+                                                                           175. Wang L, Wang T, Wu J, Chen G (2017) Multi-objective differ-
+157. Serafini P (1994) Simulated annealing for multiple objective opti-           ential evolution optimization based on uniform decomposition
+       mization problems. In: Tzeng G, Wang H, Wen U, Yu P (eds)                  for wind turbine blade design. Energy 120:346-361
+       Proceedings of the tenth international conference on multiple cri-
+       teria decision making: expand and enrich the domains of thinking    176. Wang Y, Ma Q, Li W (2012) Structural damage detection by
+       and application, vol 1, pp 283-292, Springer-Verlag, Berlin                multi-objective intelligent algorithm. In: The 15th world confer-
+                                                                                  ence on earthquake engineering, Lisbon
+158. Sivaiah P, Chakradhar D (2018) Performance improvement of
+       cryogenic turning process during machining of 17-4 PH stainless     177. Wang Y, Huo X (2018) Multiobjective optimization design and
+       steel using multi objective optimization techniques. Measure-              performance prediction of centrifugal pump based on orthogonal
+       ment. https://doi.org/10.1016/j.measurement.2018.12.094                    test. Adv Mater Sci Eng 2018:1-10
+
+159. Schaffer JD (1984) Multiple objective optimization with vector        178. Warsi SS, Agha MH, Ahmad R, Jaffery SHI, Khan M (2018)
+       evaluated genetic algorithms. PhD thesis, Vanderbilt University,           Sustainable turning using multi-objective optimization: a study
+       Nashville, Tennessee                                                       of Al 6061 T6 at high cutting speeds. Int J Adv Manuf Technol
+                                                                                  100(1-4):843-855
+160. Shanjeevi C, Satish Kumar S, Sathiya P (2014) Multi-objective
+       optimization of friction welding parameters in AISI 304L auste-     179. Yang X-S (2014) Nature-inspired optimization algorithms. Else-
+       nitic stainless steel and copper joints. Proc Inst Mech Eng Part           vier, Amsterdam
+       B J Eng Manuf 230(3):449-457
+                                                                           180. Yang Y, Cao L, Zhou Q, Wang C, Wu Q, Jiang P (2018) Multi-
+161. Shao Q, Xu T, Yoshino T, Song N (2017) Multi-objective opti-                 objective process parameters optimization of Laser-magnetic
+       mization of gas metal arc welding parameters and sequences                 hybrid welding combining Kriging and NSGA-II. Robot Comput
+       for low-carbon steel (Q345D) T-joints. J Iron Steel Res Int                Integr Manuf 49:253-262
+       24(5):544-555
+
+                                                                                              1 3
+2308                                                                                                                                    J. L. J. Pereira et al.
+
+181. Yang Y, Cao L, Wang C, Zhou Q, Jiang P (2018) Multi-objective       190. Zhang R, Wang X (2019) Parameter study and optimization of
+       process parameters optimization of hot-wire laser welding using          a half-vehicle suspension system model integrated with an arm-
+       ensemble of metamodels and NSGA-II. Robot Comput Integr                  teeth regenerative shock absorber using Taguchi method. Mech
+       Manuf 53:141-152                                                         Sys Signal Process 126:65-81
+
+182. Yifei T, Meng Z, Jingwei L, Dongbo L, Yulin W (2018) Research       191. Zhang Y, Xu Y, Zheng Y, Fernandez-Rodriguez E, Sun A, Yang
+       on intelligent welding robot path optimization based on GA and           C, Wang J (2019) Multiobjective optimization design and experi-
+       PSO algorithms. IEEE Access 6:65397-65404                                mental investigation on the axial flow pump with orthogonal test
+                                                                                approach. Complexity 2019:1-14
+183. Yoon KP, Kim WK (2017) The behavioral TOPSIS. Expert Syst
+       Appl 89:266-272                                                   192. Zhang J, Wang J, Lin J, Guo Q, Chen K, Ma L (2015) Multi-
+                                                                                objective optimization of injection molding process parameters
+184. Zadeh LA (1963) Optimality and nonscalar-valued performance                based on Opt LHD, EBFNN, and MOPSO. Int J Adv Manuf
+       criteria. IEEE Trans Autom Control 8(1):59-60                            Technol 85(9-12):2857-2872
+
+185. Zhou GD, Yi T-H, Xie M-X, Li H-N, Xu J-H (2021) Optimal             193. Zitzler E, Deb K, Thiele L (2000) Comparison of multi-objec-
+       wireless sensor placement in structural health monitoring empha-         tive evolutionary algorithms: empirical results. Evol Comput
+       sizing information effectiveness and network performance. J              8(2):173-195
+       Aerosp Eng 34(2):04020112
+                                                                         194. Zitzler E, Laumanns M, Thiele L (2001) SPEA2: improving the
+186. Zhang H, Peng Y, Hou L, Tian G, Li Z (2019) A hybrid multi-                strength pareto evolutionary algorithm. In: Giannakoglou K, Tsa-
+       objective optimization approach for energy-absorbing structures          halis D, Periaux J, Papailou P, Fogarty T (eds) EUROGEN 2001.
+       in train collisions. Inf Sci 481:491-506                                 Evolutionary methods for design, optimization and control with
+                                                                                applications to industrial problems, pp 95-100, Athens, Greece
+187. Zhang J, Zhu H, Yang C, Li Y, Wei H (2011) Multi-objective
+       shape optimization of helico-axial multiphase pump impel-         195. Zitzler E, Thiele L (1999) Multi-objective evolutionary algo-
+       ler based on NSGA-II and ANN. Energy Convers Manage                      rithms: a comparative case study and the strength pareto
+       52(1):538-546                                                            approach. IEEE Trans Evol Comput 3(4):257-271
+
+188. Zhang L, Zhang S, Zhang W (2019) Multi-objective optimization       Publisher's NoteSpringer Nature remains neutral with regard to
+       design of in-wheel motors drive electric vehicle suspensions for  jurisdictional claims in published maps and institutional affiliations.
+       improving handling stability. Proc Inst Mech Eng Part D J Autom
+       Eng 233:2232-2245
+
+189. Zhang Q, Li H (2007) MOEA/D: a multi-objective evolutionary
+       algorithm based on decomposition. IEEE Trans Evol Comput
+       11:712-731
+
+1 3
+

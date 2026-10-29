@@ -1,0 +1,8 @@
+{
+  "unique_train": 1152,
+  "flashover_train": 569,
+  "list_entries": 2290,
+  "repeat": 3,
+  "list": "E:\\创新创业\\Demos\\训练样本\\FBID\\yolo\\train_flash3x.txt",
+  "yaml": "E:\\创新创业\\Demos\\训练样本\\FBID\\yolo\\data_flash3x.yaml"
+}

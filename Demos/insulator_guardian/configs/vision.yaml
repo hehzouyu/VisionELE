@@ -1,0 +1,99 @@
+# 视觉线唯一事实源：模型 / 训练 / 推理 / 导出
+# family 开关是风险项（YOLOv12 是否被 Ultralytics 直接支持尚待验证）：
+#   yolov12  → 试 v12 权重/YAML；不支持时切 yolov8，CA/RFA 注入接口不变
+model:
+  family: yolov8
+  weights: null            # null = 用官方预训练 yolov8n.pt；也可填 runs/.../best.pt
+  input_size: 640
+  num_classes: 3
+  class_names: [normal, flashover, broken]
+  ca_layer_index: null     # null = 自动选最后一个通道数 >= 256 的层
+  ca_inject: last          # last = 只挂 P5 入口；backbone = 每个 C2f/SPPF 输出（消融用）
+  use_ca: true
+  use_rfa: true
+  rfa_ratio: 0.5
+  pretrained: true
+
+train:
+  batch: 32
+  epochs: 60
+  patience: 20
+  cache: ram
+  optimizer: AdamW
+  lr0: 0.001
+  lrf: 0.01
+  scheduler: cosine
+  weight_decay: 0.0005
+  warmup_epochs: 3
+  workers: 0               # 沙箱内 multiprocessing 命名管道被拒，数据加载须单进程
+  device: auto             # auto / cpu / 0
+  seed: 0
+  run_name: null           # null = <日期>_<family>_ca
+
+augment:
+  exposure: true
+  contrast: true
+  gaussian_blur: true
+  clahe: true
+  hsv_h: 0.015
+  hsv_s: 0.5
+  hsv_v: 0.4
+  fliplr: 0.5
+  mosaic: 1.0
+
+infer:
+  conf: 0.25
+  iou: 0.45
+  max_det: 100
+
+export:
+  format: onnx
+  opset: 12
+  simplify: true
+  dynamic: false
+  fp16: false              # ONNX 阶段 false，TensorRT 阶段再开
+  onnx_atol: 1e-3          # 与 PyTorch 输出的最大允许误差
+
+data:
+  root: ../训练样本/FBID/yolo
+  raw_dir: data/raw
+  label_dir: data/labels
+  splits_dir: data/splits
+  split_ratio: [0.8, 0.1, 0.1]
+
+# ---------------------------------------------------------------------------
+# 进阶语义增强（M4，构想 1.3 节）：代码骨架在 src/enhanced/，默认不参与基线训练
+# ---------------------------------------------------------------------------
+enhanced:
+  enabled: false           # 总开关；M4 实验时逐项打开做消融
+  freq:                    # CWT / VMD 频域增强分支（freq.py）
+    enabled: true
+    cwt_scales: [1, 2, 4, 8]
+    morlet_center_freq: 0.8
+    vmd_modes: 3
+    gamma_cwt: 0.3
+    gamma_vmd: 0.2
+    se_reduction: 16
+  graph:                   # MSA-GCN 半监督图学习（graph.py）
+    enabled: true
+    knn: 5
+    sigma: 1.0
+    hidden_dim: 64
+    scales: [1, 2, 3]
+    layers: 3
+    dropout: 0.1
+    seed: 0
+  cdmth:                   # 元迁移检测头（cdmth.py）
+    enabled: false
+    shots: [5, 10]
+    temperature: 0.1
+    trigger_conf: 0.5
+    trigger_elec: 0.7
+  cdcgan:                  # 小样本生成（cdcgan.py，需要 torch）
+    enabled: false
+    latent_dim: 100
+    image_size: 64
+    base_channels: 256
+    epochs: 200
+    hinge_margin: 1.0
+    keep_ratio: 0.5

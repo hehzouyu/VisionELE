@@ -1,0 +1,28 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.pytest_tmp/
+.coverage
+htmlcov/
+
+# 数据集不进版本控制
+data/raw/
+data/labels/
+data/splits/
+
+# 运行产物
+logs/
+results/
+*.log
+*.pt
+*.pth
+*.onnx
+*.engine
+*.trt
+
+# 临时/缓存残留（受限令牌下删除失败的目录）
+.tmp_*
+pytest-cache-files-*
+tmp*
+.pytest_basetmp/
+

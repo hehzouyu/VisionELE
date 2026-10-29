@@ -1,0 +1,1029 @@
+                                                                Neurocomputing 474 (2022) 141-153
+
+                                                    Contents lists available at ScienceDirect
+
+                                                Neurocomputing
+
+                                  journal homepage: www.elsevier.com/locate/neucom
+
+Survey paper
+
+A survey of recommender systems with multi-objective optimization
+
+Yong Zheng a,, David (Xuejun) Wang b
+
+a College of Computing, Illinois Institute of Technology, Chicago, IL 60616, USA
+b Morningstar, Inc., Chicago, IL 60602, USA
+
+article info                      abstract
+
+Article history:                  Recommender systems have been widely applied to several domains and applications to assist decision
+Received 25 September 2021        making by recommending items tailored to user preferences. One of the popular recommendation algo-
+Revised 1 November 2021           rithms is the model-based approach which optimizes a specific objective to improve the recommenda-
+Accepted 14 November 2021         tion performance. These traditional recommendation models usually deal with a single objective, such
+Available online 1 December 2021  as minimizing the prediction errors or maximizing the ranking quality of the recommendations. In
+                                  recent years, there is an emerging demand for multi-objective recommender systems in which multiple
+Keywords:                         objectives are considered and the recommendations can be optimized by the multi-objective optimiza-
+Recommender systems               tion. For example, a recommendation model may be built by optimizing multiple metrics, such as accu-
+Multi-objective                   racy, novelty and diversity of the recommendations. The multi-objective optimization methodologies
+Optimization                      have been well developed and applied to the area of recommender systems. In this article, we provide
+Pareto optimal                    a comprehensive literature review of the multi-objective recommender systems. Particularly, we iden-
+Multi-objective recommendation    tify the circumstances in which a multi-objective recommender system could be useful, summarize the
+                                  methodologies and evaluation approaches in these systems, point out existing challenges or weak-
+                                  nesses, finally provide the guidelines and suggestions for the development of multi-objective recom-
+                                  mender systems.
+
+                                                                                                                              � 2021 Elsevier B.V. All rights reserved.
+
+1. Introduction                                                      [13-15]. Group fairness may be considered to alleviate the conflict
+                                                                     between individuals and the whole group in the context of group
+    The problem of information overload results in difficulties of   recommendations [16,17]. The objectives associated with multiple
+getting access to desired information or consuming preferred items   tasks may need to be jointly optimized in the multi-task RSs [18-
+in various applications. Recommender systems (RSs) were pro-         20]. We use the term multi-objective recommender systems
+posed and developed to alleviate this issue by delivering a list of  (MORS) to refer to the RSs which produce recommendations by
+recommendations tailored to user preferences. RSs have been          optimizing multiple objectives.
+applied in several domains to assist users' decision making, such
+as in the area of e-commerce [1,2], online streaming [3-5], educa-       We provide a comprehensive literature review on MORS in this
+tion [6,7], social networks [8,9], and so forth.                     artcile, and aim to help researchers understand the circumstances
+                                                                     in which MORS is useful and learn how MOO can be utilized to
+    Traditional recommendation models usually deal with a single     solve the multi-objective problems in RSs. The major contributions
+objective, such as minimizing the prediction errors [10] or maxi-    of this article can be summarized as follows:
+mizing the ranking quality [11]. Recently, there is an emerging
+demand in multi-objective recommendations [12], where the rec-         There are several surveys in the area of recommender systems.
+ommendation models can be built by considering multiple objec-           This article provides the first literature review on the multi-
+tives through a process of multi-objective optimization (MOO).           objective recommender systems.
+For example, recommendations may be produced by balancing
+different quality metrics, such as accuracy, diversity and novelty     We summarize the circumstances in which MORS is useful,
+                                                                         which provides a guidance for the researchers in both recom-
+  Corresponding author.                                                  mender systems and the area of multi-objective optimization.
+
+     E-mail address: yzheng66@iit.edu (Y. Zheng).                      We introduce and discuss the technologies in multi-objective
+                                                                         optimization and their applications in recommender systems.
+https://doi.org/10.1016/j.neucom.2021.11.041                             Furthermore, we point out the weaknesses and challenges in
+0925-2312/� 2021 Elsevier B.V. All rights reserved.                      the current development in multi-objective recommendations.
+Y. Zheng and David (Xuejun) Wang                                               Neurocomputing 474 (2022) 141-153
+
+  We provide a workflow as guideline for researchers to select                 may suffer from the rating sparsity issue. The content-based RSs
+    appropriate multi-objective optimization methods in their                  rely on the quality of content information which require additional
+    model development and experimental design.                                 efforts to collect or pre-process. The hybrid RS models may work
+                                                                               well, but it is difficult to understand or explain the models, and
+    The remainder of the article is organized as follows: Section 2            the computational cost may be increased significantly. The
+briefly reviews the recommendation techniques and compares this                assumptions behind demographic information based RSs are sim-
+survey with others in recommender systems; Section 3 introduces                ple and straightforward, but they may not always work well, and
+and describes different multi-objective optimization techniques in             the collection of demographic information may lead to user privacy
+details; Section 4 illustrates the applications and methodologies of           concerns. In the utility-based RSs and knowledge-based RSs, the
+multi-objective recommender systems; Section 5 provides a sum-                 performance depends on the utility function or knowledge rules
+mary for the current development of multi-objective recommenda-                which are difficult to build or acquire, especially for the utility-
+tions, points out the weaknesses of existing research, and further             based RSs. The content-based RSs and collaborative filtering mod-
+delivers a list of guidelines for the future development, followed             els are the most popular RSs among these categories, especially
+by the conclusion and future work in Section 6.                                with the development of deep learning or neural network based
+                                                                               models [27].
+
+2. Recommender systems and related surveys                                     2.2. Different new types of recommender systems
+
+    In this section, we provide an overview of the recommender                     The traditional RSs may only rely on users' preferences on the
+systems, including the classification of recommendation algo-                  items, as well as the user demographic information and the item
+rithms, and different new types of recommender systems emerged                 content features. In recent decades, different new types of the rec-
+in recent years. In addition, we compare this article with other sur-          ommender systems emerged, and researchers made the efforts to
+veys in the area of recommender systems, and introduce our sur-                adapt the traditional recommendation algorithms to these new
+vey methods in this article.                                                   RSs, including but not limited to:
+
+2.1. Recommendation algorithms                                                   Context-Aware RSs [28-30] in which researchers believe that
+                                                                                   users preferences may vary from contexts to contexts (e.g.,
+    RSs can be considered as supervised learning models which can                  time, location, occasion, etc), where RSs should be built to adapt
+learn from users' preference history and predict the list of items a               to these contextual situations.
+user may like. The data used for building RSs is usually a composi-
+tion of users, items, and the user preference information on the                 Group RSs [31,16,7] in which the system produces recommenda-
+items. These preferences could be explicit information (e.g.,                      tions for a group of users instead of a single user, e.g., in group
+numerical ratings on the items) or implicit feedback (e.g., brows-                 dinner or group trip.
+ing/clicking behaviors, user opinions in reviews or comments).
+                                                                                 Multi-Criteria RSs [32-34] in which researchers take advantage
+    There are two major recommendation tasks in RSs - rating pre-                  of user preferences in different aspects of the items (i.e., crite-
+dictions and top-N recommendations. The rating-prediction task                     ria) to build better recommendation models. For example, we
+refers to predicting a rating given a user and an item, and thereby                may consider room cleanliness, room size, location, safety in a
+the recommendation performance can be examined by prediction                       hotel recommendation.
+errors, such as mean absolute error (MAE) and root-mean-square
+error (RMSE). By contrast, a list of N recommended items for a user              Cross-Domain RSs [35,36] in which the model can assist recom-
+is expected to be produced in the top-N recommendation task,                       mendations in a target domain based on the knowledge learned
+while the performance can be evaluated by relevance metrics                        from a source domain. For example, researchers may take
+(e.g., precision, recall, F1, etc) and ranking metrics (e.g., normalized           advantage of the preference information in a movie domain to
+discounted cumulative gain (NDCG)). Accordingly, recommenda-                       predict users' tastes in a music domain.
+tion algorithms can be developed specifically for the rating predic-
+tion (e.g., matrix factorization [21]) and top-N recommendation                  Multi-Stakeholder RSs [37-39] in which we produce the recom-
+(e.g., BPR [22]) tasks. Note that the predicted ratings can also be                mendations by considering the utility of an item from the per-
+used to sort and rank items to produce the recommendation list.                    spective of multiple stakeholders (e.g., the item supplier, the
+                                                                                   platform, etc) in addition to the end users.
+    A popular way to categorize the recommendation algorithms is
+based on the approaches to build the recommendation models. The                  Multi-Task RSs [40-42] in which researchers produce recom-
+content-based RSs [23] recommend items based on the similarity                     mendations by optimizing multiple tasks through a joint learn-
+between the candidate items and the preferred items by a user                      ing process. The joint optimization over different tasks is not
+in terms of the content features. The collaborative filtering algo-                novel, but multi-task RSs can share common representations
+rithms [24,25] can estimate a user's preference on an item based                   (e.g., latent factors, feature space, neural network layers, etc)
+on the preferences shared in common from a user or item neigh-                     in the optimization process.
+borhood. The hybrid RSs [26] is able to combine different recom-
+mendation strategies and models together. Burke [26] added                     2.3. Related surveys
+three extra RSs - demographic information based RSs which assumes
+users with similar demographic information may have similar                        Recommender systems have been developed for several dec-
+tastes on the items, the utility-based RSs which rely on a utility             ades, and there are many surveys on recommender systems. For
+function to sort and rank the items, and knowledge-based RSs which             example, Lu et al. [43] contributed a survey on recommender sys-
+infer a match between users and items based on the knowledge                   tems from a general perspective. By contrast, there are several sur-
+information (e.g., association rules).                                         veys which focus on different types of recommender systems, such
+                                                                               as literature reviews on context-aware RSs [29], multi-criteria RSs
+    There are different limitations among these recommendation                 [44], multi-stakeholder RSs [37], and so forth. In addition, there are
+algorithms. For example, the collaborative filtering can work as               also surveys on recommendation models using specific technolo-
+long as there are users, items and rating information; however, it             gies, such as RSs based on deep learning [27] and swarm intelli-
+                                                                               gence [45].
+
+                                                                          142
+Y. Zheng and David (Xuejun) Wang                                                               Neurocomputing 474 (2022) 141-153
+
+    In this article, we provide a literature review on multi-objective              Scalarization Methods: it is used to transform a MOP to a single-
+recommender systems, and this topic was never investigated in the                     objective problem (SOP), so that most of the existing optimiza-
+current publications. This article aims to help researchers under-                    tion methods for SOP can be reused to solve the problem.
+stand the circumstances in which MORS is useful and learn how
+MOO can be utilized to solve the multi-objective problems in RSs.                   Population-Based Heuristic Methods: in this category, different
+                                                                                      population-based heuristic search techniques can be developed
+    The selection process of the relevant publications in MORS                        and applied to solve MOP directly. Most of these methods are
+began with the help of Google Scholar by using the keywords                           known as the multi-objective evolutionary algorithms (MOEAs)
+``multi-objective" and ``recommender systems". Moreover, we                           which are the evolutionary algorithms (EAs) or swarm intelli-
+identified the recent developed multi-task RSs as another practice                    gence methods (SIs) that were modified and adapted to MOP.
+in MORS, and additionally searched for publications related to                        We can produce the Pareto optimal set as the output by using
+multi-task RSs. We collected these publications in reputable jour-                    MOEAs.
+nals and conferences (e.g., WWW, SIGIR, RecSys, UMAP, KDD,
+CIKM, ICDE, etc). This process resulted in a selection of 56 articles             In Section 3.3 and Section 3.4, we discuss the popular scalarization
+(from 2007 to August, 2020) for our literature review. Furthermore,               and MOEA methods in details.
+we reviewed related articles in the area of multi-objective opti-
+mization in order to discuss it in details in Section 3.                          3.3. Scalarization methods
+
+3. Multi-objective optimization                                                       There are several ways to transform a MOP into a SOP, such as
+
+    Multi-objective optimization becomes a dedicated discipline of                the weighting methods [49,50], the -constraint method [51], the
+scientific research, especially in the area of decision making due to
+the fact that a set of objectives are usually involved. In this section,          global criterion method [49], goal programming [52,53], lexico-
+we introduce the multi-objective problem (MOP), and discuss dif-                  graphic method [54], the Tchebycheff approach [55], etc. We dis-
+ferent popular MOO methods.
+                                                                                  cuss the weighting methods and the -constraint method in this
+3.1. Problem definition
+                                                                                  Section, since they are two most popular MOO methods in MORS.
+    Suppose we have multiple objectives to be minimized, the gen-
+eral MOP can be described as follows [46].                                            The weighted sum method is one of the most popular and
+                                                                                  straightforward methods. We can simply assign a weighting vector
+min�f 1�x�; f 2�x�; . . . ; f M�x��                  �1�                          w = (w1; w2; . . . ; wM) in which each weight is associated with an
+x                                                                                 objective to represent the importance of the objective. Conse-
+                                                                                  quently, the weighted sum, minx i�1 PM wif i�x�, is utilized to repre-
+subject to gk�x� 0; k � 1; 2; . . . ; K; x 2 X & Rn  �2�                          sent a single objective to be optimized. The weighted sum
+                                                                                  method can produce a single Pareto optimal solution by given a
+    M is the number of objective functions, and x � �x1; x2; . . . ; xn� is       set of weights, as long as wi > 0 and i�1 PM wi � 1 [56].
+a n-dimension decision vector in space Rn. X defines the lower
+                                                                                      In addition to the weighted sum method, there are many varia-
+bound  and                           upper  bound    of                           tions of the weighting methods, such as weighted exponential sum
+
+x : X � fx j ai 6 xi 6 bi; i � 1; 2; . . . ; ng. We define F�x� as                method [49,57], weighted product [50], weighted metric method
+                                                                                  [58,59], weighted chebyshev method [60] and exponential
+�f 1�x�; f 2�x�; . . . ; f M�x�� which is a vector function in objective
+                                                                                  weighted criterion [61]. They just apply the weights to different
+space RM. gk�x� is used to indicate possible constraints in MOP. A                aggregations of the objectives.
+
+                                                                                     The -constraint method [51] is another popular scalarization
+
+                                                                                  approach. It optimizes one objective and treats other objectives
+
+                                                                                  as constraints.
+
+feasible solution is defined as any solutions that can satisfy Eq. 2.             minf l�x�                                                  �4�
+
+   In order to determine which solution is better given two feasi-                x
+
+ble solutions x and x�, the notion of dominance [47] is introduced to             subject to:
+
+MOP: x is dominated by x� if and only if                                          f i�x� 6 i; for all i � 1; 2; . . . ; K; and i - l; x 2 S  �5�
+
+f m�x�� 6 f m�x� for all m � 1; 2; . . . ; M; 9m0 : f m0�x�� < f m0�x� �3�            In the example above, we optimize the lth objective, and set the
+
+    Accordingly, the feasible solution x� is usually named as a non-              others as constraints, where S refers to the set of all feasible solu-
+dominated solution or Pareto optimal solution, if there are no other
+feasible solutions that dominates x� [47]. The group of all non-                  tions. i is used to represent the upper bound of each objective
+dominated solutions is known as the Pareto optimal set or Pareto
+set. The range of objective function F�x� over the Pareto set is                  f i�x�, and considered as parameters to be tuned up in the optimiza-
+referred to Pareto optimal front or Pareto front [47].                            tion process.
+
+    Different objectives may have various importance in the MOO                   3.4. Population-based heuristic methods
+process. The humans who have preferences on these objectives
+are referred as ``decision makers" (DM). According to the engage-                     The population-based heuristic methods are well known as
+ment of DM's preferences, the optimization can be classified into                 MOEAs which are a family of approaches based on EAs or SIs
+priori (i.e., DM's preferences as inputs before the optimization),                inspired by natural evolution or optimization processes [62], such
+posteriori (i.e., DM's preferences used to select solutions after the             as the genetic algorithms (GA) [63,64], particle swam optimization
+optimization) and interactive methods (i.e., DM may change pref-                  (PSO) [65-67], artificial immune system (AIS) [68,69], and so forth.
+erences during the optimization) [48].
+                                                                                      Traditional EAs or SIs were developed to solve SOPs. Theses
+3.2. Classification of multi-objective optimization methods                       methods usually start with an initialization of a population P which
+                                                                                  is a set of random feasible solutions. Each solution x 2 P will be
+    There are many ways to classify MOO algorithms. Here we clas-                 evaluated by a fitness function (i.e., the objective function) in the
+sify MOO based on its underlying optimization strategy:                           iterative learning process. In GA, a Parent set Ps & P will be
+                                                                                  selected based on these fitness values computed from the fitness
+                                                                                  functions. A crossover and mutation are applied to Ps to produce
+
+                                                                             143
+Y. Zheng and David (Xuejun) Wang                                                                                          Neurocomputing 474 (2022) 141-153
+
+a new solution set as the child set Pc. An elitism process is applied             posed different approaches to identify this knee point, such as
+to select the best solution from the original population P and the                the angle-based method [91], marginal utility [91,90], expected
+newly generated solution Pc, which results in a new generation                    marginal utility [90] and the hyperplane normal vector method
+of the population. By this way, each generation of population is                  [92].
+better than the previous generation according to the fitness values.            Hypervolume. The hypervolume [93] of a solution in two-
+SI follows a similar process to obtain a better population in each                dimensional space is the area measurement of the rectangle
+iteration. The iterative learning is expected to produce optimal                  with opposite vertex as this point and the origin. The point of
+solutions eventually.                                                             a solution on the Pareto front with the maximum hypervolume
+                                                                                  can be treated as the optimal solution. Hypervolume can also be
+    These EA and SI methods can be modified and adapted to MOPs,                  applied to the whole Pareto front by measuring volumes cov-
+which results in different MOEAs. More specifically, the MOEAs at                 ered by hypervolumes of all solution points. The hypervolume
+the early age, such as VEGA [70], define multiple fitness functions,              of Pareto front can be used to compare the quality of different
+while each function is associated with an objective. Afterwards,                  Pareto sets.
+they can select and blend solutions from the population by using                Multiple-criteria decision-making (MCDM) methods. The
+multiple fitness functions. Thereby the set of solutions in the pro-              multiple-criteria decision-making is a dedicated discipline that
+cess of crossover and mutation is composed by the solutions opti-                 evaluates conflicting criteria in the decision making process.
+mized by different objectives. By contrast, the modern and more                   Given a set of Pareto solutions, the selection of an optimal solu-
+popular way to develop MOEAs is defining the fitness function by                  tions can be considered as a multi-criteria decision-making pro-
+the non-dominance relation directly, such as the popular MOGA                     cess. The most popular MCDM methods include but not limited
+[71] and NGSA [72] methods. By this way, MOEAs can converge                       to: the Technique for Order of Preference by Similarity to Ideal
+faster and find better Pareto optimal solutions.                                  Solution (TOPSIS) methods [94,95] and Preference Ranking
+                                                                                  Organization METHod for Enrichment of Evaluations (PRO-
+    In addition to the GA-based MOEAs discussed above, there are                  METHEE) method [96], and so forth. One of the limitations in
+other MOEAs based on different evolutionary algorithms, such as                   these methods is that they usually need the known importance
+multi-objective PSO [73-75], multi-objective AIS [76-78], and so                  or weights of the objectives. Without these pre-defined weights,
+forth. We can incorporate the notion of Pareto dominance into these               researchers have to figure out additional methods to estimate
+heuristic methods too. Take MOPSO [73] for example, we can select                 the importance, or simply consider equal weights in the selec-
+the global optimal solution by the Pareto dominance in the swarm.                 tion process.
+Zeng et al. [75] recently adopted differential evolution [79] to diver-
+sify the population so that they can achieve a better Pareto set. The         3.6. Comparison between scalarization and MOEAs
+advances in single-objective PSO can also be adopted to improve
+multi-objective PSO, such as the methods to enhance the conver-                   Both Scalarization and MOEAs can be applied to solve MOPs.
+gence rate [80] or perturb the acceleration coefficients [81,82] in           However, they do have their own advantages and disadvantages.
+order to have a more thorough search in the problem space.
+                                                                                  Scalarization methods are popular due to its simplicity since
+    The search ability of the evolutionary algorithms depends on              they transform MOPs to SOPs and traditional single-objective opti-
+the variation among the individuals or candidate solutions in the             mizer can also be applied. However, scalarization methods may not
+population [83]. There are usually two solutions to enhance the               be able to handle non-convex problems in contrast to the MOEAs,
+search ability. On one hand, researchers may develop different evo-           though researchers may be able to use a relaxed problem to
+lutionary operations, e.g., developing new mutation operations                approximate the non-convex problems. Furthermore, specific
+[84] in GA or differential evolution in multi-objective PSO [75].             requirements are necessary in order to get Pareto optimal solu-
+On the other hand, the attention was paid to how to increase the
+diversity of the solutions in MOEAs by the niche method which                 tions, e.g., a feasible solution is Pareto optimal if it solves the -
+is also known as fitness sharing [85-87]. The idea behind fitness             constraint problem and it is unique in the -constraint method.
+sharing is to degrade the fitness of similar solutions that causes
+population diversity pressure [87]. For example, a niche method               In addition, it is difficult to find the optimal parameters (e.g., the
+can be developed to penalize the fitness value of a solution in a             weights in the weight sum method) in the scalarization methods,
+more crowded neighborhood [86]. Namely, a solution in a high-                 unless the preferences by the decision makers are known in
+density neighborhood has a higher niche count. As a result, the               advance.
+solution with higher niche count will less likely be selected for
+the next generation in the evolution process.                                     By contrast, MOEAs can handle both convex and concave prob-
+                                                                              lems. The solutions in the Pareto set produced by MOEAs are guar-
+3.5. Selecting the best solution from pareto optimal set                      anteed to be Pareto optimal. Moreover, there are several open-
+                                                                              source libraries available for MOEAs, such as MOEA framework,1
+    Both scalarization methods and population-based heuristic                 pymoo,2 PyGMO,3 inspyred,4 and so forth. However, MOEAs may
+methods can generate a Pareto set, while the scalarization methods            converge at local optima while the diversity of the solution set is
+need to be executed multiple times with different parameters (e.g.,           always one of the challenges as mentioned in Section 3.4. In addi-
+the weights in the weighted sum method) in order to obtain a Par-             tion, the efficiency of MOEAs may be another concern if the data is
+eto set. It is worth mentioning that there are specific requirements          a large or MOEAs need more agents (e.g., particles in PSO) in the
+to get all Pareto solutions for the scalarization methods, e.g., the          search process.
+problem needs to be convex in the weighted sum method [88].
+                                                                              4. Multi-objective recommender systems
+    Once we have the Pareto set, it is important to select a single
+optimal solution for specific applications, such as recommender                   In this section, we illustrate the applications and methodologies
+systems. The criteria or methods that can be used for the selection           of multi-objective recommender systems.
+can be summarized as follows.
+
+ Knee point. The ``knee point" of the Pareto front is the position at         1 http://moeaframework.org/
+  which small improvement in either objective will cause a large              2 https://pymoo.org/
+  deterioration in the other objectives [89,90]. Researchers pro-             3 https://esa.github.io/pygmo/
+                                                                              4 https://aarongarrett.github.io/inspyred/
+
+                                                                         144
+Y. Zheng and David (Xuejun) Wang                                                                                                                Neurocomputing 474 (2022) 141-153
+
+    As mentioned previously, MORS refer to the recommender sys-               MOEAs were adopted, we present the EA or SI method which
+tems which produce recommendations optimized by multiple                      was extended to develop MOEA in the table.
+objectives. It is considered as an application of MOO in the area
+of recommender systems. In comparison with the MOO applica-                       For each of the five categories above, we have the discussions
+tions in other areas, MORS may be different from two perspectives.            from four perspectives:
+On one hand, DM's preferences on the objectives can be engaged
+through the priori, posteriori or interactive methods in most of                Objectives. We explore the motivation of applying MOO in each
+the MOO applications. However, DM's preferences are not always                    circumstance, and collect the definition of the objectives in each
+available in recommender systems. Take the RSs by considering                     category.
+the accuracy, novelty and diversity of the recommendation list
+[13] for example, the user preferences (e.g., the weights or trade-             MOO Methods. We summarize the multi-objective optimization
+off preferences) on accuracy, novelty and diversity are usually                   methods with reference to the introductions in Section 3. If
+not available. As a result, researchers have to build the models first,           MOEAs are adopted, we further discuss the method for selecting
+and find the optimal trade-off by performing post-experiment user                 the single optimal solution. Otherwise, we introduce how the
+studies. On the other hand, we usually need a single optimal solu-                parameters were found (e.g., pre-defined, grid search, etc.) in
+tion in MORS, while other areas may acquire the Pareto front or                   the scalarization methods.
+more than one solutions as the final outputs or presentations to
+the end users. Take the investment portfolio optimization [97]                  RS Models with MOO. We investigate how the MOO methods can
+for an example, the investment managers would like to maximize                    be integrated with the recommendation models. For example,
+the expected portfolio return and minimize the portfolio risk, but                some research work may consider it as a joint learning process
+they may not have clear preferences on these two objectives. They                 in the recommendation models, while some others may adopt
+can acquire the Pareto front and present it to the investors, so that             MOEAs to learn a list of recommendations directly.
+investors can select the trade-off based on the Pareto front.
+                                                                                Effectiveness. There are no general or specific metrics for MOO
+    The major challenges in MORS include but not limited to:                      evaluations, since the purposes or objectives in different MORS
+choosing the appropriate MOO techniques to solve the MOP in                       may vary from categories to categories. Therefore, we focus on
+RSs; selecting a single optimal solution from the Pareto set as the               the demonstration of the effectiveness, i.e., how the researchers
+output in RSs; balancing multiple objectives, especially when there               demonstrated that the proposed MOO solutions in RSs were
+are conflicting interests.                                                        better than others.
+
+    In the following discussions, we first identify the circumstances         4.1. Recommender systems balanced by multiple quality metrics
+or contexts in which a multi-objective recommender system could
+be useful. These circumstances can be classified into five cate-                  Beyond recommendation accuracy, a wider perspective towards
+gories, as shown by Table 1. We classify these research work by               the recommendation utility may include other quality metrics [13],
+not only the circumstances, but also the categories of the MOO                such as novelty and diversity [13], serendipity [145], popularity
+methods adopted. If the scalarization methods were applied, we                [146], and so forth. Maximizing one of these metrics may hurt
+further identify its subcategory as described in Section 3.3. If              others. Therefore, there is a demand in MOO so that recommenda-
+                                                                              tions can be produced by balancing these metrics.
+
+Table 1
+Categories of the Circumstances Using MORS. (See below-mentioned references for further information.)
+
+                                                                         145
+Y. Zheng and David (Xuejun) Wang                                                 Neurocomputing 474 (2022) 141-153
+
+    Objectives Most of existing research in this category took accu-                 comparisons, e.g., pairwise ranking. Fortes et al. [115] selected
+racy, diversity, and novelty into consideration. Some work                           the optimal solution which minimizes the distance between
+[107,110,113,114] added coverage as one of their concerns. Xie                       the learned objective weights and the computed weights from
+et al. [102] considered click-through rate and dwell time (i.e., the                 sample data, which can be considered as a TOPSIS method.
+length of time that a visitor spends on a page) as two representa-                 Selecting the optimal solution based on the weighted mean of
+tions of recommendation accuracy without considering other met-                      multiple objectives. More specifically, Di Noia et al. [98] and
+rics (e.g., diversity, novelty, etc). It is worth noting that there are no           Wang et al. [104] simply considered equal weights and used
+uniform measures for accuracy, diversity and novelty, and                            the average value of various objectives to select the optimal
+researchers may use different representations. For example, Pang                     solution. Ribeiro et al. [105] defined different sets of the weights
+et al. [110] utilized prediction errors as the representation for rec-               and produced the optimal solution by using each set of the
+ommendation accuracy, while Geng et al. [116] measured accuracy                      weights for the purpose of comparisons. Fortes et al. [109] fig-
+by using the similarity between the item candidates and items in                     ured out one method to compute the individual user's weight
+user profiles. Di Noia et al. defined diversity from the perspective                 for each objective based on user preferences data.
+of item catalogs, and used catalog coverage together with Gini                     Selecting the optimal solution by each objective. These work
+coefficient to measure the diversity metric [98]. Fortes et al.                      [104,108] selected the solution with best single objective (e.g.,
+[109] computed diversity by using the popular EILD metric [14]                       accuracy, novelty, or diversity) and observe how the values in
+which is a doubly rank-sensitive and rank-aware expected intra-                      other metrics changed in comparison with other solutions.
+list diversity measure.                                                            Presenting the descriptive statistics (e.g., minimal, maximal,
+                                                                                     and mean value) of the objectives based on the Pareto optimal
+    Moreover, researchers may consider special metrics which vary                    set or subset, without selecting a single optimal solution. These
+from applications to applications. For example, Patil et al. [101]                   work [116,106,117,110-112,118,114,120] can only demon-
+focused on the compatibility and versatility of capsule wardrobes                    strate that they were able to produce desired solutions in the
+in fashion recommendations so that they can help consumers                           Pareto set, but leaved the challenge to select the single best
+buy minimal fashion items that produce a maximum number of                           solution. The work by Ribeiro et al. [105] proposed to use a
+compatible and versatile outfit combinations. Paul et al. [100]                      weighted sum of multiple objectives as the metric to select
+raised the security concerns in the recommendation models, and                       the best solution. However, they only tried four sets of weights
+built a joint learning based model by considering recommendation                     to observe the experimental results without performing a
+accuracy and the model vulnerability (i.e., adversarial perturba-                    search to find the optimal solution. Pang et al. [110] learned
+tions on image features).                                                            weights in the similarity function associated with collaborative
+                                                                                     filtering, and proposed to use the average weights from the
+    MOO Methods Based on the information in Table 1, we can                          solutions in the Pareto set as the final solution. However, there
+observe that MOEA is the most popular MOO method for the                             are no fundamental evidences showing that the average solu-
+research in this category. There are only limited research work                      tion from the Pareto set is the optimal one.
+using scalarization. More specifically, Di Noia et al. [98], Patil
+et al. [101] and Karabadji et al. [99] used the weighted sum                         RS Models with MOO The way to integrate MOO with RS mod-
+described in Section 3.3 as the scalarization method for the opti-               els depends on how the RS models work, i.e., how the models pro-
+mization process. But they used different ways to find the best                  duce recommendations. First of all, most of these work can directly
+weights. Di Noia et al. [98] used a grid search which iterates the               produce the recommendation list through MOEA, since the recom-
+weight from 0 to 1 with a step of 0.1, since there is only one weight            mendation list for a user can be encoded in MOEAs (e.g., gene
+parameter (i.e., w and 1-w) in their work. Patil et al. [101] tried five         encoding in GAs or positions in PSOs). However, the encoding
+different sets of the weights without a complete grid search in the              may be very long if there are large scale of the items as recommen-
+space. Lacerda et al. [103] adopted the weighted Chebyshev as the                dation candidates. Some research [104,111] produced a list of K
+scalarization, since it encounters all solutions in a non-convex Par-            item candidates for each user by a traditional recommendation
+eto set. Wang et al. [104] used the Tchebycheff approach [55] as                 model, and further learned the top-N item recommendations from
+the scalarization method. By contrast, other research work that uti-             these K candidates (N ( K). Moreover, some other work
+lized scalarization optimize multiple objectives by a joint learning             [105,109,114] built a hybrid recommendation model which pre-
+process through the recommendation models, such as the multi-                    dicts a rating for a user on an item by a weighted sum of predicted
+arm bandit algorithm [103], Pareto-oriented reinforcement learn-                 ratings from mutliple recommendation algorithms. In this case,
+ing [102] or defense modeling [100]. In this case, the weights will              they can utilize MOEAs to learn these weights directly. In addition,
+be considered as hyperparameters to be tuned up in the optimiza-                 the work by Di Noia [98] produce the recommendation list first,
+tion process.                                                                    then re-rank the items based on the scalarization optimization.
+                                                                                 Cao et al. [113] tried to produce recommendations by using tensor
+    Most of the work using MOEA adopted GA-based and AIS-based                   factorization. They did not utilize the tensor decomposition as the
+MOEAs, as shown in Table 1. Zou [120] utilized a teaching-learning               optimizer, but adopted MOEA to learn the tensor representations
+based optimizer which is a multi-objective swarm intelligence                    by considering the loss function in tensor factorization as one of
+approach. By using MOEA as the optimization method, a subse-                     the objectives. By contrast, Lacerda et al. [103], Xie et al. [102]
+quent challenge is the selection of the optimal solution from the                and Paul et al. [100] utilized a joint learning model which delivers
+Pareto optimal set. The selection methods in these work can be                   a joint loss function by the weighted sum of the losses associated
+summarized as follows.                                                           with multiple objectives.
+
+  Using hypervolume discussed in Section 3.5 to compare the                          Effectiveness The work in this category tried to produce the
+    optimal solutions such as the work by Zuo et al. [107], or com-              recommendation list by balancing multiple quality metrics.
+    pare the quality of Pareto fronts among different MOEA                       Researchers evaluate the recommendation models by comparing
+    approaches [114].                                                            multiple objectives (i.e., different quality metrics in this case). It
+                                                                                 is worth mentioning that not all of the objectives are conflicting
+  Adopting the multi-criteria decision making methods. Chai et al.               in these research. For example, Xie et al. [102] considered click-
+    [119] applied the PROMETHEE method to select the optimal                     through rate and dwell time as two accuracy metrics, therefore
+    solution from the Pareto set. PROMETHEE [96] is one of the
+    strategies used in multi-criteria decision making, and it is able
+    to produce a ranking score for the solutions based on the
+
+                                                                            146
+Y. Zheng and David (Xuejun) Wang                                            Neurocomputing 474 (2022) 141-153
+
+they demonstrate that their models were able to improve these               is associated with each stakeholder. Multi-stakeholder RSs are
+two metrics in their experiments.                                           expected to achieve a balance among these stakeholders.
+
+    In the research where there are conflicting objectives, research-           Objectives The definition of stakeholders and the related objec-
+ers believe that the proposed approaches are effective as long as           tives may vary from cases to cases. We summarize them as follows.
+they can improve some metrics (e.g., novelty and diversity) with-
+out a significant loss in the recommendation accuracy. However,               The reciprocal recommendation models usually take advantage
+there are no standards to define a ``significant" loss, and there               of the bidirectional preferences and perform a process of user
+are no user studies which can explore the tolerance of the loss from            matching to recommend a user to the target user, such as dating
+the perspective of the end users. For example, the proposed                     [124] or job-seeking [131,127]. Rodriguez et al. [131] used job-
+method by Zhang et al. [108] was demonstrated to improve both                   seeking as a case study, set a job-seeking intent score for the job
+accuracy (measured by precision) and diversity by comparing to                  seekers and a semantic matching score for the recruiters, so that
+the models without considering multiple objectives. However,                    they can utilize MOO for the joint optimization. Zheng et al.
+the model increased precision at the loss of diversity in comparison            [124] applied MOO in an online-dating context in which users
+with another multi-objective RS model. Zhang et al. believed that               were asked to describe their desired partners or expectations
+the proposed model was still effective, since the improvement over              by rating different criteria. As a result, the distance between a
+precision is much larger than the decline in diversity.                         user's multi-criteria rating and his or her expectation ratings
+                                                                                can be used to estimate the utility values.
+4.2. Group recommender systems
+                                                                              Applications are more popular in the e-commerce [122,125] or
+    It is not surprising that MOO is also helpful in group recommen-            marketplace [121] areas. Both Lin et al. [122] and Louca et al.
+dations. Due to the nature of group recommender systems, the                    [125] considered the customers preferences (e.g., click-
+conflicts between individual preferences and group satisfaction                 through rate or purchase likelihood) and platform revenue in
+are involved in the recommendation challenge. Take the group din-               their applications, while Nguyen et al. [121] additionally took
+ner for example, an individual in the group may prefer spicy food,              the profits of item suppliers into account.
+while several other group members may not.
+                                                                              Mobile application is another interesting case study in multi-
+    Objectives Xiao et al. [16] utilized MOO in the group recom-                stakeholder RSs. Xia et al. [129,123] made their attempts to
+mendation model by incorporating three objectives, including                    apply MOO in mobile app recommendations, while they consid-
+individual preferences, group satisfactions and group fairness. Par-            ered the objectives for users (e.g., relevance), app market (e.g.,
+ticularly, they defined 4 different group fairness measures.For                 revenue) and the recommender system (e.g., diversity, robust-
+example, the Variance Fairness and Jain's Fairness [147] can                    ness), respectively.
+encourage the group members to achieve close utilities between
+each other, while the Least Misery Fairness and Min-Max Ratio                 Provider fairness. Surer et al. [38] proposed a general framework
+emphasize the gap between the least and highest utilities of group              for recommender systems which take the end users and item
+members. Wu et al. [17] considered group satisfaction, social rela-             providers into consideration. They proposed to maximize user
+tionship density (i.e., the social closeness between group members              preferences, and also make sure that the items by each provider
+with respect to an item) and group fairness in their work, while                or retailer could be equally likely to be recommended. Kermany
+they adopted a variance-based fairness measure [16].                            et al. [132] considered the provider fairness too, in additional to
+                                                                                the recommendation accuracy and diversity.
+    MOO Methods Xiao et al. [16] combined multiple objectives
+into a single one by using the weighted sum method, and proposed              Others. Malthouse et al. [126]described their work in sponsored
+to apply the greedy search and integer programming to find the                  recommendations in which they consider user preferences and
+optimal solutions. Wu et al. [17] adopted the weighted sum                      the Ad revenue in the optimization process. Mehrotra et al.
+method and used exhaustive grid search to find the best weights.                [130] considered the user interests and clicks, diversity of the
+                                                                                singers and the platform promotions in the context of music
+    RS Models with MOO Wu et al. [17] adopted joint learning and                streaming. Zheng et al. [39] presented a case study in educa-
+used gradient descent as the optimizer in their recommendation                  tions, and built different utility functions from the perspective
+models. Xiao et al. [16] proposed two optimizer (i.e., greedy search            of students and instructors as the objectives. Unger et al.
+and integer programming) which can help them learn the recom-                   [128] investigated a case study in music listening in which they
+mendation list directly.                                                        took the listening behaviors of the end users and the number of
+                                                                                fans for the artists into consideration.
+    Effectiveness These work assumed that the group recommen-
+dations could be improved by considering multiple objectives,                   MOO Methods Most of the research in this category adopted
+especially the group fairness. Therefore, they did not compare mul-         the scalarization as the optimization method. More specifically,
+tiple objectives in their experiments, and only evaluated the per-          weighted sum is still the most popular scalarization approach,
+formance of group recommendations directly. For example, both               while Nguyen et al. [121], Malthouse et al. [126] and Zheng et al.
+Wu et al. [17] and Xiao et al. [16] used F1 measure and NDCG to             [124] used grid search to find the optimal weights, Yildirim et al.
+evaluate the quality of top-N recommendations, without present-             [127] and Louca et al. [125] considered the weights as hyperpa-
+ing or comparing other objectives defined in their work, e.g., group        rameters to be tuned up, and Xia et al. [123] simply used equal
+fairness.                                                                   weights as their assumptions. All of these work produced a single
+                                                                            solution by using the scalarization method, except the work by Lin
+4.3. Multi-stakeholder recommender systems                                  et al. [122] in which they tried different weights to produce a Par-
+                                                                            eto optimal set and select the optimal solution from this set. By
+    Multi-stakeholder RSs deliver recommendations by considering            contrast, Xia et al. [129] used a weighted product method, and
+the perspective of multiple stakeholders. Take e-commerce for               Mehrotra et al. [130] utilized a generalizes Gini function [148]
+example, not only the user preferences, but also the utility of the         which is a special case of the ordered weighted averaging approach
+item in view of sellers, the marketplace, as well as the shipping           as the scalarization method. In addition to the weighting methods,
+companies may also be taken into account in the recommendation
+process. Consequently, there could be at least one objective which          Surer et al.[38] utilized the -constraints as the scalarization
+
+                                                                            method and adopted grid search for some of the constraints while
+                                                                            others were pre-defined. Rodriguez et al. [131] framed the job rec-
+
+                                                                       147
+Y. Zheng and David (Xuejun) Wang                                                          Neurocomputing 474 (2022) 141-153
+
+ommendation as a -constraints problem but actually used a                                 tained in the training signals of related tasks as an inductive bias
+                                                                                          [150]. A MTL problem can be solved by MOO in which the objec-
+greedy search as the solution in the experimental evaluations.                            tives of each task will be optimized jointly. However, MOO is not
+    Zheng et al. [39] adopted MOEA and used a method similar to                           the only solution for MTL, since each task can also be optimized
+                                                                                          independently [151]. Multi-task RSs aims to perform or optimize
+TOPSIS described in Section 3.5 to select the optimal solution. More                      multiple tasks by a joint optimization process that shares common
+specifically, the upper and lower bounds of the objectives were cal-                      representations (e.g., latent factors, feature space, neural network
+culated from the experimental results, so that the gain and loss                          layers, etc) among multiple tasks. MOO is widely adopted as the
+score for the MOO solution can be computed to sort and rank the                           optimizer to solve the MTL problem in multi-task RSs.
+solutions in the Pareto set. Kermany et al. [132] used MOEA too,
+but they did not provide any information related to the selection                             Objectives The definition of tasks may vary from applications to
+of the optimal solution in the Pareto optimal set. In addition, Lin                       applications in the multi-task RSs, while each task is usually asso-
+et al. [122] suggested to use a least misery or the marginal utility                      ciated with at least one objective. We summarize these tasks and
+strategy to select the single optimal solution which can be viewed                        objectives as follows.
+as different methods to find the knee point as described in
+Section 3.5.                                                                                Researchers may want to optimize multiple user behaviors or
+                                                                                              reactions together. By this way, the joint-optimization model
+    RS Models with MOO These work usually fuse MOO with RS                                    in these work [137,18,42] can improve the click-through,
+models in three options - joint learning, learning recommendation                             view-through, comment rate or the probability of purchases
+list directly, or learning the importance of objectives to further                            in their systems.
+rank items and produce recommendations. The joint learning is
+the most straightforward method in which researchers just add                               Some other work proposed to improve different recommenda-
+more objectives into a single loss function, such as the joint learn-                         tion tasks (e.g., rating prediction and top-N recommendations)
+ing by learning-to-rank [121,122,129], bandit based recommenda-                               simultaneously. Hu et al. [141], Hadash et al. [41] and Shi
+tion model [130], or joint deep learning frameworks (i.e., neural                             et al. [140] considered both the rating prediction and ranking
+network models) [127,128]. Some other research proposed to learn                              tasks in a joint learning process.
+the recommendation list directly by using MOEA [132] or integer
+programming [131,38,126]. The work by Zheng et al. [39,124] uti-                            Other research try to integrate the recommendation task with a
+lized MOEA to learn the importance of the objectives in order to                              non-recommendation task. For example, researchers can deliver
+rank the items by a utility function to produce the recommenda-                               recommendations together with a process of text productions,
+tions by considering multiple objectives in MOEA.                                             such as user reviews [134] or opinions [133], recommendation
+                                                                                              explanations [136] or tips [19], and so forth. Note that some
+    Effectiveness Note that maximizing the utility of the items from                          of these non-recommendation tasks may be used to assist the
+the perspective of one stakeholder may hurt the one in view of                                recommendation task. For example, Huang et al. [138] per-
+other stakeholders. Therefore, the researchers would like to demon-                           formed different classification tasks and Wang et al. [20] added
+strate that multi-stakeholder RSs can enhance the benefits of other                           a process of graph embedding in the joint optimization which
+stakeholders without or with a small loss for the end users who are                           can finally improve the recommendations. By taking the rating
+the receivers of the recommendations. The potential issue is similar                          prediction task into account, Bansal et al. [135] and Wang et al.
+to the one in the category mentioned in Section 4.1 - there are no                            [139] additionally integrate the process with a tag prediction
+guidelines to indicate the degree of the ``small" loss that can be                            and trust prediction task, respectively.
+accepted. For example, Zheng et al. [39] built three types of the
+models - models which maximize the utility function for students                              MOO Methods All the work above used the weighted sum
+(Ms), models which maximize the utility function for instructors                          method to transform the objectives associated with multiple tasks
+(Mt), and multi-stakeholder models which maximize the utilities                           into a single objective, so that they can be optimized through a
+for both students and instructors (Mst). The optimal model Mst                            joint learning process. Regarding the weighting parameters, the
+was demonstrated to improve students' satisfaction5 by 37.9% and                          most common method is treating weights as hyperparameters to
+instructors' satisfaction by 114% in comparison with Ms which is a                        be tuned up in order to get the best performance
+traditional recommendation model that only considers the end users,                       [141,134,135,20,152,138,140,18]. Others define the weights based
+though there is a decline in instructors' satisfaction by 17% in com-                     on the importance of each task [41,139,19] or simply assigned
+parison with Mt. The improvement of 114% in comparison with Ms                            equal weights [133]. Particularly, Tang et al. [42] defined the
+is much more important than the 17% decline in comparison with                            weights at the initialization process and used a decay function to
+Mt, since students are the receivers of the recommendations instead                       adjust the weights in the training iterations, to obtain a better solu-
+of the instructors. Therefore Mst was still considered as a successful                    tion. Chen et al. [136] and Shi et al. [140] adopted grid search to
+model. However, the optimal ``trade-off" should be examined by user                       find the optimal weights in the experiments.
+studies. Very limited number of research conducted or present user
+studies to examine whether the trade-off by their offline experiments                         RS Models with MOO All of these research built the recommen-
+can be accepted in user studies. Zheng et al. [149] additionally per-                     dation models and optimized the objectives through a joint learn-
+formed a user study to collect the tolerance of each stakeholder. By                      ing process. More specifically, the recommendation models were
+this way, the bottom line of the recommendation satisfaction can                          built based on specific machine learning methods, such as machine
+be identified, which can further assist the researchers to find the opti-                 factorization [141], tensor factorization [133], multi-layer neural
+mal ``trade-off" among different objectives.                                              network models which integrate several structures (e.g., multi-
+                                                                                          layer perceptron models with a gated recurrent neural network
+4.4. Multi-task recommender systems                                                       by Li et al. [19]). These models usually allow adding additional
+                                                                                          components (i.e., loss function by each objective) into the weighted
+    Multi-Task Learning (MTL) is an inductive transfer process that                       aggregation so that multiple objectives can be transformed into a
+improves generalization by using the domain information con-                              single one.
+
+  5 The student and instructor satisfaction is measured by a utility function which           Effectiveness In most of the work [42,141,41,134-136,139,19,
+computes a distance between user expectations and experiences [39].                       18], researchers evaluate the objectives of each task in multi-task
+                                                                                          RSs, and demonstrate that their solutions are able to improve all
+                                                                                          these objectives. For example, Li et al. [19] incorporated the rating
+
+                                                                                     148
+Y. Zheng and David (Xuejun) Wang                                             Neurocomputing 474 (2022) 141-153
+
+prediction task and tip generation task in a joint-learning process.         multiple quality metrics (23/56), multi-stakeholder (14/56) and
+The proposed multi-task RS was able to reduce prediction errors in           multi-task RSs (14/56). We can observe that the number of publi-
+the rating prediction task (e.g., MAE and RMSE), and improve the             cations related to MORS surged due to the development of multi-
+accuracy of generated tips measured by the ROUGE-N score [153]               stakeholder and multi-task RSs recently. The topic of RSs balancing
+which is a metric in natural language processing.                            multiple quality metrics actually was well studied in the past dec-
+                                                                             ades before.
+    Some researchers assumed that the recommendations could be
+improved by additionally performing other tasks [137,140], while                 Among these 56 relevant research, 37 of them utilized the
+some others considered the intermediate processing(e.g., graph               scalarization method to solve MOP, while 19 publications adopted
+embedding [20], classifications [138]) as additional tasks. These            MOEAs as the optimizer. The weighted sum is the most popular
+work believe that their multi-task RSs are effective as long as they         scalarization method, while GA-based MOEA is more popular than
+can improve the recommendation performance (e.g., precision,                 other MOEAs (e.g., PSO-based approaches). By using MOEAs as the
+recall, etc), without evaluating or presenting the objectives in these       optimizer in recommender systems, researchers need to well
+additional tasks.                                                            design the encoding (e.g., genes in GA or positions in PSO). Take
+                                                                             the gene encoding for example, we can use binary encoding (e.g.,
+4.5. Clustering and rule based RSs                                           1 or 0 to indicate whether an item is recommended or not) [111]
+                                                                             or permutation encoding (e.g., integers as item ID in the recom-
+    Clustering-based [154] and rule-based [155,156] recommenda-              mendations list) [112,118], if the MOEA is developed to learn a
+tion models rely on the quality of clusters or association rules.            top-N recommendation list for each user. Other parameters are
+MOO can be applied to these unsupervised learning process (i.e.,             associated with the specific evolutionary algorithm, such as the
+clustering or association rule mining) to produce better outputs.            population size, the number of particles, learning rate, etc.
+                                                                             Researchers can empirically tune up these parameters to find the
+    Objectives Tyagi et al. [142] and Neysiani et al. [143] developed        optimal results. By contrast, the process of parameter tuning is
+rule-based recommender systems, and considered support and                   more complicated if we use scalarization. In addition to the param-
+confidence as two objectives to be optimized in the rule mining,             eters in the single-objective optimizer (e.g., learning rate, regular-
+in order to produce high-quality rules. Demir et al. [144] generated         ization rate, etc), researchers have to assign parameters which are
+clusters for Web sessions by taking the overall deviation and con-           associated with the scalarization method, such as the weights in
+nectivity of the clusters, in order to assist Web based
+recommendations.                                                             the weighted sum methods, or the constraints in the -constraint
+
+    MOO Methods Tyagi et al. [142] and Neysiani et al. [143] uti-            method. There are usually two ways to setup these parameters.
+lized the weighted sum method and selected the weights empiri-               First of all, researchers can treat these parameters as hyperparme-
+cally. By contrast, Demir et al. [144] adopted MOEA as the                   ters to be tuned up - as the same as the way to adjust other param-
+solution and manually selected the optimal solution by an expert             eters (e.g., learning rate). This is a common approach, especially in
+based on the plot of Pareto front.                                           the joint learning by multi-task RSs [42,20]. Alternatively,
+                                                                             researchers can perform a grid search to iterate different values
+    RS Models with MOO These work were generally applied to the              for a parameter, e.g., vary the weight from 0 to 1 with a step of
+unsupervised learning process (i.e., clustering or association rule          0.1 in the weighted sum method [98,17,143].
+mining). The outputs, such as clusters or rules can be further used
+to assist the recommendations. For example, Tyagi et al. [142] and               Researchers take multiple objectives into account in their
+Neysiani et al. [143] produce rules like ft1; t2g ! ft3g, so that they       research, but they may have different purposes. As a result, the
+can recommend item t3 to a user if he or she likes t1 and t2 before.         effectiveness can be examined and demonstrated in different ways
+                                                                             which can be summarized as follows.
+    Effectiveness Researchers believe that the outputs by the unsu-
+pervised learning through a MOO process are able to improve rec-               Researchers would like to improve the quality of recommenda-
+ommendations. Therefore, they usually evaluate the                               tions by considering multiple objectives. For example, the
+recommendation quality without comparing different objectives                    research on group recommendations considered group fairness
+in the unsupervised learning process. Tyagi et al. [142] and Ney-                as one additional objective, and assumed that they could
+siani et al. [143] demonstrated the effectiveness by evaluating                  improve the group recommendations by using MOO. In the cat-
+the models based on the recommendation performance (e.g., preci-                 egory of clustering-based and rule-based RSs, researchers aimed
+sion, recall and F1 measure) only, without comparing multiple                    to improve the recommendations by considering multiple
+objectives. Demir et al. [144] examined the quality of the clusters              objectives in the clustering or rule mining to generate better
+without further experiments on clustering-based                                  clusters or association rules. As a result, the research in these
+recommendations.                                                                 two circumstances only examine the improvement over the rec-
+                                                                                 ommendation qualities, without comparing other objectives in
+5. Summary, weaknesses and guidelines                                            their experiments.
+
+    In this section, we deliver a summary of multi-objective recom-            Researchers may build multi-task RSs to combine different
+mendations, point out the weekness in the current development of                 tasks together, in order to improve the performance of all tasks.
+MORS, and finally provide a guideline for the application of MOO in              In this case, multi-task RSs are expected to demonstrate the
+the area of recommender systems.                                                 improvement on multiple tasks. At current stage, we did not
+                                                                                 observe conflicting objectives in these multiple tasks, thereby
+5.1. Summary: multi-objective recommendations                                    a trade-off is actually not required. However, it is possible to
+                                                                                 have conflicting objectives in multiple tasks in the future
+    In this article, we identify five circumstances in which a MORS              deveopment of multi-task RSs.
+could be useful. MOP is a common and general problem in RSs as
+long as we consider multiple stakeholders in RSs or would like to              Researchers would like to balance multiple objectives in two
+balance the recommendations among different quality metrics.                     circumstances - the multi-stakeholder RSs and the RSs with
+Among these five circumstances, we can observe that there are                    multiple quality metrics. There are possible conflicting objec-
+three applications which are most popular - the RSs balancing                    tives involved in these RSs in which a balance or trade-off is
+                                                                                 expected to be achieved by the optimal solution. We can use
+                                                                                 the methods in Section 3.5 to select a single and optimal solu-
+
+                                                                        149
+Y. Zheng and David (Xuejun) Wang                                              Neurocomputing 474 (2022) 141-153
+
+tion from the Pareto set which is considered a solution with
+trade-off in the offline experiments. However, the actual
+``trade-off" depends on DM's preferences on the objectives
+(e.g., accuracy and diversity in RSs). It should be achieved by
+examining these solutions based on user studies, if DM's prefer-
+ences are not available during the process of system develop-
+ment. However, most of the research compared different
+models through offline experiments only, without performing
+or presenting post-experiment user studies.
+
+5.2. Weaknesses
+
+    Based on the review above, we have identified several weak-
+nesses in the current development of MORS.
+
+  First of all, some researchers are satisfied with a MOO solution                                           Fig. 1. Suggested Workflow for MORS.
+    as long as it is better than the baselines without proving that
+    the MOO solution is Pareto optimal. The MOO methods, espe-                DM's preferences (e.g., weights), the MOP can be converted and
+    cially the scalarization methods, can produce Pareto optimal              treated as a SOP directly. Otherwise, we can select scalarization
+    solutions under specific conditions. Without validating these             or MOEAs as the MOO methods. In most cases, researchers do
+    requirements, it is not guaranteed that researchers can find              not know the DM's preferences in RSs unless researchers collect
+    the optimal solution, though they are able to find a better solu-         their preferences before. For example, researchers may be able to
+    tion than the baselines.                                                  collect how the end users prefer the recommendations in terms
+                                                                              of the accuracy, diversity and novelty in advance. Otherwise, DM
+  The weighted sum is the most popular scalarization method,                  preferences are usually not available in the applications, and we
+    but it is necessary to normalize the objective values before              have to produce a Pareto set and select the optimal solution from
+    assigning weights to them. Otherwise, the results may be over-            the set. We can apply MOEAs directly, or try different parameters
+    whelmed by the objective with larger scales. Many research                and run the scalarization methods for several times, in order to
+    work did not exploit the scales of the objectives or did not men-         obtain a Pareto set. Consequently, we can adopt some strategies
+    tion normalization in their work.                                         (described in Section 3.5) to select a single optimal solution from
+                                                                              the Pareto set.
+  By using MOEAs as the optimizer, a single best solution is usu-
+    ally required in the area of recommender systems. Some of the                 In the experimental evaluations, researchers are suggested to
+    existing work either did not select the single best solution, or          compare the models based on different objectives, in addition to
+    did not provide any information about the selection method.               evaluating the quality of recommendations. It enables researchers
+    For example, most of the work in the category of RSs with mut-            to discover more insights about the correlations between the
+    liple metrics compared the descriptive statistics (e.g., min, max,        objectives and the recommendation quality. Furthermore, a
+    mean) among the Pareto optimal solutions without selecting a              trade-off is required when there are conflicting objectives. Some
+    single optimal solution from the Pareto set. Actually, it is better       research claim that the MOO solution is effective since it improves
+    to compare different selection strategies to observe which one            some objectives at an acceptable loss at other objectives. The post-
+    is better.                                                                experiment user studies may be necessary to examine whether the
+                                                                              trade-off is acceptable, if the DM's preferences are not available at
+  It is well-known that the evolutionary algorithms are easily to             the moment. User studies are also beneficial for researchers to fig-
+    converge in local optima. Therefore, it is important to tune up           ure out the degree of the tolerance with respect to different
+    the parameters related to the niche method which can improve              objectives.
+    the diversity of the Pareto optimal solutions and enhance search
+    ability in MOEAs.                                                         6. Conclusions and future work
+
+  Some research assume that they are able to improve the recom-                   Multi-objective optimization becomes an emerging concern
+    mendation performance by taking multiple objectives into                  and demand in the area of recommender systems. In this article,
+    account. However, they only evaluated the recommendation                  we summarize the circumstances in which a MORS could be useful,
+    performance (e.g., precision, recall, etc) without comparing              discuss the multi-objective optimization methods, point out the
+    multiple objectives (e.g., group fairness in the group RSs) in            weaknesses in the current research, and provide a guideline for
+    their experimental analysis. It is difficult to validate the depen-       the future development of MORS.
+    dency between these objectives and the improvement on rec-
+    ommendations, without presenting and comparing multiple                       We identify the following challenges which could be considered
+    objectives in their experiments.                                          as future work.
+
+  Both scalarization and MOEAs can be applied as the optimizer if               Without DM's preferences, both scalarization and MOEAs can be
+    DM's preferences are not available. There are no existing                     selected as the MOO methods. However, there are no existing
+    research which compare these two types of the optimizer in                    work which compare these two categories of the optimization
+    the research work.                                                            approaches.
+
+5.3. Guidelines
+
+    Finally, we deliver our guidelines based on the flowchart
+described in Fig. 1.
+
+    First, researchers should clearly define the MOP and multiple
+objectives at the beginning. It is better to declare whether the
+MOP is convex or not. Afterwards, scalarization or MOEAs should
+be adopted as the optimization methods. With explicit and known
+
+                                                                         150
+Y. Zheng and David (Xuejun) Wang                                                            Neurocomputing 474 (2022) 141-153
+
+  There are different ways to select the single optimal solution                            [20] H. Wang, F. Zhang, M. Zhao, W. Li, X. Xie, M. Guo, Multi-task feature learning
+    from the Pareto set. It is interesting to compare different selec-                             for knowledge graph enhanced recommendation, The World Wide Web
+    tion strategies to figure out more insights, e.g., which one is bet-                           Conference (2019) 2000-2010.
+    ter or more efficient.
+                                                                                            [21] Y. Koren, R. Bell, C. Volinsky, Matrix factorization techniques for
+  User-centric studies are necessary to deliver more reliable eval-                                recommender systems, Computer 42 (8) (2009) 30-37.
+    uations, especially when there are conflicting objectives.
+                                                                                            [22] S. Rendle, C. Freudenthaler, Z. Gantner, L. Schmidt-Thieme, Bpr: Bayesian
+  It is interesting to exploit other circumstances or applications                                 personalized ranking from implicit feedback, arXiv preprint
+    (e.g., cross-domain or multi-criteria RSs) where MOO can help                                  arXiv:1205.2618..
+    build better recommender systems.
+                                                                                            [23] P. Lops, M. De Gemmis, G. Semeraro, Content-based recommender systems:
+CRediT authorship contribution statement                                                           State of the art and trends, Recommender Syst. Handbook (2011) 73-105.
+
+    Yong Zheng: Conceptualization, Investigation, Methodology,                              [24] J.B. Schafer, D. Frankowski, J. Herlocker, S. Sen, Collaborative filtering
+Supervision, Writing - original draft, Writing - review & editing,                                 recommender systems, in: The adaptive web, Springer, 2007, pp. 291-324.
+Visualization. David (Xuejun) Wang: Investigation, Writing - orig-
+inal draft, Writing - review & editing.                                                     [25] X. Su, T.M. Khoshgoftaar, A survey of collaborative filtering techniques,
+                                                                                                   Advances in artificial intelligence 2009..
+Declaration of Competing Interest
+                                                                                            [26] R. Burke, Hybrid recommender systems: Survey and experiments, User
+    The authors declare that they have no known competing finan-                                   modeling and user-adapted interaction 12 (4) (2002) 331-370.
+cial interests or personal relationships that could have appeared
+to influence the work reported in this paper.                                               [27] S. Zhang, L. Yao, A. Sun, Y. Tay, Deep learning based recommender system: A
+                                                                                                   survey and new perspectives, ACM Comput. Surveys 52 (1) (2019) 1-38.
+References
+                                                                                            [28] G. Adomavicius, A. Tuzhilin, Context-aware recommender systems, in:
+   [1] J.B. Schafer, J. Konstan, J. Riedl, Recommender systems in e-commerce, in:                  Recommender systems handbook, Springer, 2011, pp. 217-253..
+        Proceedings of the 1st ACM conference on Electronic commerce, 1999, pp.
+        158-166.                                                                            [29] S. Raza, C. Ding, Progress in context-aware recommender systems-an
+                                                                                                   overview, Comput. Sci. Rev. 31 (2019) 84-97.
+   [2] B. Smith, G. Linden, Two decades of recommender systems at amazon. com,
+        IEEE Internet Comput. 21 (3) (2017) 12-18.                                          [30] Y. Zheng, B. Mobasher, R. Burke, Cslim: Contextual slim recommendation
+                                                                                                   algorithms, in: Proceedings of the 8th ACM Conference on Recommender
+   [3] S. Chang, Y. Zhang, J. Tang, D. Yin, Y. Chang, M.A. Hasegawa-Johnson, T.S.                  Systems, 2014, pp. 301-304.
+        Huang, Streaming recommender systems, in: Proceedings of the 26th
+        international conference on world wide web, 2017, pp. 381-389.                      [31] J. Masthoff, Group recommender systems: Combining individual models, in:
+                                                                                                   Recommender systems handbook, Springer, 2011, pp. 677-702..
+   [4] C.A. Gomez-Uribe, N. Hunt, The netflix recommender system: Algorithms,
+        business value, and innovation, ACM Trans. Manage. Inf. Syst. 6 (4) (2015) 1-       [32] G. Adomavicius, N. Manouselis, Y. Kwon, Multi-criteria recommender
+        19.                                                                                        systems, in: Recommender systems handbook, Springer, 2011, pp. 769-803..
+
+   [5] M. Schedl, P. Knees, B. McFee, D. Bogdanov, M. Kaminskas, Music                      [33] Y. Zheng, Criteria chains: a novel multi-criteria recommendation approach,
+        recommender systems, in: Recommender systems handbook, Springer,                           in: Proceedings of the 22nd International Conference on Intelligent User
+        2015, pp. 453-492..                                                                        Interfaces, 2017, pp. 29-33.
+
+   [6] N. Manouselis, H. Drachsler, R. Vuorikari, H. Hummel, R. Koper, Recommender          [34] D. Monti, G. Rizzo, M. Morisio, A systematic literature review of multicriteria
+        systems in technology enhanced learning, in: Recommender systems                           recommender systems, Artif. Intell. Rev. 54 (2021) 427-468.
+        handbook, Springer, 2011, pp. 387-415..
+                                                                                            [35] I. Cantador, I. Fern�ndez-Tob�as, S. Berkovsky, P. Cremonesi, Cross-domain
+   [7] Y. Zheng, Identifying dominators and followers in group decision making                     recommender systems, in: Recommender systems handbook, Springer, 2015,
+        based on the personality traits, IUI Workshops (2018).                                     pp. 919-959..
+
+   [8] I. Guy, Social recommender systems, in: Recommender systems handbook,                [36] I. Fern�ndez-Tob�as, I. Cantador, M. Kaminskas, F. Ricci, Cross-domain
+        Springer, 2015, pp. 511-543..                                                              recommender systems: A survey of the state of the art, in: Spanish
+                                                                                                   conference on information retrieval sn, 2012, pp. 1-12.
+   [9] J. He, W.W. Chu, A social network-based recommender system (snrs), in: Data
+        mining for social network data, Springer, 2010, pp. 47-74.                          [37] H. Abdollahpouri, G. Adomavicius, R. Burke, I. Guy, D. Jannach, T. Kamishima,
+                                                                                                   J. Krasnodebski, L. Pizzato, Multistakeholder recommendation: Survey and
+ [10] G. Shani, A. Gunawardana, Evaluating recommendation systems, in:                             research directions, User Model. User-Adap. Inter. 30 (1) (2020) 127-158.
+        Recommender systems handbook, Springer, 2011, pp. 257-297..
+                                                                                            [38] �. S�rer, R. Burke, E.C. Malthouse, Multistakeholder recommendation with
+ [11] A. Karatzoglou, L. Baltrunas, Y. Shi, Learning to rank for recommender                       provider constraints, in: Proceedings of the 12th ACM Conference on
+        systems, in: Proceedings of the 7th ACM Conference on Recommender                          Recommender Systems, 2018, pp. 54-62.
+        Systems, 2013, pp. 493-494.
+                                                                                            [39] Y. Zheng, N. Ghane, M. Sabouri, Personalized educational learning with multi-
+ [12] Y. Zheng, D. Wang, Multi-objective recommendations, in: Proceedings of the                   stakeholder optimizations, in: Adjunct Publication of the 27th Conference on
+        27th ACM SIGKDD Conference on Knowledge Discovery & Data Mining, 2021,                     User Modeling, Adaptation and Personalization, 2019, pp. 283-289..
+        pp. 4098-4099.
+                                                                                            [40] X. Ning, G. Karypis, Multi-task learning for recommender system, in:
+ [13] P. Castells, N.J. Hurley, S. Vargas, Novelty and diversity in recommender                    Proceedings of 2nd Asian Conference on Machine Learning, JMLR Workshop
+        systems, in: Recommender systems handbook, Springer, 2015, pp. 881-918..                   and Conference Proceedings, 2010, pp. 269-284..
+
+ [14] S. Vargas, P. Castells, Rank and relevance in novelty and diversity metrics for       [41] G. Hadash, O.S. Shalom, R. Osadchy, Rank and rate: multi-task learning for
+        recommender systems, in: Proceedings of the fifth ACM conference on                        recommender systems, in: Proceedings of the 12th ACM Conference on
+        Recommender systems, 2011, pp. 109-116.                                                    Recommender Systems, 2018, pp. 451-454.
+
+ [15] M. Kunaver, T. Pozrl, Diversity in recommender systems-a survey, Knowl.-              [42] H. Tang, J. Liu, M. Zhao, X. Gong, Progressive layered extraction (ple): A novel
+        Based Syst. 123 (2017) 154-162.                                                            multi-task learning (mtl) model for personalized recommendations,
+                                                                                                   Fourteenth ACM Conference on Recommender Systems (2020) 269-278.
+ [16] L. Xiao, Z. Min, Z. Yongfeng, G. Zhaoquan, L. Yiqun, M. Shaoping, Fairness-
+        aware group recommendation with pareto-efficiency, in: Proceedings of the           [43] J. Lu, D. Wu, M. Mao, W. Wang, G. Zhang, Recommender system application
+        Eleventh ACM Conference on Recommender Systems, 2017, pp. 107-115.                         developments: a survey, Decis. Support Syst. 74 (2015) 12-32.
+
+ [17] Y. Wu, N. Yang, H. Luo, Unified group recommendation towards multiple                 [44] S.M. Al-Ghuribi, S.A.M. Noah, Multi-criteria review-based recommender
+        criteria, in: Asia-Pacific Web (APWeb) and Web-Age Information                             system-the state of the art, IEEE Access 7 (2019) 169446-169468.
+        Management (WAIM) Joint International Conference on Web and Big Data
+        Springer, 2019, pp. 137-151.                                                        [45] L. Peska, T.M. Tashu, T. Horv�th, Swarm intelligence techniques in
+                                                                                                   recommender systems-a review of recent research, Swarm Evol. Comput.
+ [18] Y. Gu, Z. Ding, S. Wang, L. Zou, Y. Liu, D. Yin, Deep multifaceted transformers              48 (2019) 201-219.
+        for multi-objective ranking in large-scale e-commerce recommender
+        systems, in: Proceedings of the 29th ACM International Conference on                [46] R.T. Marler, J.S. Arora, Survey of multi-objective optimization methods for
+        Information & Knowledge Management, 2020, pp. 2493-2500.                                   engineering, Struct. Multidiscip. Optim. 26 (6) (2004) 369-395.
+
+ [19] P. Li, Z. Wang, Z. Ren, L. Bing, W. Lam, Neural rating regression with                [47] C. Von L�cken, B. Bar�n, C. Brizuela, A survey on multi-objective evolutionary
+        abstractive tips generation for recommendation, in: Proceedings of the 40th                algorithms for many-objective problems, Comput. Optim. Appl. 58 (3) (2014)
+        International ACM SIGIR conference on Research and Development in                          707-756.
+        Information Retrieval, 2017, pp. 345-354.
+                                                                                            [48] H. Wang, M. Olhofer, Y. Jin, A mini-review on preference modeling and
+                                                                                                   articulation in multi-objective optimization: current status and challenges,
+                                                                                                   Complex Intell. Syst. 3 (4) (2017) 233-245.
+
+                                                                                            [49] P.-L. Yu, A class of solutions for group decision problems, Manage. Sci. 19 (8)
+                                                                                                   (1973) 936-946.
+
+                                                                                            [50] E. Gerasimov, V. Repko, Multicriterial optimization, Soviet Appl. Mech. 14
+                                                                                                   (11) (1978) 1179-1184.
+
+                                                                                            [51] Y. Haimes, On a bicriterion formulation of the problems of integrated system
+                                                                                                   identification and system optimization, IEEE Trans. Syst. Man Cybern. 1 (3)
+                                                                                                   (1971) 296-297.
+
+                                                                                            [52] A. Charnes, W.W. Cooper, R.O. Ferguson, Optimal estimation of executive
+                                                                                                   compensation by linear programming, Manage. Sci. 1 (2) (1955) 138-151.
+
+                                                                                            [53] A. Charnes, W.W. Cooper, Goal programming and multiple objective
+                                                                                                   optimizations: Part 1, Eur. J. Oper. Res. 1 (1) (1977) 39-54.
+
+                                                                                            [54] P.C. Fishburn, Exceptional paper-lexicographic orders, utilities and decision
+                                                                                                   rules: A survey, Manage. Sci. 20 (11) (1974) 1442-1471.
+
+                                                                                       151
+Y. Zheng and David (Xuejun) Wang                                                                     Neurocomputing 474 (2022) 141-153
+
+[55] R.E. Steuer, E.-U. Choo, An interactive weighted tchebycheff procedure for                [89]  F. Waltz, An engineering approach: hierarchical optimization criteria, IEEE
+       multiple objective programming, Math. Programming 26 (3) (1983) 326-344.                [90]  Trans. Autom. Control 12 (2) (1967) 179-180.
+                                                                                               [91]  J. Branke, K. Deb, H. Dierolf, M. Osswald, Finding knees in multi-objective
+[56] K. Miettinen, Nonlinear multiobjective optimization, vol. 12, Springer Science            [92]  optimization, in: International conference on parallel problem solving from
+       & Business Media, 2012.                                                                 [93]  nature, Springer, 2004, pp. 722-731..
+                                                                                                     K. Deb, S. Gupta, Understanding knee points in bicriteria problems and their
+[57] A. Messac, C. Puemi-Sukam, E. Melachrinoudis, Aggregate objective functions               [94]  implications as preferred solution principles, Eng. Optim. 43 (11) (2011)
+       and pareto frontiers: required relationships and practical implications,                [95]  1175-1204.
+       Optim. Eng. 1 (2) (2000) 171-188.                                                       [96]  G. Yu, Y. Jin, M. Olhofer, A method for a posteriori identification of knee points
+                                                                                               [97]  based on solution density, in: 2018 IEEE Congress on Evolutionary
+[58] V. Chankong, Y.Y. Haimes, Multiobjective decision making: theory and                      [98]  Computation (CEC), IEEE, 2018, pp. 1-8..
+       methodology, Courier Dover Publications, 2008.                                          [99]  E. Zitzler, D. Brockhoff, L. Thiele, The hypervolume indicator revisited: On the
+                                                                                              [100]  design of pareto-compliant indicators via weighted integration, International
+[59] M. Zeleny, Multiple criteria decision making Kyoto 1975, vol. 123, Springer              [101]  Conference on Evolutionary Multi-Criterion Optimization, Springer (2007)
+       Science & Business Media, 2012..                                                       [102]  862-876.
+                                                                                              [103]  K. Yoon, A reconciliation among discrete compromise solutions, J. Oper. Res.
+[60] M. Lightner, S. Director, Multiple criterion optimization for the design of              [104]  Soc. 38 (3) (1987) 277-286.
+       electronic circuits, IEEE Trans. Circuits Syst. 28 (3) (1981) 169-179.                 [105]  C.-L. Hwang, Y.-J. Lai, T.-Y. Liu, A new approach for multiple objective decision
+                                                                                              [106]  making, Comput. Oper. Res. 20 (8) (1993) 889-899.
+[61] T.W. Athan, P.Y. Papalambros, A note on weighted criteria methods for                    [107]  J. Figueira, S. Greco, M. Ehrgott, Multiple criteria decision analysis: state of the
+       compromise solutions in multi-objective optimization, Eng. Optim. 27 (2)               [108]  art surveys..
+       (1996) 155-176.                                                                        [109]  M.G.C. Tapia, C.A.C. Coello, Applications of multi-objective evolutionary
+                                                                                                     algorithms in economics and finance: A survey, in: 2007 IEEE Congress on
+[62] O.B. Augusto, F. Bennis, S. Caro, A new method for decision making in multi-             [110]  Evolutionary Computation, IEEE, 2007, pp. 532-539..
+       objective optimization problems, Pesquisa Operacional 32 (2) (2012) 331-               [111]  T. Di Noia, J. Rosati, P. Tomeo, E. Di Sciascio, Adaptive multi-attribute diversity
+       369.                                                                                   [112]  for recommender systems, Inf. Sci. 382 (2017) 234-253.
+                                                                                              [113]  N.E.I. Karabadji, S. Beldjoudi, H. Seridi, S. Aridhi, W. Dhifli, Improving
+[63] J.H. Holland, Genetic algorithms, Scientific Am. 267 (1) (1992) 66-73.                   [114]  memory-based user collaborative filtering with evolutionary multi-
+[64] M.Z. Ali, N.H. Awad, P.N. Suganthan, A.M. Shatnawi, R.G. Reynolds, An                    [115]  objective optimization, Expert Syst. Appl. 98 (2018) 153-165.
+                                                                                                     A. Paul, Z. Wu, K. Liu, S. Gong, Robust multi-objective visual bayesian
+       improved class of real-coded genetic algorithms for numerical optimization,            [116]  personalized ranking for multimedia recommendation, Appl. Intell. (2021) 1-
+       Neurocomputing 275 (2018) 155-166.                                                     [117]  12.
+[65] J. Kennedy, R. Eberhart, Particle swarm optimization, in: Proceedings of                 [118]  S. Patil, D. Banerjee, S. Sural, A graph theoretic approach for multi-objective
+       ICNN'95-international conference on neural networks, vol. 4, IEEE, 1995, pp.           [119]  budget constrained capsule wardrobe recommendation, ACM Trans. Inf. Syst.
+       1942-1948..                                                                                   40 (1) (2021) 1-33.
+[66] X. Luo, Y. Yuan, S. Chen, N. Zeng, Z. Wang, Position-transitional particle                      R. Xie, Y. Liu, S. Zhang, R. Wang, F. Xia, L. Lin, Personalized approximate
+       swarm optimization-incorporated latent factor analysis, IEEE Trans. Knowl.                    pareto-efficient recommendation, in: Proceedings of the Web Conference
+       Data Eng..                                                                                    2021, 2021, pp. 3839-3849.
+[67] W. Liu, Z. Wang, X. Liu, N. Zeng, D. Bell, A novel particle swarm optimization                  A. Lacerda, Multi-objective ranked bandits for recommender systems,
+       approach for patient clustering from emergency departments, IEEE Trans.                       Neurocomputing 246 (2017) 12-24.
+       Evol. Comput. 23 (4) (2018) 632-644.                                                          S. Wang, M. Gong, H. Li, J. Yang, Multi-objective optimization for long tail
+[68] J.E. Hunt, D.E. Cooke, Learning using an artificial immune system, J. Network                   recommendation, Knowl.-Based Syst. 104 (2016) 145-155.
+       Comput. Appl. 19 (2) (1996) 189-212.                                                          M.T. Ribeiro, A. Lacerda, A. Veloso, N. Ziviani, Pareto-efficient hybridization
+[69] J. Li, Z.-M. Liu, C. Li, Z. Zheng, Improved artificial immune system algorithm                  for multi-objective recommender systems, in: Proceedings of the sixth ACM
+       for type-2 fuzzy flexible job shop scheduling problem, IEEE Trans. Fuzzy Syst..               conference on Recommender systems, 2012, pp. 19-26.
+[70] J.D. Schaffer, Multiple objective optimization with vector evaluated genetic                    L. Cui, P. Ou, X. Fu, Z. Wen, N. Lu, A novel multi-objective evolutionary
+       algorithms, in: Proceedings of the first international conference on genetic                  algorithm for recommendation systems, J. Parallel Distrib. Comput. 103
+       algorithms and their applications, 1985, Lawrence Erlbaum Associates. Inc.,                   (2017) 53-63.
+       Publishers, 1985..                                                                            Y. Zuo, M. Gong, J. Zeng, L. Ma, L. Jiao, Personalized recommendation based on
+[71] C.M. Fonseca, P.J. Fleming, Multiobjective genetic algorithms, in: IEE                          evolutionary multi-objective optimization [research frontier], IEEE Comput.
+       colloquium on genetic algorithms for control systems engineering, IET,                        Intell. Mag. 10 (1) (2015) 52-62.
+       1993, pp. 6-1..                                                                               L. Zhang, X. Zhang, F. Cheng, X. Sun, H. Zhao, Personalized recommendation
+[72] N. Srinivas, K. Deb, Muiltiobjective optimization using nondominated sorting                    for crowdfunding platform: A multi-objective approach, in: 2019 IEEE
+       in genetic algorithms, Evol. Comput. 2 (3) (1994) 221-248.                                    Congress on Evolutionary Computation (CEC), IEEE, 2019, pp. 3316-3324..
+[73] C.C. Coello, M.S. Lechuga, Mopso: A proposal for multiple objective particle                    R.S. Fortes, A. Lacerda, A. Freitas, C. Bruckner, D. Coelho, M. Gon�alves, User-
+       swarm optimization, in: Proceedings of the 2002 Congress on Evolutionary                      oriented objective prioritization for meta-featured multi-objective
+       Computation. CEC'02 (Cat. No. 02TH8600), vol. 2, IEEE, 2002, pp. 1051-1056..                  recommender systems, in: Adjunct Publication of the 26th Conference on
+[74] A.J. Nebro, J.J. Durillo, J. Garcia-Nieto, C.C. Coello, F. Luna, E. Alba, Smpso: A              User Modeling, Adaptation and Personalization, 2018, pp. 311-316.
+       new pso-based metaheuristic for multi-objective optimization, IEEE                            J. Pang, J. Guo, W. Zhang, Using multi-objective optimization to solve the long
+       Symposium on computational intelligence in multi-criteria decision-making                     tail problem in recommender system, Pacific-Asia Conference on Knowledge
+       (MCDM), IEEE 2009 (2009) 66-73.                                                               Discovery and Data Mining, Springer (2019) 302-313.
+[75] N. Zeng, D. Song, H. Li, Y. You, Y. Liu, F.E. Alsaadi, A competitive mechanism                  C. Xu, A.S. Ding, S.S. Liao, A privacy-preserving recommendation method
+       integrated multi-objective whale optimization algorithm with differential                     based on multi-objective optimisation for mobile users, Int. J. Bio-Inspired
+       evolution, Neurocomputing 432 (2021) 170-182.                                                 Comput. 16 (1) (2020) 23-32.
+[76] G.-C. Luh, C.-H. Chueh, W.-W. Liu, Moia: multi-objective immune algorithm,                      A. Jain, P.K. Singh, J. Dhar, Multi-objective item evaluation for diverse as well
+       Eng. Optim. 35 (2) (2003) 143-164.                                                            as novel item recommendations, Expert Syst. Appl. 139 (2020) 112857.
+[77] K.C. Tan, C.K. Goh, A. Mamun, E. Ei, An evolutionary artificial immune system                   B. Cao, J. Zhao, Z. Lv, P. Yang, Diversified personalized recommendation
+       for multi-objective optimization, Eur. J. Oper. Res. 187 (2) (2008) 371-392.                  optimization based on mobile data, IEEE Trans. Intell. Transp. Syst..
+[78] Y. Qi, F. Liu, M. Liu, M. Gong, L. Jiao, Multi-objective immune algorithm with                  X. Cai, Z. Hu, P. Zhao, W. Zhang, J. Chen, A hybrid recommendation system
+       baldwinian learning, Appl. Soft Comput. 12 (8) (2012) 2654-2674.                              with many-objective evolutionary algorithm, Expert Syst. Appl. 159 (2020)
+[79] S. Das, P.N. Suganthan, Differential evolution: A survey of the state-of-the-art,               113648.
+       IEEE Trans. Evol. Comput. 15 (1) (2010) 4-31.                                                 R.S. Fortes, D.X. de Sousa, D.G. Coelho, A.M. Lacerda, M.A. Gon�alves,
+[80] W. Liu, Z. Wang, Y. Yuan, N. Zeng, K. Hone, X. Liu, A novel sigmoid-function-                   Individualized extreme dominance (inded): A new preference-based
+       based adaptive weighted particle swarm optimizer, IEEE Trans. Cybern..                        method for multi-objective recommender systems, Inf. Sci. 572 (2021)
+[81] N. Zeng, Z. Wang, W. Liu, H. Zhang, K. Hone, X. Liu, A dynamic neighborhood-                    558-573.
+       based switching particle swarm optimization algorithm, IEEE Trans. Cybern..                   B. Geng, L. Li, L. Jiao, M. Gong, Q. Cai, Y. Wu, Nnia-rs: A multi-objective
+[82] W. Liu, Z. Wang, N. Zeng, Y. Yuan, F.E. Alsaadi, X. Liu, A novel randomised                     optimization based recommender system, Physica A 424 (2015) 383-397.
+       particle swarm optimizer, Int. J. Mach. Learn. Cybern. 12 (2) (2021) 529-540.                 Z.-Y. Chai, Y.-L. Li, Y.-M. Han, S.-F. Zhu, Recommendation system based on
+[83] M. Bhattacharya, Diversity handling in evolutionary landscape, arXiv preprint                   singular value decomposition and multi-objective immune optimization,
+       arXiv:1411.4148..                                                                             IEEE Access 7 (2018) 6060-6071.
+[84] S. Chauhan, M. Singh, A.K. Aggarwal, Diversity driven multi-parent                              T.-M. Ma, X. Wang, F.-C. Zhou, S. Wang, Research on diversity and accuracy of
+       evolutionary algorithm with adaptive non-uniform mutation, J. Exp. Theor.                     the recommendation system based on multi-objective optimization, Neural
+       Artif. Intell. (2020) 1-32.                                                                   Comput. Appl. (2020) 1-9.
+[85] J. Horn, N. Nafpliotis, D.E. Goldberg, A niched pareto genetic algorithm for                    Z. Chai, Y. Li, S. Zhu, P-moia-rs: a multi-objective optimization and decision-
+       multiobjective optimization, in: Proceedings of the first IEEE conference on                  making algorithm for recommendation systems, Journal of Ambient
+       evolutionary computation. IEEE world congress on computational                                Intelligence and Humanized, Computing 12 (2021) 443-454.
+       intelligence, IEEE, 1994, pp. 82-87..
+[86] A. Konak, D.W. Coit, A.E. Smith, Multi-objective optimization using genetic
+       algorithms: A tutorial, Reliab. Eng. Syst. Saf. 91 (9) (2006) 992-1007.
+[87] J.-H. Chen, D.E. Goldberg, S.-Y. Ho, K. Sastry, Fitness inheritance in multi-
+       objective optimization, in: Proceedings of the 4th Annual Conference on
+       Genetic and Evolutionary Computation, Morgan Kaufmann Publishers Inc.,
+       San Francisco, CA, USA, 2002, pp. 319-326.
+[88] Y. Censor, Pareto optimality in multiobjective problems, Appl. Math. Optim. 4
+       (1) (1977) 41-59.
+
+                                                                                         152
+Y. Zheng and David (Xuejun) Wang                                                                      Neurocomputing 474 (2022) 141-153
+
+[120]  F. Zou, D. Chen, Q. Xu, Z. Jiang, J. Kang, A two-stage personalized                     [144]  recommendation systems using genetic algorithm, Int. J. Inf Technol.
+[121]  recommendation based on multi-objective teaching-learning-based                                Comput. Sci. 2 (2019) 48-55.
+[122]  optimization with decomposition, Neurocomputing 452 (2021) 716-727.                     [145]  G.N. Demir, A.S. Uyar, S.G. �g�d�c�, Graph-based sequence clustering
+       P. Nguyen, J. Dines, J. Krasnodebski, A multi-objective learning to re-rank             [146]  through multiobjective evolutionary algorithms for web recommender
+[123]  approach to optimize online marketplaces for multiple stakeholders, arXiv                      systems, in: Proceedings of the 9th annual conference on Genetic and
+[124]  preprint arXiv:1708.00651..                                                             [147]  evolutionary computation, 2007, pp. 1943-1950.
+       X. Lin, H. Chen, C. Pei, F. Sun, X. Xiao, H. Sun, Y. Zhang, W. Ou, P. Jiang, A          [148]  T. Murakami, K. Mori, R. Orihara, Metrics for evaluating the serendipity of
+[125]  pareto-efficient algorithm for multiple objective optimization in e-commerce            [149]  recommendation lists, in: Annual conference of the Japanese society for
+[126]  recommendation, in: Proceedings of the 13th ACM Conference on                           [150]  artificial intelligence, Springer, 2007, pp. 40-46..
+       Recommender Systems, 2019, pp. 20-28.                                                   [151]  D. Jannach, L. Lerche, F. Gedikli, G. Bonnin, What recommenders
+[127]  X. Xia, X. Wang, J. Li, X. Zhou, Multi-objective mobile app recommendation: A           [152]  recommend-an analysis of accuracy, popularity, and sales diversity effects,
+[128]  system-level collaboration approach, Comput. Electr. Eng. 40 (1) (2014) 203-                   in: International conference on user modeling, adaptation, and
+[129]  215.                                                                                    [153]  personalization, Springer, 2013, pp. 25-37..
+[130]  Y. Zheng, T. Dave, N. Mishra, H. Kumar, Fairness in reciprocal                          [154]  R.K. Jain, D.-M.W. Chiu, W.R. Hawe, et al., A quantitative measure of fairness
+       recommendations: A speed-dating study, in: Adjunct publication of the                   [155]  and discrimination, Eastern Research Laboratory, Digital Equipment
+[131]  26th conference on user modeling, adaptation and personalization, 2018, pp.                    Corporation, Hudson, MA..
+[132]  29-34.                                                                                  [156]  J.A. Weymark, Generalized gini inequality indices, Math. Soc. Sci. 1 (4) (1981)
+       R. Louca, M. Bhattacharya, D. Hu, L. Hong, Joint optimization of profit and                    409-430.
+[133]  relevance for recommendation systems in e-commerce, RMSE Workshop@                             Y. Zheng, J. Ruiz Toribio, The role of transparency in multi-stakeholder
+       ACM RecSys (2019).                                                                             educational recommendations, User modeling and user-adapted interaction
+[134]  E.C. Malthouse, Y.K. Hessary, K.A. Vakeel, R. Burke, M. Fuduric� , An algorithm                31..
+       for allocating sponsored recommendations and content: Unifying                                 R. Caruana, Multitask learning, Mach. Learn. 28 (1) (1997) 41-75.
+[135]  programmatic advertising and recommender systems, J. Advertising 48 (4)                        O. Sener, V. Koltun, Multi-task learning as multi-objective optimization,
+[136]  (2019) 366-379.                                                                                NIPS'18, Curran Associates Inc., Red Hook, NY, USA, 2018, pp. 525-536.
+[137]  E. Yi_ldi_ri_m, P. Azad, S�. G. �g�d�c�, bideepfm: A multi-objective deep                      X. Zhao, G. Li, M. Wang, J. Yuan, Z.-J. Zha, Z. Li, T.-S. Chua, Integrating rich
+       factorization machine for reciprocal recommendation, Eng. Sci. Technol. Int.                   information for video recommendation with multi-task rank aggregation, in:
+[138]  J..                                                                                            Proceedings of the 19th ACM international conference on Multimedia, 2011,
+[139]  M. Unger, M.C. Cohen, B. Brost, P. Li, A. Tuzhilin, Deep multi-objective multi-                pp. 1521-1524.
+[140]  stakeholder music recommendation, NYU Stern School of Business                                 C.-Y. Lin, Rouge, A package for automatic evaluation of summaries, Text
+[141]  Forthcoming..                                                                                  summarization branches out (2004) 74-81.
+[142]  X. Xia, X. Wang, X. Zhou, B. Liu, Evolving mobile app recommender systems:                     S. Zahra, M.A. Ghazanfar, A. Khalid, M.A. Azam, U. Naeem, A. Prugel-Bennett,
+[143]  An incremental multi-objective approach, in: Future Information Technology,                    Novel centroid selection approaches for kmeans-clustering based
+       Springer, 2014, pp. 21-27..                                                                    recommender systems, Inf. Sci. 320 (2015) 156-189.
+       R. Mehrotra, N. Xue, M. Lalmas, Bandit based optimization of multiple                          F. Abel, I.I. Bittencourt, N. Henze, D. Krause, J. Vassileva, A rule-based
+       objectives on a music streaming platform, in: Proceedings of the 26th ACM                      recommender system for online discussion forums, in: International
+       SIGKDD International Conference on Knowledge Discovery & Data Mining,                          Conference on Adaptive Hypermedia and Adaptive Web-Based Systems
+       2020, pp. 3224-3233.                                                                           Springer, 2008, pp. 12-21.
+       M. Rodriguez, C. Posse, E. Zhang, Multiple objective optimization in                           M.K. Swamy, P.K. Reddy, Improving diversity performance of association rule
+       recommender systems, in: Proceedings of the sixth ACM conference on                            based recommender systems, in: Database and Expert Systems Applications,
+       Recommender systems, 2012, pp. 11-18.                                                          Springer, 2015, pp. 499-508.
+       N.R. Kermany, W. Zhao, J. Yang, J. Wu, L. Pizzato, An ethical multi-stakeholder
+       recommender system based on evolutionary multi-objective optimization,                         Yong Zheng received the PhD degree in computer and
+       in: 2020 IEEE International Conference on Services Computing (SCC), IEEE,                      information sciences from DePaul University, Chicago,
+       2020, pp. 478-480.                                                                             USA in 2016. He is currently a tenure-track Assistant
+       N. Wang, H. Wang, Y. Jia, Y. Yin, Explainable recommendation via multi-task                    Professor at Department of Information Technology and
+       learning in opinionated text data, in: The 41st International ACM SIGIR                        Management, College of Computing, Illinois Institute of
+       Conference on Research & Development in Information Retrieval, 2018, pp.                       Technology, Chicago, USA. His research interests lie in
+       165-174.                                                                                       user modeling, personalization and recommender sys-
+       P. Avinesh, Y. Ren, C.M. Meyer, J. Chan, Z. Bao, M. Sanderson, J3r: Joint multi-               tems. He has been active in professional services. He
+       task learning of ratings and review summaries for explainable                                  engaged in the organization of conferences related to
+       recommendation, in: Joint European Conference on Machine Learning and                          the area of recommender systems, such as ACM RecSys,
+       Knowledge Discovery in Databases, Springer, 2019, pp. 339-355.                                 ACM UMAP, ACM IUI, etc.
+       T. Bansal, D. Belanger, A. McCallum, Ask the gru: Multi-task learning for deep
+       text recommendations, in: Proceedings of the 10th ACM Conference on                            David (Xuejun) Wang earned his PhD degree of Math-
+       Recommender Systems, 2016, pp. 107-114.                                                        ematics from University of Illinois at Chicago, and he is
+       Z. Chen, X. Wang, X. Xie, T. Wu, G. Bu, Y. Wang, E. Chen, Co-attentive multi-                  currently working as a Principal Data Scientist at
+       task learning for explainable recommendation, IJCAI (2019) 2137-2143.                          Morningstar, Inc., an investment research and man-
+       C. Gao, X. He, D. Gan, X. Chen, F. Feng, Y. Li, T.-S. Chua, D. Jin, Neural multi-              agement firm headquartered in Chicago, Illinois, United
+       task recommendation from multi-behavior data, in: 2019 IEEE 35th                               States. Wang's major interests are in AI and machine
+       International Conference on Data Engineering (ICDE), IEEE, 2019, pp. 1554-                     learning, and its applications in financial services.
+       1557.
+       Z. Huang, J. Tang, G. Shan, J. Ni, Y. Chen, C. Wang, An efficient passenger-
+       hunting recommendation framework with multitask deep learning, IEEE
+       Internet Things J. 6 (5) (2019) 7713-7721.
+       S. Wang, L. Zhang, M. Yu, Y. Wang, Z. Ma, Y. Zhao, Attribute-aware multi-task
+       recommendation, J. Supercomput. 77 (5) (2021) 4419-4437.
+       Y. Shi, M. Larson, A. Hanjalic, Unifying rating-oriented and ranking-oriented
+       collaborative filtering for improved recommendation, Inf. Sci. 229 (2013) 29-
+       39.
+       J. Hu, P. Li, Collaborative multi-objective ranking, in: Proceedings of the 27th
+       ACM International Conference on Information and Knowledge Management,
+       2018, pp. 1363-1372.
+       S. Tyagi, K.K. Bharadwaj, Enhancing collaborative filtering recommendations
+       by utilizing multi-objective particle swarm optimization embedded
+       association rule mining, Swarm Evol. Comput. 13 (2013) 1-12.
+       B.S. Neysiani, N. Soltani, R. Mofidi, M.H. Nadimi-Shahraki, Improve
+       performance of association rule-based collaborative filtering
+
+                                                                                          153
+

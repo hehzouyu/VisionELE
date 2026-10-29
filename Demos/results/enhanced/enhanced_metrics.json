@@ -1,0 +1,24 @@
+{
+  "freq": {
+    "n_train": 776,
+    "n_test": 3107,
+    "acc_spatial": 0.4078,
+    "acc_freq_fused": 0.3898,
+    "delta": -0.018
+  },
+  "graph": {
+    "n_labeled": 776,
+    "n_unlabeled": 3107,
+    "acc_all": 0.4571,
+    "acc_unlabeled": 0.4635,
+    "loss_first": 1.1405,
+    "loss_last": 0.8715,
+    "adj_edges": 15659
+  },
+  "cdmth": {
+    "5shot_acc": 0.4256,
+    "5shot_std": 0.0528,
+    "10shot_acc": 0.4591,
+    "10shot_std": 0.0268
+  }
+}

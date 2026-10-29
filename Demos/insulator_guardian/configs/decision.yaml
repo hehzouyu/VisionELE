@@ -1,0 +1,51 @@
+# 决策线唯一事实源：地图 / A* / DWA / 规划 / 调度
+# 代码里不允许再出现魔法数字，一律从这里取。
+map:
+  resolution: 0.1          # m/格
+  robot_radius: 0.3        # m，用于障碍膨胀
+  origin: [0.0, 0.0]       # 世界坐标原点 = 栅格 (0,0) 左下角
+
+astar:
+  connectivity: 8          # 8 邻域
+  turn_penalty: 0.5        # 每转向 45° 追加的代价（直线 1.0、斜线 √2 为基准）
+  heuristic: octile
+  smooth:
+    method: douglas_peucker
+    epsilon: 0.15          # m，DP 简化阈值
+    bspline_iterations: 2  # Chaikin/B 样条平滑迭代次数（碰撞不过就自动降级）
+
+dwa:
+  v_max: 1.0               # m/s
+  v_min: 0.0
+  w_max: 1.5               # rad/s
+  w_min: -1.5
+  v_acc: 0.5               # m/s^2
+  w_acc: 1.0               # rad/s^2
+  window_dt: 0.5           # s，动态窗口按加速度在此时长内推一步
+  v_res: 0.05              # 采样步长（规格值）
+  w_res: 0.1
+  dt: 0.1                  # s
+  horizon: 2.0             # s，前向预测时长
+  lookahead: 0.6           # m，路径预瞄距离
+  stop_distance: 0.30      # m，最近障碍距离低于此值急停（=车体半径，贴墙即停）
+  approach_radius: 0.80    # m，距终点小于此值按比例限速，避免冲过头绕圈
+  clearance_cap: 0.6       # m，余量评分归一化上限
+  weights:
+    heading: 0.8
+    dist: 0.6
+    vel: 0.4
+    clearance: 0.2
+
+planner:
+  goal_tolerance: 0.15     # m，到达阈值
+  deviation_threshold: 0.5 # m，偏离路径超过此值触发重规划
+  replan_cooldown: 0.2     # s，两次重规划最短间隔
+  max_replans: 2000
+  safety_margin: 0.10      # m，膨胀半径 = robot_radius + safety_margin
+
+scheduler:
+  defect_confidence: 0.5   # 低于此置信度的缺陷不生成任务
+  revisit_range: 3.0       # m，复检机位与缺陷点的距离
+  view_angles: 24          # 环绕缺陷点采样的机位方向数
+  dedupe_radius: 1.0       # m，已有待执行任务在此半径内则不再重复生成
+  max_queue: 64

@@ -1,0 +1,9 @@
+{
+  "dataset": "MERGED",
+  "unique_train": 1448,
+  "flashover_train": 725,
+  "list_entries": 2898,
+  "repeat": 3,
+  "list": "E:\\创新创业\\Demos\\训练样本\\MERGED\\train_flash3x.txt",
+  "yaml": "E:\\创新创业\\Demos\\训练样本\\MERGED\\data_flash3x.yaml"
+}

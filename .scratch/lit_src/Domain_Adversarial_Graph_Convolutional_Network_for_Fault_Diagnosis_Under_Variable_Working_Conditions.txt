@@ -1,0 +1,724 @@
+IEEE TRANSACTIONS ON INSTRUMENTATION AND MEASUREMENT, VOL. 70, 2021                                           3515010
+
+Domain Adversarial Graph Convolutional
+    Network for Fault Diagnosis Under
+        Variable Working Conditions
+
+Tianfu Li , Graduate Student Member, IEEE, Zhibin Zhao , Chuang Sun , Member, IEEE,
+      Ruqiang Yan , Senior Member, IEEE, and Xuefeng Chen , Senior Member, IEEE
+
+   Abstract-- Unsupervised domain adaptation (UDA)-based                        data era, and it has been widely used in modern industries
+methods have made great progress in mechanical fault diagnosis                  with the goal to monitor the state of equipment and reduce
+under variable working conditions. In UDA, three types of infor-                the downtime [4].
+mation, including class label, domain label, and data structure,
+are essential to bridging the labeled source domain and unlabeled                  Under the assist of computer and deep learning techniques,
+target domain. However, most existing UDA-based methods use                     a great improvement has been achieved for the performance
+only the former two information and ignore the modeling of data                 of fault diagnosis methods [5]-[7]. These fault diagnosis
+structure, which make the information contained in the features                 methods based on deep learning (DL) can learn meaningful
+extracted by the deep network incomplete. To tackle this issue,                 features from data via the constructed deep model. Compared
+a domain adversarial graph convolutional network (DAGCN) is                     with the traditional fault diagnosis methods [8]-[10], which
+proposed to model the three types of information in a unified deep              need feature engineering and expert knowledge, DL-based
+network and achieving UDA. The first two types of information                   methods can obtain better diagnostic accuracy. For example,
+are modeled by the classifier and the domain discriminator,                     Li et al. [11] proposed a transferable sparse autoencoder that
+respectively. In data structure modeling, a convolutional neural                was regularized by nonnegativity-constraint, and achieved fault
+network (CNN) is first employed to exact features from input                    diagnosis when only a few labeled data can be obtained. Ding
+signals. After that, the CNN features are input to the proposed                 and He [12] proposed to use a convolutional neural network
+graph generation layer to construct instance graphs by mining                   (CNN) to mine the energy-fluctuated multiscale features from
+the relationship of structural characteristics of samples. Then,                wavelet packet energy images for fault diagnosis of spindle
+the instance graphs are modeled by a graph convolutional                        bearing.
+network, and the maximum mean discrepancy metric is leveraged
+to estimate the structure discrepancy of instance graphs from                      Though DL-based methods have made a great progress
+different domains. Experimental results conducted on two case                   in fault diagnosis of machinery, some limitations are still
+studies demonstrate that the proposed DAGCN can not only                        associated with these methods. On the one hand, most current
+obtain the best performance among the comparison methods, but                   DL-based methods hold the assumption that the samples from
+also can extract transferable features for domain adaptation. The               source domain and the samples from target domain share
+code library is available at: https://github.com/HazeDT/DAGCN.                  the identical probability distribution. However, in an actual
+                                                                                industrial scenario, this assumption does not hold. Equipment
+   Index Terms-- Fault diagnosis, graph convolutional net-                      operating conditions change in real time, due to equipment
+work (GCN), unsupervised domain adaptation (UDA), variable                      wear and environmental noise during operation [13]. This
+working conditions.                                                             leads to distribution discrepancies between the collected data
+                                                                                and causes performance degradation while applying the model
+                          I. INTRODUCTION                                       trained with the previously collected data to a new task. On the
+                                                                                other hand, obtaining sufficient labeled training samples are
+I NTELLIGENT fault diagnosis acts a vital role in the cur-                      labor-intensive and expensive, which limit the application of
+   rent Prognostics and Health Management system [1]-[3].                       intelligent fault diagnosis methods in the industry.
+In the last decade, intelligent fault diagnosis techniques have
+been greatly developed with the advent of the industrial big                       Unsupervised domain adaptation (UDA) [14], as a prac-
+                                                                                tical technique for solving the above limitations, has been
+  Manuscript received February 5, 2021; revised March 18, 2021; accepted        used to transfer the knowledge learned from the labeled
+April 14, 2021. Date of publication April 22, 2021; date of current version     source domain to the unlabeled target domain by learning
+May 4, 2021. This work was supported in part by the National Key Research       the domain-invariant and discriminative features. Recently,
+and Development Program of China under Grant 2018YFB1702400, in part            UDA-based methods are attracting increasing interest in
+by the Natural Science Foundation of China under Grant 51835009, in part        addressing the problem of covariant-shift, and have gained
+by the Shaanxi Province 2020 Natural Science Basic Research Plan under          unprecedented progress in cross-domain fault diagnosis of
+Grant 2020JQ-042, in part by the National Key Science and Technology            machinery [15], [16]. UDA-based intelligent fault diag-
+Infrastructure Opening Project Fund for Research and Evaluation facilities for  nosis methods can be classified into four classes, that
+Service Safety of Major Engineering Materials, and in part by the Aeronautical
+Science Foundation under Grant 2019ZB070001 and Grant 20200046070002.
+The Associate Editor coordinating the review process was Dr. Yuhua Cheng.
+(Corresponding author: Chuang Sun.)
+
+  The authors are with the School of Mechanical Engineering, Xi'an Jiaotong
+University, Xi'an 710049, China (e-mail: ch.sun@xjtu.edu.cn).
+
+  Digital Object Identifier 10.1109/TIM.2021.3075016
+
+1557-9662 � 2021 IEEE. Personal use is permitted, but republication/redistribution requires IEEE permission.
+                    See https://www.ieee.org/publications/rights/index.html for more information.
+
+Authorized licensed use limited to: WUHAN UNIVERSITY OF TECHNOLOGY. Downloaded on May 08,2026 at 13:47:21 UTC from IEEE Xplore. Restrictions apply.
+3515010  IEEE TRANSACTIONS ON INSTRUMENTATION AND MEASUREMENT, VOL. 70, 2021
+
+Fig. 1. Three types of vital information used in UDA.               By modeling the three types of information simultaneously,
+                                                                    domain-invariant and discriminative features can be captured
+is, network-based approaches [18], [19], mapping-based              and cross-domain fault diagnosis can also be realized.
+approaches [18]-[20], instance-based approaches [23]-[25],
+and adversarial-based approaches [26]-[28]. For example,               The main contributions of this article are summarized as
+Li et al. [29] proposed a two-stage transfer adversarial network    follows.
+for open set fault diagnosis, where the first stage was a deep
+network trained with adversarial strategy and the second stage         1) The adversarial domain adaptation GCN is proposed to
+was an unsupervised convolutional autoencoder. Shao et al.                 achieve end-to-end domain adaption by modeling the
+[30] proposed to use the history data of rotor-bearing to train            three types of information in a unified deep network.
+a CNN, and transferred the learned model parameters to a new
+model to realize cross-domain fault diagnosis of rotor-bearing.        2) A graph transfer learning framework is established
+                                                                           for realizing fault diagnosis under variable conditions,
+   Among these UDA-based methods, three types of infor-                    including corresponding loss functions and parameter
+mation play a vital role in bridging the unlabeled target                  update formulas.
+domain and the labeled source domain, that is, the class
+label, the domain label, and the data structure, as illustrated        3) The GGL is proposed to construct instance graphs from
+in Fig. 1. In UDA, the class labels of two domains are                     CNN features, where feature vectors are transformed to
+the same which guarantee that source domain samples and                    an adjacent matrix and Top-k rank is used to find the
+target domain samples can be mapped into the identical                     top k nearest neighbors.
+feature space. In adversarial domain adaption [31], the domain
+labels are utilized to train a domain classifier, which help           The remainder of this article is structured as follows.
+the feature extractor learn the global distribution for the two     In Section II, related works about UDA and spectral GCN are
+domains. Data structure information, e.g., data distribution and    described. In Section III, the proposed DAGCN is illustrated.
+geometric data structure, can reduce the domain discrepancy         Effectiveness of DAGCN on cross-domain fault diagnosis is
+while retaining data properties in the original spaces [32], [33].  validated by case studies in Section IV. In Section IV, model
+The above three types of information complement and enhance         discussion is carried. The summary of this article is shown in
+each other on reducing distribution divergence and realizing        Section V.
+domain adaption. Nevertheless, many existing UDA-based
+methods only consider the first two types of information, and                               II. RELATED WORKS
+it is difficult for them to effectively model data structures and
+integrate them into existing deep networks.                         A. Unsupervised Domain Adaptation
+
+   To address the above limitations in UDA-based methods,              Recently, several UDA methods have been proposed to learn
+a domain adversarial graph convolutional network (DAGCN)            the domain-invariant and discriminative features [34]-[36].
+has been proposed for UDA and achieving cross-domain fault          Among these methods, MMD-based methods and domain
+diagnosis. In DAGCN, the domain distributions are aligned           adversarial neural network (DANN) have become the two
+by effectively modeling class label, domain label, and data         widely used methods. The MMD [37] is a nonparametric
+structure in a unified deep network. The class labels are           metric in reproducing kernel Hilbert space (RKHS), and it
+modeled by the classifier, and the domain label for each            is often utilized to estimate the similarity of the expectations
+sample is distinguished by the domain discriminator. To align       of two distributions. The MMD-based methods use the MMD
+the data structure, CNN is first leveraged to capture features      metric as a regular term of the deep network that helps the
+from input signals. After that, a graph generation layer (GGL)      network to learn transferable features. DANN [38] is inspired
+is proposed to learn the data structure from the extracted          from the generative adversarial network, which capture the
+CNN features, and then the instance graphs are constructed          transferable features by the two-player minmax game between
+by mining the relationship of structural characteristics of         the domain discriminator and the feature extractor. The feature
+samples. Finally, a graph convolutional network (GCN), which        extractor aims to extract domain-invariant features that is
+can model the structural information propagated along the           leveraged to cheat the domain discriminator, and the domain
+weighted edges on the graph, is applied to model the instance       discriminator is trained to distinguish which feature captured
+graphs. And a structure alignment loss based on the maximum         by the feature extractor is from the source domain and which
+mean discrepancy (MMD) metric is leveraged to estimate              is from the target domain. By doing such adversarial training,
+the structure discrepancy between target and source domain.         the global distribution of two domain can be learned by the
+                                                                    feature extractor.
+
+                                                                    B. Spectral Graph Convolution
+
+                                                                       Given a graph G(A, X), where A represents its adjacency
+                                                                    matrix, X denotes its node features. L = IN - D-1/2 A D-1/2 is
+
+                                                                    the symmetric normalized graph Laplacian matrix, where the
+
+                                                                    diagonal degree matrix D can be obtained from the adjacency
+                                                                    matrix, i.e., Di,i = j Ai, j , and IN denotes an identity matrix.
+
+                                                                       The spectral graph convolution (GConv) uses graph spectral
+                                                                    filters g = diag( ) to smooth the input signal x  RN [39],
+                                                                    which is mathematically defined as
+
+                                                                    g G x = U g U T x              (1)
+
+Authorized licensed use limited to: WUHAN UNIVERSITY OF TECHNOLOGY. Downloaded on May 08,2026 at 13:47:21 UTC from IEEE Xplore. Restrictions apply.
+LI et al.: DAGCN FOR FAULT DIAGNOSIS                                                                                             3515010
+
+Fig. 2. MRF-GCN.                                                                      The proposed DAGCN for fault diagnosis under variable
+                                                                                   working condition is illustrated in Fig. 3. As is depicted
+where  is the learnable parameters and G means the GConv                           in Fig. 3, the raw data are first input to CNN to obtain the
+operator. U is the eigenvectors of Laplacian matrix, and U T x                     feature maps, then each feature vector is considered as a node
+denotes the Fourier transform of signal x on graph.                                and its value is considered as the node feature to generate
+                                                                                   graphs automatically through the proposed GGL. After that,
+   However, the defined GConv in (1) is not local-                                 the obtained graphs are input to a GCN to embedding the
+ized and computationally expensive. To tackle this issue,                          data structure information into the node features. Finally,
+Defferrard et al. [40] and Kipf and Welling [41] restrict con-                     the obtained node features are used for fault classification and
+volution kernel g to the expansion of Chebyshev polynomial                         domain adversarial training. Therefore, there are three critical
+                                                                                   elements for realizing DAGCN, that is, the graph generation,
+                                                                                   objective function, and model parameter update, and the details
+                                                                                   of each part are listed as follows.
+
+                                           K -1                                    B. Graph Generation
+                            g = kk
+                                                                             (2)      As been described in Section II, it contains two critical
+                                                                                   components of a graph, that is, the adjacency matrix A and
+                                          k=0                                      node feature matrix X. To obtain the node feature matrix X,
+                                                                                   a CNN (e.g., LeNet [43]) is firstly leveraged to capture features
+where K is the order of Chebyshev polynomial that also deter-                      from input data, and the extract feature maps can be denoted
+                                                                                   X as = CNNXinput (4)
+mines the range of node neighborhoods.  = diag({i }Ni=1)
+and  means the eigenvalues of Laplacian matrix. By using                           where Xinput is a mini-batch input matrix.
+
+                                                                                   A GGL is proposed to acquire the adjacency matrix A and
+
+the defined GConv operation, the node information within the                       construct instance graphs from the mini-batch input matrix,
+
+k-hop distance will be aggregated to achieve graph smoothing.                      and its process is shown in Fig. 4. First, extracted feature
+
+The standard GCN can only aggregate information in a fixed                         matrix is input to a multilayer perceptron (MLP). Then,
+
+receptive field. To tackle this issue, Li et al. [42] proposed a                   the adjacency matrix is obtained by matrix multiplication
+
+multireceptive field GCN (MRF-GCN) to obtain a powerful                            between the MLP features and its transpose. Finally, the top k
+
+feature representation and embedding the data structure infor-                     nearest neighbors for each node are selected according to the
+
+mation into the feature representation. MRF-GCN is illustrated                     top-k sorting mechanism. Therefore, the adjacency matrix can
+
+in Fig. 2 and its GConv operation can be defined as                                be obtained by the following equation:
+
+H = K1-1 k k1 X, K2-1 k k2 X, . . . , K -1 k k X                                   
+                                                                                    X~ = MLP(X)
+         k1=0 1                   k2 =0 2                       k =0                                  ~ ~T
+                                                                                     A = normlize X X                            (5)
+                                                                             (3)    �
+                                                                                     A = Top - k(A)
+where k1 , k2 , and kl are the learnable parameters, [�] means
+feature concatenation, and H means the fused features.                             where A is the constructed adjacency matrix and X~ is the
+                                                                                   output after MLP. normalize(�) represents the normalization
+means how many receptive fields the GConv has.                                     function. A� is a sparse adjacency matrix and Top - k(�)
+
+                   III. PROPOSED METHOD                                            returns the index of the top-k largest values of A at row-
+
+                                                                                   wise, which makes the adjacency matrix sparse and reduces
+
+A. Domain Adversarial GCN                                                          the computational burden.
+
+In this work, fault diagnosis of unlabeled samples in a                            As shown in Fig. 2, MRF-GCN with three different recep-
+
+new working condition is discussed, where the entire data                          tive fields (i.e., the value of K1, K2, and K3 are taken as
+                                                                                   [1, 2, 3]) is applied to model the constructed instance graphs.
+belonging to the source domain and the target domain are
+                                                                                   Thus, for an input graph, the feature representations learned
+collected by sensors. The samples belong to source domain
+                                                                                   via MRF-GCN can be defined as 
+are  denoted  as  {(xis  ,  y si     ns   ,  where   ns  means  the  number  of    H 0 = MRFConv AXW0                          
+
+                                  )}i =1
+samples, and x si  s and ysi  s represent the corresponding
+                                                                                   H 1 = MRFConvAH0W 1 (6)
+measurements and label of the i -th source sample, respectively.
+
+Additionally, the unlabeled samples from target domain are                         where H 0 and H 1 are the learned feature representations for
+                                                                                   the first and second MRF-Conv, and W is the trainable weight
+denoted  as       t nt      where         x ti    t  denotes  the  target  sample  matrix.
+
+             {(xi )}i=1,
+
+measurements. In UDA, it hypothesizes that the label space
+
+of the source domain and the target domain are identical (i.e.,                    C. Objective Function for UDA
+s = t ), and the feature space s and t are different but
+                                                                                      As is depicted in Fig. 3, the proposed DAGCN contains
+related (i.e., covariate drift). Our task is to establish a deep                   three parts, that is, the feature extractor (F), domain dis-
+network f : t - t , which can predict the sample labels                            criminator (D), and label classifier (C). In order to learn
+
+of target domain.
+
+Authorized licensed use limited to: WUHAN UNIVERSITY OF TECHNOLOGY. Downloaded on May 08,2026 at 13:47:21 UTC from IEEE Xplore. Restrictions apply.
+3515010  IEEE TRANSACTIONS ON INSTRUMENTATION AND MEASUREMENT, VOL. 70, 2021
+
+Fig. 3. The proposed DAGCN for fault diagnosis under variable working condition.
+
+Fig. 4. Process of GGL.                                              of D(�) takes 0 or 1, and it can be used to distinguish which
+                                                                     domain the sample belongs to.
+transferable features and model the aforementioned three types
+of vital information, the overall objective function contains           3) Structure Alignment Loss: In the cause of aligning
+three parts, including classification loss, domain alignment         the features structure of source domain and target domain,
+loss, and structure alignment loss.                                  the MMD metric is adopted as the structure discrepancy
+                                                                     alignment loss, which is denoted as follows:
+   1) Classification Loss: To ensure the label classifier has        LMMD(s, t ) = Exis Ds F xis - Extj Dt F x jt  2
+a promising prediction result, the classification loss between
+the true label and the predicted label is estimated by the                                                                                   (9)
+cross-entropy loss, which can be defined as
+                                                                     where (�) represents a nonlinear mapping function and
+             LC (s, s ) = E(xis ,yis)Ds LCxis , yis  (7)                means that this distance is measured by embedding the
+where C(xis) represents the predicted results of label classifier
+and L(�, �) means the cross-entropy loss. E(�) represents the        extracted features to RKHS.
+mathematical expectation.                                               4) Overall Objective Function: Combining the defined three
+
+   2) Domain Alignment Loss: Owing to the domain                     loss function, the overall objective function for achieving UDA
+covariant-shift problem, the label classifier only trained with      can be written as
+data from source domain cannot perform well on data from
+target domain. To tackle this issue, a domain discriminator          LTotal(s , s , t ) = LC (s , s ) +  LDA(s , t )
+(D) is employed to tell whether the extracted features come                                                        +  LMMD(s, t ) (10)
+from the target domain or the source domain, and the feature
+extractor is trained to cheat the domain discriminator. The          where  ,  are the tradeoff parameters.
+domain-invariant features can be captured while the two-
+player minmax game reaches an equilibrium. Here, the binary          D. Model Parameter Update
+cross-entropy loss is adopted as the domain alignment loss,
+which is denoted as                                                     The overall objective function is shown in (10), and let F ,
+LDA(s, t ) = Exis  Ds log1 - DFxis                                  C , and D denote the parameters for the feature extractor,
+                                                                     label classifier, and domain discriminator, respectively. In the
+                                 + Extj  Dt logDFx jt  (8)          process of model training, parameters of each part in DAGCN
+                                                                     can be updated through backpropagation (BP) algorithm,
+where F(x tj ) and F(xis) denote the extracted features of the j th  which is denoted as
+target and sample i th source sample, respectively. The value
+                                                                                              F = F -   LTotal (11)
+                                                                                                                F
+
+                                                                                              C = C -  (LC ) (12)
+                                                                                                                 C
+
+                                                                                              D = D -  (LDA) (13)
+                                                                                                                D
+
+                                                                     where  represents the partial derivative operator and  denotes
+                                                                     the learning rate.
+
+Authorized licensed use limited to: WUHAN UNIVERSITY OF TECHNOLOGY. Downloaded on May 08,2026 at 13:47:21 UTC from IEEE Xplore. Restrictions apply.
+LI et al.: DAGCN FOR FAULT DIAGNOSIS                                                                                                    3515010
+
+                                                                   Algorithm 1 Domain Adversarial Graph Convolution Network
+
+                                                                   for Unsupervised Domain Adaptation
+
+                                                                   Input:-     Source            domain    sample  {(x s, ys )}ns  and  target
+
+                                                                                                   t nt                 i i i=1
+
+                                                                   domain   sample            {(xi )}i=1;
+
+                                                                   - tradeoff parameters  and ;
+
+                                                                   - learning rate .
+
+                                                                   Output: The trained feature extractor F and label classifier
+
+                                                                   C.
+
+                                                                   1) for [xis, xit ] in [s, t ] do
+                                                                   2) [His, Hit]  DAGCN([xis, xit ])
+                                                                       L ( His ,           t      si       LC (His, is ) +  LDA(His,    Hit) +
+                                                                   3)                   H  i  ,       )
+
+                                                                            L  M  M  D  (  H  s  ,  Hit )
+                                                                                              i
+                                                                   4) Update model parameters through BP algorithm:
+
+                                                                                                         F  F -   LTotal
+                                                                                                                            F
+
+                                                                                                         C  C -  (LC )
+                                                                                                                            C
+
+                                                                                                         D  D -  (LDA)
+                                                                                                                            D
+
+                                                                   5) end
+
+Fig. 5. Flowchart of cross-domain fault diagnosis of DAGCN.
+
+Especially in feature extractor, the parameters of the applied
+
+MRF-GCN can be updated by calculating the following
+
+equations:
+
+                     LTotal  LTotal  H
+            
+             k1 =              =
+                     k1                H k1
+                     LTotal  LTotal  H
+              k2 =             =
+                     k2                H k2                  (14)
+
+                     LTotal  LTotal  H                             Fig. 6. Gearbox test bench.
+             k3 =              =
+             k2  H k3                                              Fig. 7. Five gear health conditions. (a)--(d) Tooth crack. (e) Tooth surface
+             k1 = k1 - k1                                          wear.
+              k2 = k2 - k2
+                                                             (15)  the second case study is collected on the aeroengine lubricating
+                                                                   oil accessory control system.
+              k3 = k3 - k3
+
+where k1 , k2 , and k3 are the parameters of MRF-GCN, and
+ k represents the corresponding updated parameters.
+
+   By minimizing the defined overall objective function and
+
+optimize the parameters of DAGCN, the domain invariant
+
+and discriminative features can be obtained, which allows the
+
+classifier trained with data from labeled source domain to cor-
+
+rectly classify data from unlabeled target domain. Therefore,
+
+the algorithm by using the proposed DAGCN for UDA is
+
+summarized in Algorithm I, and the detailed flowchart of
+
+using the proposed DAGCN for achieving cross-domain fault
+
+diagnosis is shown in Fig. 5.
+
+                           IV. CASE STUDY                          A. Case Study 1: Fault Diagnosis of Gearbox
+
+   In this part, two case studies are carried out to estimate         1) Data Description: The gearbox test bench, as shown
+the superiority of the proposed DAGCN for fault diagnosis          in Fig. 6, consists of a drivemotor, a shaft, a gearbox, and the
+under variable working condition, where the data set of the        load. In this experiment, two different types of gear failures
+first case study is collected on the gearbox and the data set of   are preset on the gear of the output shaft of the gearbox, and
+
+Authorized licensed use limited to: WUHAN UNIVERSITY OF TECHNOLOGY. Downloaded on May 08,2026 at 13:47:21 UTC from IEEE Xplore. Restrictions apply.
+3515010  IEEE TRANSACTIONS ON INSTRUMENTATION AND MEASUREMENT, VOL. 70, 2021
+
+the gear failures including a tooth surface wear and the tooth      Fig. 8. Experimental results of gearbox data set under 12 cross-domain tasks.
+crack with four different fault severity are shown in Fig. 7.
+Together with the health state, there are six kinds of gear         Fig. 9. Aeroengine lubricating oil accessory control system. (a) Bevel gear.
+health conditions in total. Accelerometers are mounted on           (b) Aeroengine lubricating oil accessory control system. (c) Sensor position.
+Y -direction of the gearbox to collect the vibration signals, and
+the sampling frequency of sensor is 10 240 Hz. Four different       Fig. 10. Four bevel gear health conditions. (a) Health state. (b) Tooth surface
+rotating speeds (i.e., 1000, 1100, 1200, and 1400 r/min) are        wear. (c) Tooth broken. (d) Tooth broken of small end.
+simulated, and each rotating speed is considered as a working
+condition.                                                          JAN, MKMMD, and CORAL) have better results than
+                                                                    the adversarial-based methods (i.e., DANN, CDANN, and
+   In this experiment, the collected data are normalized with       CDANN+E). Besides, in the hardest task, i.e., task Q30,
+the Z -score normalization method. After that, the sliding          the diagnostic accuracy achieved by the worst-performing
+window with a window length of 1024 is used to segment              model is 36.16%, while the diagnostic accuracy of the pro-
+the raw vibration signal to form subsamples, and there is           posed DAGCN is 80.25%. In the simplest task, i.e., task
+no overlap between each sample during the segment process.          Q21, the diagnostic accuracy achieved by the worst-performing
+In each working condition, 1000 samples are generated for           model is 81%, while DAGCN achieves 94.42%. These results
+each health condition, so a total of 6000 samples are obtained      indicate that DAGCN can still obtain performance improve-
+for six health conditions. Besides, to obtain the training set for  ment while the domain discrepancies become larger and
+one working condition, 80% of samples are randomly selected         cross-domain tasks become harder.
+at each health condition, and the other 20% samples are
+utilized as the test set. Therefore, for each working condition,    B. Case Study 2: Fault Diagnosis of Aeroengine Bevel Gear
+there are a total of 4800 samples utilized for training and            1) Data Description: The data set of aeroengine bevel
+1200 samples utilized for testing.
+                                                                    gear is collected from an aeroengine lubricating oil accessory
+   We use 0, 1, 2, and 3 to represent four different working        control system as shown in Fig. 9. The goal of this system is
+conditions, respectively. Thus, 12 cross-domain tasks are con-      to simulate the performance of the aeroengine under different
+ducted for comprehensive analysis. For simplicity, we use the       health conditions of the bevel gear. In this experiment, three
+Qab to denote the cross-domain task a  b, which means the           different types of bevel gear failures are preset on the system,
+model is trained with data from domain a and tested by              including tooth surface wear, tooth broken, and tooth broken
+the data from domain b. It is noteworthy that in the process of     of the small end, as demonstrated by Fig. 10. Together with
+feature transfer stage, both labeled samples of domain a and a      the health state of bevel gear, there are four kinds of gear
+small number of unlabeled samples of domain b will be input         health conditions in total. Four different rotating speeds (i.e.,
+into DAGCN to realize adversarial training, and the rest of the     500, 1000, 1500, and 2000 rpm) are also simulated and each
+unlabeled samples of domain b will be used for model testing.       rotating speed is considered as a working condition, and the
+
+   2) Diagnosis Results: To demonstrate the superiority of
+the proposed DAGCN, six comparison approaches are imple-
+mented, that is, JAN [20], MKMMD [21], CORAL [22],
+DANN [26], CDANN, and CDANN with Entropy Condition-
+ing leads to CDANN+E [27]. The feature extractor of the
+six comparison methods is a four-layer CNN, and the feature
+extractor is also used to obtain a Baseline with direct transfer.
+Besides, the detailed structure of DAGCN is shown in Table I,
+where the first four layers of feature extractor are convolutional
+layers (Conv) and the last two layers are MRF-GConv layers.
+
+   In model training, the model is trained with 300 epochs and
+each model is pretrained without the target domain samples
+at the former 50 epochs. The initial learning rate is set to
+0. 001, and learning rate decay is achieved by multiplying
+0.1 at epoch 150 and 250. The two trade off parameter (i.e.,
+ and ) are calculated by [1 - exp(- e)/(1 + exp -  e)],
+where  takes 10 and e takes 0 when the transfer learning
+strategy is not activated and takes 1 after it is activated. The
+evaluation metrics of this experiment are the overall accuracy,
+and to reduce the randomness of the results, the average of
+the last ten epochs is utilized as the final result. The results
+for this experiment are listed in Table II and its corresponding
+histogram is depicted in Fig. 8.
+
+   As can be observed from Table II and Fig. 8 that the
+proposed DAGCN can acquire the best results in each
+cross-domain task, while the mapping-based methods (i.e.,
+
+Authorized licensed use limited to: WUHAN UNIVERSITY OF TECHNOLOGY. Downloaded on May 08,2026 at 13:47:21 UTC from IEEE Xplore. Restrictions apply.
+LI et al.: DAGCN FOR FAULT DIAGNOSIS                                              3515010
+
+                                                                   TABLE I
+                                      DETAILED STRUCTURE AND COMPLEXITY OF DAGCN
+
+                                                                TABLE II
+                                      EXPERIMENTAL RESULTS OF GEARBOX DATA SET
+
+sampling frequency is set to 20 000 Hz during the collection     Fig. 11. Experimental results of aeroengine bevel gear data set under
+of vibration signals.                                            12 cross-domain tasks.
+
+   In this experiment, the data preprocessing method is same     cross-domain fault diagnosis and it is valuable for engineering
+as the previous experiment. In each working condition, 1000      applications.
+samples are generated for each health condition, so a total
+of 4000 samples are obtained for four health condition. After                          V. MODEL DISCUSSION
+data set division, there are a total of 3200 samples utilized    A. Ablation Study
+as the training set and 800 samples utilized as the test set
+for each working condition. Besides, 12 cross-domain tasks          To find the influence of each part of the model on model
+are conducted for comprehensive analysis, and Pab is used to     performance, the ablation study is carried out in this section.
+denote the cross-domain task a  b in this experiment.            Two variants are further derived from the proposed DAGCN,
+                                                                 namely: 1) DAMMD: Only the four-layer CNN is used as
+   2) Diagnosis Results: The results for this experiment are
+listed in Table III and its corresponding histogram is depicted
+in Fig. 11. As can be seen from these results, the proposed
+DAGCN can achieve the best diagnostic accuracy, which is
+consistent with the results in our previous experiment. How-
+ever, it can also see the performance of each methods degrade
+to some extent, this is owing to the large domain discrepancy
+between the collected data under different working conditions,
+which makes it hard to achieve cross-domain transfer learn-
+ing. In addition, the proposed DAGCN obtains the average
+accuracy of 79.81% over the twelve cross-domain tasks,
+which is 1.44% higher than the best-performing method and
+is 39.11% higher than the worst-performing method. These
+results further demonstrate the superiority of DAGCN for
+
+Authorized licensed use limited to: WUHAN UNIVERSITY OF TECHNOLOGY. Downloaded on May 08,2026 at 13:47:21 UTC from IEEE Xplore. Restrictions apply.
+3515010                                              IEEE TRANSACTIONS ON INSTRUMENTATION AND MEASUREMENT, VOL. 70, 2021
+
+                                             TABLE III
+         EXPERIMENTAL RESULTS OF AEROENGINE BEVEL GEAR DATA SET
+
+                                TABLE IV                         t-SNE, and the visualized features of the three methods at
+         EXPERIMENTAL RESULTS OF ABLATION STUDY                  task Q21 are demonstrated in Fig. 13.
+
+                                                                    As shown in Fig. 13(a), both features from the two different
+                                                                 domains are well divided into six parts. Meanwhile, the fea-
+                                                                 tures of the same category from source domain and target
+                                                                 domain are well-aligned. Besides, from Fig. 13(b) and (c), it
+                                                                 can be found that TCGN can learn a better domain-invariant
+                                                                 features than DAMMD, which is consistent with experi-
+                                                                 mental results. The results show that the proposed DAGCN
+                                                                 has learned the domain-invariant and discriminative features,
+                                                                 which are important for realizing domain adaptation.
+
+                                                                 B. Complexity Analysis of DAGCN
+
+                                                                    To explore the time complexity (TC) and space complex-
+                                                                 ity (SC) deeply of the proposed DAGCN, the complexity
+                                                                 analysis is carried out in this part. Due to the feature extractor
+                                                                 of the proposed DAGCN consists of a CNN and an MRF-
+                                                                 GCN. Therefore, we need to calculate the TC and SC sepa-
+                                                                 rately, and the TC and SC of 2-D convolutional (Conv) layer
+                                                                 is given by [44]. Here, we modified it for 1-D Conv, which is
+                                                                 defined as
+
+                                                                 T CCNN = O(Dout � K � Cin � Cout)        (16)
+
+                                                                 SCCNN = O(K � Cin � Cout + Dout � Cout)  (17)
+
+Fig. 12. Experimental results of ablation study.                 where Dout denotes the dimension of the output feature map
+                                                                 and K means the kernel length. Cin and Cout represent
+feature extractor and 2) TGCN: DAGCN without distribution        the number of input and output channels of Conv layer,
+discrepancy alignment loss. The experimental results of the      respectively.
+two variants and the proposed DAGCN on gearbox data set are
+listed in Table IV and its corresponding histogram is depicted      The TC and SC of GConv layer are given by Wu et al. [45],
+in Fig. 12.                                                      which is defined as
+
+   It can be observed from these results that the proposed                    T CGCN = OH � m � Din + H � n � Din2  (18)
+DAGCN is higher 3.20% than TGCN and is higher 18.74%                           SCGCN = OH � n � Din + H � Din2  (19)
+than DAMMD. Such big improvements show that it is crucial
+to consider the data structure and imbedding them into the       where n and m denote the number of nodes and edges,
+learned feature representations. In addition, aligning the dis-  respectively. H is the layer of layers and Din is the dimension
+tribution between the source and target domain features can      of node features.
+also improve the performance of the model.
+                                                                    Besides, the TC and SC of the fully connected (FC) layer
+   To show the learned features of the three methods, features   is defined as
+of the last layer of the feature extractor are visualized via
+                                                                 T CFC = O(Dout � w � h � Din)            (20)
+
+                                                                 SCFC = O(Dout � Din)                     (21)
+
+Authorized licensed use limited to: WUHAN UNIVERSITY OF TECHNOLOGY. Downloaded on May 08,2026 at 13:47:21 UTC from IEEE Xplore. Restrictions apply.
+LI et al.: DAGCN FOR FAULT DIAGNOSIS                                             3515010
+
+Fig. 13. Feature visualization via t-SNE of task Q21. In the figure legend, S and T denote the samples are from source domain and target domain, respectively.
+(a) DAGCN. (b) TGCN. (c) DAMMD.
+
+where w and h denote the width and height of the input                            [4] M. Ma and Z. Mao, "Deep-convolution-based LSTM network for
+feature.                                                                               remaining useful life prediction," IEEE Trans. Ind. Informat., vol. 17,
+                                                                                       no. 3, pp. 1658-1667, Mar. 2021, doi: 10.1109/TII.2020.2991796.
+   Therefore, the TC and SC of DAGCN can be obtained
+through the above equation                                                        [5] Z. Chen and W. Li, "Multisensor feature fusion for bearing fault
+                                                                                       diagnosis using sparse autoencoder and deep belief network," IEEE
+4    2                                6                                                Trans. Instrum. Meas., vol. 66, no. 7, pp. 1693-1702, Jul. 2017.
+T CDAGCN = T CCNN + T CGCN + T CFC
+                                           (22)                                   [6] T. Li, Z. Zhao, C. Sun, R. Yan, and X. Chen, "Adaptive channel weighted
+l=1  l=1                              l=1  (23)                                        CNN with multisensor fusion for condition monitoring of helicopter
+                                                                                       transmission system," IEEE Sensors J., vol. 20, no. 15, pp. 8364-8373,
+4    2                                6                                                Aug. 2020.
+SCDAGCN = SCCNN + SCGCN + SCFC.
+                                                                                  [7] Z. Zhao et al., "Deep learning algorithms for rotating machinery
+l=1  l=1                              l=1                                              intelligent diagnosis: An open source benchmark study," ISA Trans.,
+                                                                                       vol. 107, pp. 224-255, Dec. 2020.
+   According to the above equations, we can obtain the TC and
+SC of each layer of the proposed DAGCN. It is worth noting                        [8] Z. Zhang et al., "Faster multiscale dictionary learning method with
+the node number n equals to 64 and the number of the edges of                          adaptive parameter estimation for fault diagnosis of traction motor
+constructed instance graphs is no more than 4096. So, in this                          bearings," IEEE Trans. Instrum. Meas., vol. 70, pp. 1-13, 2021.
+article, the value of m, and K take 4000, and 3, respectively.
+The detailed TC and SC of DAGCN are listed in Table I.                            [9] B. An, S. Wang, R. Yan, W. Li, and X. Chen, "Adaptive robust noise
+As can be observed from these results that the total TC and                            modeling of sparse representation for bearing fault diagnosis," IEEE
+SC of DAGCN are 324041184 FLOPs and 5316496 Bytes,                                     Trans. Instrum. Meas., vol. 70, pp. 1-12, 2021.
+respectively.
+                                                                                 [10] L. Song, H. Wang, and P. Chen, "Vibration-based intelligent fault
+                          VI. CONCLUSION                                               diagnosis for roller bearings in low-speed rotating machinery," IEEE
+                                                                                       Trans. Instrum. Meas., vol. 67, no. 8, pp. 1887-1899, Aug. 2018.
+   In this article, a DAGCN is proposed to model the class
+label, domain label, and data structure in a unified deep                        [11] X. Li, H. Jiang, K. Zhao, and R. Wang, "A deep transfer nonnegativity-
+network and achieving UDA. Experimental results show the                               constraint sparse autoencoder for rolling bearing fault diagnosis with
+superiority of the proposed methods. Conclusions of this arti-                         few labeled data," IEEE Access, vol. 7, pp. 91216-91224, 2019.
+cle are summarized as: 1) through the proposed GGL, the CNN
+features can be transformed to instance graphs automatically;                    [12] X. Ding and Q. He, "Energy-fluctuated multiscale feature learning with
+2) the constructed instance graphs are modeled by a GCN                                deep ConvNet for intelligent spindle bearing fault diagnosis," IEEE
+and the MMD metric is leveraged to estimate the structure                              Trans. Instrum. Meas., vol. 66, no. 8, pp. 1926-1935, Aug. 2017.
+discrepancy between source domain and target domain; and
+3) experimental results indicate that the proposed DAGCN                         [13] J. Jiao, M. Zhao, J. Lin, and C. Ding, "Classifier inconsistency-based
+can extract domain-invariant and discriminative features for                           domain adaptation network for partial transfer intelligent diagnosis,"
+realizing domain adaptation.                                                           IEEE Trans. Ind. Informat., vol. 16, no. 9, pp. 5965-5974, Sep. 2020.
+
+                            REFERENCES                                           [14] R. Gopalan, R. Li, and R. Chellappa, "Unsupervised adaptation across
+                                                                                       domain shifts by generating intermediate data representations," IEEE
+[1] C. Sun, M. Ma, Z. Zhao, and X. Chen, "Sparse deep stacking network                 Trans. Pattern Anal. Mach. Intell., vol. 36, no. 11, pp. 2288-2302,
+     for fault diagnosis of motor," IEEE Trans. Ind. Informat., vol. 14, no. 7,        Nov. 2014.
+     pp. 3261-3270, Jul. 2018.
+                                                                                 [15] R. Yan, F. Shen, C. Sun, and X. Chen, "Knowledge transfer for
+[2] T. Li et al., "WaveletKernelNet: An interpretable deep neural network              rotary machine fault diagnosis," IEEE Sensors J., vol. 20, no. 15,
+     for industrial intelligent diagnosis," IEEE Trans. Syst., Man, Cybern.,           pp. 8374-8393, Aug. 2020.
+     Syst., early access, Jan. 20, 2021, doi: 10.1109/TSMC.2020.3048950.
+                                                                                 [16] Z. Zhao et al., "Unsupervised deep transfer learning for intelli-
+[3] Z. Zhao, S. Wu, B. Qiao, S. Wang, and X. Chen, "Enhanced sparse                    gent fault diagnosis: An open source and comparative study," 2019,
+     period-group lasso for bearing fault diagnosis," IEEE Trans. Ind. Elec-           arXiv:1912.12528. [Online]. Available: http://arxiv.org/abs/1912.12528
+     tron., vol. 66, no. 3, pp. 2143-2153, Mar. 2019.
+                                                                                 [17] C. Sun, M. Ma, Z. Zhao, S. Tian, R. Yan, and X. Chen, "Deep transfer
+                                                                                       learning based on sparse autoencoder for remaining useful life prediction
+                                                                                       of tool in manufacturing," IEEE Trans. Ind. Informat., vol. 15, no. 4,
+                                                                                       pp. 2416-2425, Apr. 2019.
+
+                                                                                 [18] S. Shao, S. McAleer, R. Yan, and P. Baldi, "Highly accurate machine
+                                                                                       fault diagnosis using deep transfer learning," IEEE Trans. Ind. Informat.,
+                                                                                       vol. 15, no. 4, pp. 2446-2455, Apr. 2019.
+
+                                                                                 [19] M. J. Hasan, M. M. M. Islam, and J.-M. Kim, "Acoustic spectral imaging
+                                                                                       and transfer learning for reliable bearing fault diagnosis under variable
+                                                                                       speed conditions," Measurement, vol. 138, pp. 620-631, May 2019.
+
+                                                                                 [20] M. Long, Y. Cao, J. Wang, and M. I. Jordan, "Deep transfer learning
+                                                                                       with joint adaptation networks," in Proc. 34th Int. Conf. Mach. Learn.,
+                                                                                       vol. 70, 2017, pp. 2208-2217.
+
+Authorized licensed use limited to: WUHAN UNIVERSITY OF TECHNOLOGY. Downloaded on May 08,2026 at 13:47:21 UTC from IEEE Xplore. Restrictions apply.
+3515010  IEEE TRANSACTIONS ON INSTRUMENTATION AND MEASUREMENT, VOL. 70, 2021
+
+[21] M. Long, Y. Cao, Z. Cao, J. Wang, and M. I. Jordan, "Transferable                                           Tianfu Li (Graduate Student Member, IEEE)
+      representation learning with deep adaptation networks," IEEE Trans.                                        received the B.S. degree in mechanical engineer-
+      Pattern Anal. Mach. Intell., vol. 41, no. 12, pp. 3071-3085, Dec. 2019.                                    ing from Chongqing University, Chongqing, China,
+                                                                                                                 in 2018. He is currently pursuing the Ph.D. degree
+[22] B. Sun and K. Saenko, "Deep CORAL: Correlation alignment for deep                                           in mechanical engineering with the Department of
+      domain adaptation," in Proc. Eur. Conf. Comput. Vis., vol. 9915, 2016,                                     Mechanical Engineering, Xi'an Jiaotong University,
+      pp. 443-450.                                                                                               Xi'an, China.
+
+[23] W. Dai, Q. Yang, G.-R. Xue, and Y. Yu, "Boosting for transfer                                                 His current research is focused on deep learning,
+      learning," in Proc. 24th Int. Conf. Mach. Learn. (ICML), Jun. 2007,                                        mechanical fault diagnosis, and prognosis.
+      pp. 193-200.
+                                                                                                                 Zhibin Zhao received the Ph.D. degree in mechan-
+[24] Y. Li, N. Wang, J. Shi, J. Liu, and X. Hou, "Revisiting batch normaliza-                                    ical engineering from Xi'an Jiaotong University,
+      tion for practical domain adaptation," 2016, arXiv:1603.04779. [Online].                                   Xi'an, China, in 2020.
+      Available: http://arxiv.org/abs/1603.04779
+                                                                                                                   He is currently an Assistant Professor with the
+[25] W. Qian, S. Li, and J. Wang, "A new transfer learning method and its                                        School of Mechanical Engineering, Xi'an Jiaotong
+      application on rotating machine fault diagnosis under variant working                                      University. His current research is focused on sparse
+      conditions," IEEE Access, vol. 6, pp. 69907-69917, 2018.                                                   signal approximation and dictionary learning for
+                                                                                                                 machinery health monitoring.
+[26] Y. Ganin et al., "Domain-adversarial training of neural networks,"
+      J. Mach. Learn. Res., vol. 17, no. 1, pp. 2030-2096, May 2015.                                             Chuang Sun (Member, IEEE) received the Ph.D.
+                                                                                                                 degree in mechanical engineering from Xi'an Jiao-
+[27] M. Long et al., "Conditional adversarial domain adaptation," in Proc.                                       tong University, Xi'an, China, in 2014.
+      Adv. Neural Inf. Process. Syst., vol. 31, 2018, pp. 1640-1650.
+                                                                                                                   From March 2015 to March 2016, he was a
+[28] X. Yu et al., "Conditional adversarial domain adaptation with discrimi-                                     Post-Doctoral Researcher at Case Western Reserve
+      nation embedding for locomotive fault diagnosis," IEEE Trans. Instrum.                                     University, Cleveland, OH, USA. He is currently an
+      Meas., vol. 70, pp. 1-12, 2021.                                                                            Associate Professor with the School of Mechanical
+                                                                                                                 Engineering, Xi'an Jiaotong University. His research
+[29] J. Li, R. Huang, G. He, Y. Liao, Z. Wang, and W. Li, "A two-stage                                           is focused on manifold learning, deep learning,
+      transfer adversarial network for intelligent fault diagnosis of rotating                                   sparse representation, mechanical fault diagnosis and
+      machinery with multiple new faults," IEEE/ASME Trans. Mechatronics,                                        prognosis, and remaining useful life prediction.
+      early access, Sep. 22, 2020, doi: 10.1109/TMECH.2020.3025615.
+                                                                                                                 Ruqiang Yan (Senior Member, IEEE) received the
+[30] H. Shao, M. Xia, G. Han, Y. Zhang, and J. Wan, "Intelligent fault                                           M.S. degree in precision instrument and machinery
+      diagnosis of rotor-bearing system under varying working conditions with                                    from the University of Science and Technology of
+      modified transfer convolutional neural network and thermal images,"                                        China, Hefei, China, in 2002, and the Ph.D. degree
+      IEEE Trans. Ind. Informat., vol. 17, no. 5, pp. 3488-3496, May 2021,                                       in mechanical engineering from the University of
+      doi: 10.1109/TII.2020.3005965.                                                                             Massachusetts at Amherst, Amherst, MA, USA,
+                                                                                                                 in 2007.
+[31] J. Zhu, N. Chen, and C. Shen, "A new multiple source domain adaptation
+      fault diagnosis method between different rotating machines," IEEE                                            From 2009 to 2018, he was a Professor with
+      Trans. Ind. Informat., vol. 17, no. 7, pp. 4788-4797, Jul. 2021, doi:                                      the School of Instrument Science and Engineering,
+      10.1109/TII.2020.3021406.                                                                                  Southeast University, Nanjing, China. He joined the
+                                                                                                                 School of Mechanical Engineering, Xi'an Jiaotong
+[32] X. Ma, T. Zhang, and C. Xu, "GCAN: Graph convolutional adversarial           University, Xi'an, China, in 2018. His research interests include data analytics,
+      network for unsupervised domain adaptation," in Proc. IEEE/CVF Conf.        machine learning, and energy-efficient sensing and sensor networks for the
+      Comput. Vis. Pattern Recognit. (CVPR), Jun. 2019, pp. 8266-8276.            condition monitoring and health diagnosis of large-scale, complex, dynamical
+                                                                                  systems.
+[33] A. Pareja, "Evolvegcn: Evolving graph convolutional networks for               Dr. Yan was a fellow of ASME in 2019. His honors and awards include
+      dynamic graphs," in Proc. AAAI Conf. Artif. Intell., 2020, vol. 34, no. 4,  the IEEE Instrumentation and Measurement Society Technical Award in
+      pp. 5363-5370.                                                              2019, the New Century Excellent Talents in University Award from the
+                                                                                  Ministry of Education in China in 2009, and multiple best paper awards.
+[34] M. Ragab et al., "Adversarial multiple-target domain adaptation for          He is also the Associate Editor-in-Chief of the IEEE TRANSACTIONS ON
+      fault classification," IEEE Trans. Instrum. Meas., vol. 70, pp. 1-11,       INSTRUMENTATION AND MEASUREMENT and an Associate Editor of the
+      2021.                                                                       IEEE SYSTEMS JOURNAL and the IEEE SENSORS JOURNAL.
+
+[35] X. Wang, H. He, and L. Li, "A hierarchical deep domain adaptation                                           Xuefeng Chen (Senior Member, IEEE) received the
+      approach for fault diagnosis of power plant thermal system," IEEE Trans.                                   Ph.D. degree in mechanical engineering from Xi'an
+      Ind. Informat., vol. 15, no. 9, pp. 5139-5148, Sep. 2019.                                                  Jiaotong University, Xi'an, China, in 2004.
+
+[36] W. Lu, B. Liang, Y. Cheng, D. Meng, J. Yang, and T. Zhang, "Deep                                              He is currently a Professor of mechanical engi-
+      model based domain adaptation for fault diagnosis," IEEE Trans. Ind.                                       neering with Xi'an Jiaotong University. His cur-
+      Electron., vol. 64, no. 3, pp. 2296-2305, Mar. 2017.                                                       rent research interests include finite-element method,
+                                                                                                                 mechanical system and signal processing, diagnosis
+[37] D. Sejdinovic, B. Sriperumbudur, A. Gretton, and K. Fukumizu, "Equiv-                                       and prognosis for complicated industrial systems,
+      alence of distance-based and RKHS-based statistics in hypothesis test-                                     smart structures, aeroengine fault diagnosis, and
+      ing," Ann. Statist., vol. 41, no. 5, pp. 2263-2291, Oct. 2013.                                             wind turbine system monitoring.
+
+[38] E. Tzeng, J. Hoffman, K. Saenko, and T. Darrell, "Adversarial discrim-                                        Dr. Chen was a recipient of the National Excellent
+      inative domain adaptation," in Proc. IEEE Conf. Comput. Vis. Pattern        Doctoral Dissertation of China in 2007, the Second Award of Technology
+      Recognit. (CVPR), Jul. 2017, pp. 7167-7176.                                 Invention of China in 2009, the National Science Fund for Distinguished
+                                                                                  Young Scholars in 2012, and a Chief Scientist of the National Key Basic
+[39] J. Bruna, W. Zaremba, A. Szlam, and Y. LeCun, "Spectral networks             Research Program of China (973 Program) in 2015. He is the Chapter Chair-
+      and locally connected networks on graphs," in Proc. Int. Conf. Learn.       man of the IEEE Xi'an and Chengdu Joint Section Instrumentation and
+      Represent. (ICLR), 2014, pp. 1-14.                                          Measurement Society.
+
+[40] M. Defferrard, X. Bresson, and P. Vandergheynst, "Convolutional neural
+      networks on graphs with fast localized spectral filtering," in Proc. Int.
+      Conf. Neural Inf. Process. Syst. (NIPS), 2016, pp. 3837-3845.
+
+[41] T. Kipf and M. Welling, "Semi-supervised classification with graph
+      convolutional networks," in Proc. Int. Conf. Learn. Represent. (ICLR),
+      Apr. 2017, pp. 1-14.
+
+[42] T. Li, Z. Zhao, C. Sun, R. Yan, and X. Chen, "Multi-receptive field graph
+      convolutional networks for machine fault diagnosis," IEEE Trans. Ind.
+      Electron., early access, Dec. 3, 2020, doi: 10.1109/TIE.2020.3040669.
+
+[43] Y. Lecun, L. Bottou, Y. Bengio, and P. Haffner, "Gradient-based learn-
+      ing applied to document recognition," Proc. IEEE, vol. 86, no. 11,
+      pp. 2278-2324, Nov. 1998.
+
+[44] K. He and J. Sun, "Convolutional neural networks at constrained time
+      cost," in Proc. IEEE Conf. Comput. Vis. Pattern Recognit. (CVPR),
+      Boston, MA, USA, Jun. 2015, pp. 5353-5360.
+
+[45] Z. Wu, S. Pan, F. Chen, G. Long, C. Zhang, and P. S. Yu, "A compre-
+      hensive survey on graph neural networks," IEEE Trans. Neural Netw.
+      Learn. Syst., vol. 32, no. 1, pp. 4-24, Jan. 2021.
+
+Authorized licensed use limited to: WUHAN UNIVERSITY OF TECHNOLOGY. Downloaded on May 08,2026 at 13:47:21 UTC from IEEE Xplore. Restrictions apply.
+

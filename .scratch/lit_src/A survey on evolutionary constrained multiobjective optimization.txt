@@ -1,0 +1,1366 @@
+IEEE TRANSACTIONS ON EVOLUTIONARY COMPUTATION, VOL. 27, NO. 2, APRIL 2023                                                                       201
+
+   A Survey on Evolutionary Constrained
+         Multiobjective Optimization
+
+     Jing Liang , Senior Member, IEEE, Xuanxuan Ban, Graduate Student Member, IEEE,
+ Kunjie Yu , Member, IEEE, Boyang Qu , Member, IEEE, Kangjia Qiao , Member, IEEE,
+Caitong Yue , Member, IEEE, Ke Chen , Member, IEEE, and Kay Chen Tan , Fellow, IEEE
+
+   Abstract--Handling constrained multiobjective optimization               dispatch (CEED) problem [2], the urban bus scheduling
+problems (CMOPs) is extremely challenging, since multiple con-              problem [3], and energy saving optimization problem [4]. This
+flicting objectives subject to various constraints require to be            kind of problems is denoted as constrained multiobjective
+simultaneously optimized. To deal with CMOPs, numerous con-                 optimization problems (CMOPs). CMOPs bring more chal-
+strained multiobjective evolutionary algorithms (CMOEAs) have               lenges than their unconstrained counterparts, due to the co-
+been proposed in recent years, and they have achieved promis-               existence of multiple objectives and constraints. For CMOPs,
+ing performance. However, there has been few literature on the              because of the conflict among multiple objectives, there exist
+systematic review of the related studies currently. This article            no single solution but a set of solutions that indicates the best
+provides a comprehensive survey for evolutionary constrained                possible tradeoffs among the objectives. The set of solutions
+multiobjective optimization. We first review a large number of              forms the so-called Pareto-optimal set (PS), and its image in
+CMOEAs through categorization and analyze their advantages                  objective space is called the Pareto front (PF). Meanwhile,
+and drawbacks in each category. Then, we summarize the bench-               because the presence of the constraints can change the land-
+mark test problems and investigate the performance of different             scape of the search region and cause infeasible regions, the
+constraint handling techniques (CHTs) and different algorithms,             feasibility of the solutions cannot be neglected. Consequently,
+followed by some emerging and representative applications of                the final goal of solving CMOPs is to obtain a set of feasi-
+CMOEAs. Finally, we discuss some new challenges and point out               ble solutions to approach the PF with good convergence and
+some directions of the future research in the field of evolutionary         diversity.
+constrained multiobjective optimization.
+                                                                               In the past two decades, multiobjective evolutionary algo-
+   Index Terms--Benchmark test problems, constrained                        rithms (MOEAs) have become a very popular alternative for
+multiobjective optimization, constraint handling, evolutionary              addressing the multiobjective optimization problems [5], [6].
+algorithms.                                                                 The most important reason is that MOEAs belong to
+                                                                            population-based stochastic metaheuristics that utilize the prin-
+                          I. INTRODUCTION                                   ciples of natural selection to guide a set of solutions toward the
+                                                                            PF. As a result, MOEAs are capable of providing a set of solu-
+A VARIETY of optimization problems in real-world                            tions for a multiobjective optimization problem in a single run.
+      applications contains several conflicting objectives and              Up to now, a large number of MOEAs have been proposed, and
+multiple complicate constraints, such as the robot gripper                  they can be roughly divided into the methods based on domi-
+optimization problem [1], the combined economic emission                    nance [7]-[9], the methods based on decomposition [10]-[12],
+                                                                            and the methods based on indicator [13]-[15]. These MOEAs
+   Manuscript received 1 August 2021; revised 26 November 2021; accepted    have shown competitive performance in solving unconstrained
+22 February 2022. Date of publication 1 March 2022; date of cur-            multiobjective optimization problems. However, they can not
+rent version 31 March 2023. This work was supported in part by the          be directly applied to CMOPs due to the absence of a
+National Natural Science Foundation of China under Grant 62176238,          constraint handling technique (CHT). In fact, CHT can be
+Grant 61806179, Grant 61922072, Grant 61876169, Grant 61976237, and         seen as a selection mechanism to cope with constraints.
+Grant 62106230; in part by the China Postdoctoral Science Foundation        In various practical application scenarios, CMOPs are more
+under Grant 2020M682347, Grant 2021T140616, and Grant 2021M692920;          common than the unconstrained multiobjective optimization
+in part by the Training Program of Young Backbone Teachers in Colleges      problems. Hence, a large amount of effort has been devoted
+and Universities in Henan Province, China, under Grant 2020GGJS006;         to designing CHTs and specific mechanisms, promoting the
+and in part by the Henan Provincial Young Talents Lifting Project, China,   emergence and development of various constrained MOEAs
+under Grant 2021HYTP007. (Corresponding author: Kunjie Yu.)                 (CMOEAs) [16]. Meanwhile, to investigate the performance
+                                                                            of different CMOEAs, a number of benchmark test suites have
+   Jing Liang, Xuanxuan Ban, Kunjie Yu, Kangjia Qiao, Caitong Yue,          also been designed in recent years [17], [18].
+and Ke Chen are with the School of Electrical Engineering, Zhengzhou
+University, Zhengzhou 450001, China (e-mail: liangjing@zzu.edu.cn;             Despite numerous studies that have been conducted on
+18438622381@163.com; yukunjie@zzu.edu.cn; qiaokangjia@yeah.net;             constrained multiobjective optimization in the community of
+zzuyuecaitong@163.com; chenkezixf@163.com).                                 evolutionary computation, to the best of our knowledge, there
+
+   Boyang Qu is with the School of Electrical and Information Engineering,
+Zhongyuan University of Technology, Zhengzhou 450007, China (e-mail:
+qby1984@hotmail.com).
+
+   Kay Chen Tan is with the Department of Computing, The Hong Kong
+Polytechnic University, Hong Kong, SAR (e-mail: kctan@polyu.edu.hk).
+
+   This article has supplementary material provided by the
+authors and color versions of one or more figures available at
+https://doi.org/10.1109/TEVC.2022.3155533.
+
+   Digital Object Identifier 10.1109/TEVC.2022.3155533
+
+This work is licensed under a Creative Commons Attribution 4.0 License. For more information, see https://creativecommons.org/licenses/by/4.0/
+202                                         IEEE TRANSACTIONS ON EVOLUTIONARY COMPUTATION, VOL. 27, NO. 2, APRIL 2023
+
+Fig. 1. Classification of existing CMOEAs.
+
+has been no comprehensive survey of them presented so far.                  computationally expensive, or large-scale characteristics.
+Hence, this article aims at providing a systematical survey on              Therefore, this article gives some topics of promising
+evolutionary constrained multiobjective optimization regarding              future research to promote the development of CMOEAs
+the following aspects.                                                      on more types of challenging CMOPs.
+                                                                        The remainder of this article is structured as follows. The
+   1) On the basis of the categorization shown in Fig. 1, exist-     basic concepts on CMOPs are introduced in Section II. The
+       ing CMOEAs are divided into seven classes, and each of        classification and introduction of the existing CMOEAs are
+       them is introduced. Moreover, the advantages and limi-        described in Section III. Section IV introduces the bench-
+       tations of each class are discussed. It is expected that      mark test problems in detail, followed by the performance
+       this introduction of CMOEAs might help researchers            comparison of different CHTs and algorithms in Section V.
+       to deeply and thoroughly understand the advanced              The specific practical application scenarios are introduced in
+       techniques in solving CMOPs. Furthermore, the per-            Section VI. Some directions of potential future research are
+       formances of different CHTs and algorithms are both           outlined in Section VII. Finally, the conclusions are drawn in
+       investigated.                                                 Section VIII.
+
+   2) The benchmark test problems for evaluating the                   II. BACKGROUND
+       performance of CMOEAs are introduced and analyzed,
+       and these problems are classified according to their          Generally, a CMOP can be described as
+       respective characteristics. Hopefully, this might facilitate
+       the performance comparison among different CMOEAs             min F(x) = (f1(x), f2(x), . . . , fm(x))T
+       and the development of new CMOEAs.                            
+                                                                      gj(x)  0, j = 1, . . . , l
+   3) The applications of evolutionary constrained                   s.t. hj(x) = 0, j = l + 1, . . . , k
+       multiobjective optimization in some typical fields             x = (x1, x2, . . . , xD)T  S              (1)
+       are introduced. This not only provides a practical
+       perspective for researchers but can also inspire prac-        where S is decision space and x is the decision vector with
+       titioners to tackle CMOPs in other similar areas by           D-dimensions in S. F(x) is the objective vector, which con-
+       means of CMOEAs.                                              tains m objectives that need to be solved. gj(x)  0 represents
+                                                                     the jth inequality constraint. hj(x) = 0 is the (j - l)th equal-
+   4) Although the existing CMOEAs have exhibited compet-            ity constraint. l and (k - l) denote the number of inequality
+       itive performance in solving many general CMOPs, as           and equality constraints, respectively. Note that the decision
+       more complicated features are continually emerging in         vectors can be continuous or/and discrete and, thus, this article
+       CMOPs, a number of challenges still need to be con-           focuses on both continuous and discrete problems.
+       sidered, such as the CMOPs with dynamic, multimodal,
+LIANG et al.: A SURVEY ON EVOLUTIONARY CONSTRAINED MULTIOBJECTIVE OPTIMIZATION                                                203
+
+(a)                                                                                   (b)                                (c)
+
+Fig. 2. Illustrations for three different types of difficulties [22]: (a) LIR-CMOP2, (b) LIR-CMOP7, and (c) LIR-CMOP11.
+
+   For a decision vector x, its constraint violation degree on                           2) Difficulty of Convergence: As shown in Fig. 2(b), the
+the jth constraint is calculated as                                                          infeasible region may become a barrier on the way to the
+                                                                                             CPF. An algorithm is easy to be trapped in the feasible
+cvj(x) = max 0, gj(x) , j = 1, . . . , l max 0, h (2) j(x) -  , j = l + 1, . . . , k         outside region, thus finding the true CPF is not easy.
+
+where  is a positive tolerance value to relax the equality con-                          3) Difficulty of Diversity: As seen in Fig. 2(c), the discon-
+straints. By adding the constraint violation degree of x on each                             nected feasible region will make the true CPF consists
+constraint, its total constraint violation degree can be obtained                            of multiple disconnected segments, thus covering all of
+                                                                                             them is a challenging task.
+     k
+                                                                                         In view of the aforementioned challenges, achieving the
+CV(x) = cvj(x).  (3)                                                                  balance among convergence, diversity, and feasibility is impor-
+                                                                                      tant and critical in solving CMOPs. This research conception
+     j=1                                                                              has been widely adopted by researchers and a variety of
+                                                                                      CMOEAs has been tailored in the past years. The details of
+   According to the total constraint violation CV, the feasibility                    these CMOEAs will be introduced in the following section.
+of one solution can be identified. If the CV of one solution is
+0, it is called feasible solution; otherwise, it is an infeasible                                 III. SUMMARY OF EXISTING CMOEAS
+solution.
+                                                                                         In this section, the currently available CMOEAs are clas-
+   For two feasible solutions x1 and x2, x1 is said to dominate                       sified and introduced. It is worth noting that CHTs are
+x2 if fi(x1)  fi(x2) for every i  {1, . . . , m} and fj(x1) < fj(x2)                  indispensable when combining MOEAs to form CMOEAs.
+for at least one j  {1, . . . , m}. If a solution is not dominated                    Furthermore, for most of the existing CMOEAs, their efforts
+by any solution, it is called the Pareto-optimal solution. The                        usually focus on the CHTs. Thus, as shown in Fig. 1, we
+set composed of all Pareto-optimal solutions is PS, and the                           use a taxonomy referring to the CHTs instead of the type
+mapping of PS in objective space is PF.                                               of MOEAs. The existing CMOEAs can be divided into
+                                                                                      seven categories: 1) methods based on the penalty func-
+   The presence of constraints brings more difficulties in                            tion [24], [25]; 2) methods based on the separation of
+obtaining the PF of a CMOP than its unconstrained counterpart                         objectives and constraints [26], [27]; 3) multiobjective meth-
+[i.e., ignoring the constraints in (1)]. The constraints can divide                   ods (MOs) [28], [29]; 4) methods of transforming CMOPs
+the feasible space into narrow disconnected regions, make a                           into other problems [19], [30]; 5) hybrid methods [31], [32];
+large proportion of the search space infeasible, and/or make                          6) methods of altering the reproduction operators [33], [34];
+the PF of unconstrained MOP partially or completely infea-                            and 7) other methods.
+sible. For the sake of distinction, constrained PF (CPF) and
+unconstrained PF (UPF) are commonly used to denote the PFs                            A. Methods Based on Penalty Function
+for constrained and unconstrained multiobjective optimization
+problems, respectively [18]-[21]. Obviously, obtaining the                               These methods are mainly based on the constraint violation
+UPF is the goal of unconstrained multiobjective optimization,                         degree to construct the penalty term. By adding the penalty
+while covering the CPF with good convergence and distribu-                            term into objective functions, the constrained optimization
+tion is desired in CMOPs. To be specific, a good convergence                          problem is transformed into an unconstrained one.
+means that the solutions can approach the PF accurately, and a
+good distribution stands for the solutions featuring good spread                         How to set the penalty coefficient is the most critical issue
+and evenness in the objective space.                                                  in the penalty function methods, playing a decisive role in
+                                                                                      terms of efficiency of the algorithm. According to the dif-
+   Specifically, the following main challenges will be encoun-                        ferent setting methods, the penalty method can be divided
+tered when tackling the CMOPs [23].                                                   into the static method, dynamic method, and adaptive method.
+                                                                                      Obviously, the static method means that the penalty coeffi-
+   1) Difficulty of Feasibility: As shown in Fig. 2(a), con-                          cient will not change during the evolution process, but in this
+       straints may cause a larger proportion of the search space
+       to become an infeasible region. As a result, a very small
+       feasible region is hard to be located in.
+204  IEEE TRANSACTIONS ON EVOLUTIONARY COMPUTATION, VOL. 27, NO. 2, APRIL 2023
+
+way, the preference between objectives and constraints will         one based on the objective function and the other based on the
+remain unchanged in the early and late stages of evolution,         constrained dominance principle (CDP) [45]. Then, according
+which is not conducive to the balance between the objectives        to the ratio of feasible solutions in the current population,
+and constraints. This kind of methods effectively solves simple     the two rankings are adaptively weighted to obtain a new fit-
+problems, but it cannot achieve the ideal effect when solving       ness function. However, its parameters change from 0.5, which
+complex problems. Dynamic method is a method where the              means that the preference on constraints is always equal to or
+penalty coefficient changes with the increase of evolutionary       greater than the objectives. In addition, because only the pro-
+generations or other indicators. Through the change of penalty      portion of feasible solutions is considered. If the proportion is
+parameters, the weight of objectives and constraints is different   equal to 0, the weight of objectives and constraints is always
+in different stages of evolution, so as to achieve the balance      equal, which will make the algorithm fail to find feasible solu-
+between them. However, the difficulty of this method is to          tions on some complex problems. To alleviate these issues,
+design the appropriate change rules, and different change rules     Yu et al. [46] proposed a dynamic selection preference-assisted
+need to be set on different problems. The adaptive method           mechanism to transform the preference between objectives and
+preserves the information of the population in the evolution        constraints. To be specific, the preference for the objectives
+process, and then feeds the obtained information back to the        is gradually reduced from 1 to 0 according to the designed
+population to adjust the penalty coefficient. Thus, compared        cosine function curve [47], [48]. Ming et al. [20] also carried
+with the above two methods, the adaptive strategy can obtain        out two kinds of rankings for each individual, one based on
+better performance for more complicated problems, since the         convergence and the other based on diversity. Finally, accord-
+feedback information can provide guidance of the potential          ing to the generation information, these two kinds of rankings
+evolution.                                                          are weighted by the rule of the sigmoid function. In order to
+                                                                    guide the population in entering the feasible region from differ-
+   Jadaan et al. [35] combined a new nondominated                   ent directions in the early stage of evolution, and approach the
+ranked genetic algorithm (NRGA) with a nonparameter                 Pareto-optimal solutions in the later stage, Ma and Wang [25]
+penalty method to continuously search for the better PS.            proposed a shift-based penalty method, named ShiP, in which
+Zhang et al. [36] designed a multihive colony artificial bee        the infeasible solutions are first shifted according to the dis-
+colony method to deal with CMOPs, by employing a general            tribution of its adjacent feasible solutions, and the degree of
+coevolution model. In this method, the adaptive penalty func-       migration is adaptively controlled by the proportion of feasible
+tion is employed to deal with the constraints, which penalizes      solutions. Then, the shifted infeasible solutions are punished
+infeasible individuals by the number of feasible individuals in     considering their constraint violations. Garc�a et al. [49] used
+the ant colony. By using the proportion of current feasible solu-   the penalty function method to select a group of points that are
+tions, Woldesenbet et al. [37] employed the distance measure        close to the feasible space and have small objective functions.
+in the objective space to adaptively guide the population evo-      Moreover, the method is embedded in the indicator-based
+lution. Jan and Zhang [38] employed a threshold to control the      framework to solve the equality CMOP.
+degree of punishment for infeasible solutions. Based on this
+work, Jan et al. [39] put forward an adaptive and dynamic ver-      B. Methods Based on the Separation of Objectives and
+sion for the threshold, and then embedded it into the MOEA          Constraints
+based on decomposition (MOEA/D) framework to deal with
+CMOPs. Jiao et al. [40] suggested a feasible-guiding strategy,         These methods compare objectives and constraints sep-
+which utilizes the degree of constraint violation to modify         arately, mainly including the CDP [45],  constrained
+the objective functions to get the new fitness. Furthermore,        method [50], [51], and stochastic ranking (SR) [52].
+in order to achieve the balance between the objectives and
+constraints, the penalty coefficient is adjusted by the feasi-         1) CDP: CDP was proposed by Deb et al. [45], which is
+bility proportion in the current population. Maldonado and          most commonly used due to its simplicity and ease of imple-
+Zapotecas-Mart�nez [41] proposed a dynamic penalty func-            mentation. CDP compares paired individuals A and B using
+tion method, in which the parameters gradually change with          the following criteria.
+generation number and are embedded into the MOEA/D
+framework to solve CMOPs. Vaz et al. [42] designed a three-            1) When both individuals A and B are feasible solutions,
+step penalty, in which three different penalty coefficients were           if A Pareto dominates B, A is selected to enter the next
+used at different stages of evolution. Inspired by deep learning,          generation.
+Fan et al. [43] proposed a learning-guided parameter setting
+method, which can adaptively generate penalty parameters.              2) When A is the feasible solution and B is the infeasible
+This penalty function combines constraint violation degree,                solution, A is selected.
+objective function values, and current generation to design
+an exponential decay model, which is embedded into the                 3) When both A and B are infeasible solutions, the indi-
+push-and-pull search (PPS) [19] framework to solve CMOPs.                  vidual with the smallest constraint violation degree is
+                                                                           selected.
+   The following algorithms have similar mechanisms to the
+penalty function methods, so they are also classified in this cat-     The operation of CDP is relatively simple, but it prefers
+egory. Ma et al. [44] designed a CHT based on two rankings,         feasible solutions, which will cause the population to fall
+named ToR, in which each individual is sorted in two ways:          into some local feasible regions when CMOPs have discrete
+                                                                    feasible regions or infeasible barriers. In order to remedy
+                                                                    this shortcoming of CDP, Jimenez et al. [53] employed the
+                                                                    niche technology to increase the diversity of the population.
+LIANG et al.: A SURVEY ON EVOLUTIONARY CONSTRAINED MULTIOBJECTIVE OPTIMIZATION                                                205
+
+Saha and Ray [54] proposed an equality constraint repair                        (a)  (b)
+method based on probability points, which combines CDP
+and clustering methods to repair infeasible solutions. With the                 (c)  (d)
+aim of using the effective information of infeasible solutions,
+Wei and Wang [55] applied CDP to the infeasible elitist-based     Fig. 3. Methodologies of CDP,  constrained method, and SR.
+particle swarm algorithm. In the early stage, individuals with
+good objective values will be retained, and individuals with      adjusted based on the maximum and minimum constraint vio-
+small objective values and constraint violations will be saved    lation values of infeasible individuals. Zapotecas-Mart�nez and
+in the later stage. Based on the NSGA-II and MOEA/D frame-        Ponsich [67] established the CMOP as a biobjective problem
+work, Jain and Deb [56] proposed NSGA-III and C-MOEA/D            by considering the constraint violation degree and scalar func-
+to constrained multiobjective optimization. Fan et al. [57]       tion as objectives, and integrated the  constrained method into
+designed a new angle-based CHT, named ACDP, which inte-           MOEA/D to solve the constructed problem. Yang et al. [68]
+grates angle information into the CDP, and further uses the       proposed a dynamic constraint handling mechanism, which
+information of infeasible solutions. Later, the ACDP was          divides the search process into two modes: 1) unconstrained
+embedded into the MOEA/D framework to solve CMOPs [58].           search and 2) constrained search. In the constrained search
+In addition, Ning et al. [59] proposed an improved hybrid         mode, an improved  constrained method is used to improve
+multiobjective optimization algorithm to solve CMOPs, in          population diversity. To ensure the diversity of PF solutions,
+which each solution is given a constrained nondominated rank      Wang et al. [69] combined the  constrained method with a
+according to its constraint violation degree and Pareto rank.     niche strategy to solve CMOPs. To prevent the population from
+Wang and Xu [27] used the ACDP to solve the constrained           falling into the local feasible region or the infeasible region,
+many-objective optimization problem, in which individuals         Zhu et al. [70] proposed a technique to help the population
+with good diversity will be first selected to cope with the       escape from the stagnation status, and then an improved 
+challenge caused by the large infeasible obstacles.               constrained method is used to search for CPF.
+
+   2)  Constrained Method: This method was proposed by               3) SR: In this method, a probability parameter pf is intro-
+Takahama and Sakai [50], which uses a parameter  to relax         duced. When two individuals are compared, the probability
+constraints.  is gradually reduced, and when the constraint       with pf only compares their objective function value, and
+violation degree of an individual is less than , it is consid-    the probability with (1-pf ) compares their constraint vio-
+ered as a feasible solution. Obviously, when  is reduced to       lation degree. This method is able to use the information
+0, the  constrained method is the same as CDP. When com-          of the objective function to some extent. Geng et al. [71]
+paring individuals A and B, the  constrained method uses the      used SR to balance objectives and constraints when solving
+following criteria.                                               CMOPs. Jan and Khanum [72] embedded the modified SR into
+                                                                  the MOEA/D framework to solve CMOPs. Ying et al. [73]
+   1) If CV(A)  , CV(B)  , and A Pareto dominates B,              proposed an adaptive stochastic ranking mechanism, which
+       then A is selected.                                        dynamically adjusts the probability parameter according to
+                                                                  the current evolution stage and the difference of individuals'
+   2) If CV(A)  , CV(B) > , then A is selected.                   violation degree. Liu et al. [74] studied CMOEAs based on
+   3) If CV(A) > , CV(B) > , and CV(A) < CV(B), then              indicators by combining the indicator-based MOEA with CDP,
+                                                                  the  constrained method, and SR, respectively. Gu et al. [75]
+       A is selected.                                             proposed an evolutionary algorithm based on the surrogate, in
+   Saxena et al. [60] integrated the  constrained method          which an improved SR strategy based on fitness mechanism
+into the NSGA-II framework to control the infeasibility of        and adaptive probability operator was proposed. This strategy
+the population and enhance the convergence of the popula-         considers the convergence and diversity to improve the quality
+tion. Zapotecas-Mart�nez et al. [61] proposed a multiobjective    of candidate solutions.
+particle swarm optimization algorithm (MOPSO) based on
+decomposition, and the  constrained method is integrated             Fig. 3 shows the methodologies of CDP, the  constrained
+into it to solve CMOPs. Yang et al. [62] also integrated          method, and SR. x represents an individual and its objective
+the  constrained method and adaptive operation selection
+into the multiobjective framework based on decomposition.
+Becerra et al. [63] used the  constrained method to obtain
+several points on (or very close to) the PF, and then the method
+based on the rough set was employed to extend these solu-
+tions to cover the whole PF. Martinez and Coello Coello [64]
+showed a method based on the  constrained method, in which
+the relevant information of the neighborhood in MOEA/D is
+used to obtain the promising solutions in the allowable fea-
+sible region. The  constrained method was improved and
+embedded into the MOEA/D framework by Fan et al. [65],
+in which the proportion of feasible solutions in the current
+population is employed to dynamically adjust the  parameter
+level. Yang et al. [66] designed a multiobjective differential
+evolution algorithm (MODE-SaE) based on the improved 
+constrained method, in which the  level can be adaptively
+206                                                    IEEE TRANSACTIONS ON EVOLUTIONARY COMPUTATION, VOL. 27, NO. 2, APRIL 2023
+
+value and constraint violation degree are f (x) and CV(x),                1) Converting CMOPs Into the Collaborative Optimization
+respectively. When the other individuals are compared with             Problems Based on Multipopulation: Chafekar et al. [81]
+x, if they are located in the blue shadow, it means that they          transformed a CMOP into multiple single-objective
+are better than x. Obviously, when CDP is used to select indi-         optimization problems, in which several genetic algo-
+viduals, it will give priority to feasible solutions. In this way,     rithms are implemented, and each of them optimizes
+the convergence rate of the population is very fast, but it will       an objective and then exchanges objective information.
+also cause the population to easily fall into the local optimum.       Wang et al. [82] proposed a cooperative differential evolution
+While both the  constrained method and SR can make up                  (DE) framework also in the use of m subpopulations, each
+for the defect of CDP to a certain extent, since they consider         of which optimizes an objective with constraints, i.e., single
+the information of infeasible solutions. However, the param-           constrained optimization. In addition, an archive population
+eter settings in the  constrained method and SR are also               is used to preserve the obtained constrained nondominated
+challenging because the parameter may be problem-dependent.            solutions to approach the CPF. Liu and Wang [83] proposed
+                                                                       a CMOEA based on decomposition and temporary archive,
+C. Multiobjective Methods                                              which decomposes a CMOP into several subproblems, and
+                                                                       each of the subproblems has its own subpopulation and
+   In the MOs, the constraints are regarded as one addi-               temporary archive. Then, each subproblem is optimized by
+tional objective or multiple additional objectives, the CMOP           a coevolution strategy. Later, they proposed a constraint
+is transformed into an unconstrained counterpart, and then the         handing scheme based on boundary search and archive [84],
+MOEAs can be employed to solve the converted problem. The              in which a CMOP is decomposed into several subproblems,
+objective functions after transformation are as follows:               and each subproblem has its own archive. In addition,
+                                                                       the boundary search strategy is constructed to improve
+     min F(x) = (f1(x), f2(x), . . . , fm(x), CV(x))T  (4)             the efficiency of the algorithm. In order to maintain the
+                                                                       distribution of solutions, Yang et al. [85] decomposed CMOP
+or                                                                     into multiple subproblems by partitioning the objective space
+                                                                       and used multiple CHTs to solve the optimization problems.
+     min F(x) = (f1(x), . . . , fm(x), cv1(x), . . . , cvk(x))T . (5)  Liu et al. [86] changed a CMOP into a two-population
+                                                                       optimization problem, where one population only optimizes
+   In [76], the constraints were transformed into two new              the constraints, and the other population focuses on optimiz-
+objectives: one is based on the penalty function, the other is         ing the objectives. Meanwhile, the interaction of information
+equal to the number of violation constraints. Based on the             and the transfer of knowledge exists between these two popu-
+constraint violation measure, Ray et al. [77] added a new              lations. Tian et al. [87] proposed a coevolutionary framework
+objective, and designed an infeasibility-driven evolutionary           (CCMO) for solving CMOPs, in which one population is
+algorithm to promote the population to approach the con-               using to solve the original CMOP, that is, to search for CPF,
+straint boundary from the infeasible region. Isaacs et al. [78]        and the other population ignores constraints to find UPF. In
+regarded constraints as a new objective and redefined the              addition, these two populations assist each other to solve
+constraint minimization problem of the original m objec-               CMOPs. Li et al. [88] designed a dual-archive evolutionary
+tives as an unconstrained minimization problem with m + 1              algorithm (C-TAEA), one is a convergence-oriented archive
+objectives. Long [79] constructed a novel CHT for solving              (CA) that aims at pushing the population along the PF3
+CMOPs, in which the convergence, diversity, and feasibility            and the other is a diversity-oriented archive (DA) used to
+of the obtained solutions are used as three new objectives for         explore the undeveloped areas of CA and maintain population
+the multiobjective subproblem. Taking the constraint violation         diversity. Wang et al. [89] designed a cooperative MOEA
+degree as a new objective, Peng et al. [29] designed a new             by employing two populations: 1) propulsive population
+CHT based on directed weights to solve CMOPs, in which                 and 2) normal population, Concentrating on convergence,
+two types of weights, respectively, distributed in feasible and        the propulsive population considers no constraints in the
+infeasible regions are employed to guide the search toward the         early stage, while in the late stage, only constraints are
+promising regions. Zhou et al. [80] proposed a tri-goal evo-           considered. The normal population searches the whole CPF
+lutionary framework for solving constrained many-objective             and prioritizes the feasibility and the diversity of the popu-
+problems. This framework transforms constraints into feasibil-         lation. A bidirectional coevolution algorithm was designed
+ity indicators, and then is combined with convergence indicator        by Liu et al., in which the main population and an archive
+and diversity indicator to form three new objectives.                  population are employed simultaneously [90]. Specifically,
+                                                                       the main population keeps the feasibility and moves from
+D. Methods of Transforming CMOPs Into Other Problems                   the feasible side to the CPF, while the archive population
+                                                                       uses angle information to maintain population diversity and
+   In order to more efficiently solve CMOPs, many researchers          approximate the CPF from the infeasible side.
+convert CMOPs to other problems, such as converting a
+CMOP to collaborative optimization problems or two-stage                  2) Converting CMOPs Into Two-Stage Optimization
+optimization problems. After converting, some promising                Problems: Santana-Quintero et al. [91] combined MOEA
+operators like coevolution can help the population to better           with the local search method based on rough set theory to
+explore the search space, discover some new and potential              solve CMOPs. In the first stage, MOEA was used to approach
+information, and obtain the complete CPF in the end.
+LIANG et al.: A SURVEY ON EVOLUTIONARY CONSTRAINED MULTIOBJECTIVE OPTIMIZATION  207
+
+the PF. In the second stage, the fuzzy set theory was used to       relax equality constraints into inequality ones, which fails to
+improve the diversity and the convergence of PF solutions.          ensure the strict feasibility of the obtained solutions. Some
+Fan et al. [19] proposed a PPS framework. The goal of the           researchers have combined EA with MP to deal with CMOPs.
+push stage is to cross the infeasible region to the UPF. In the     Kelner et al. [31] proposed a hybrid optimization technol-
+pull stage, the improved  constrained method is employed to         ogy by combining genetic algorithm with local search strategy
+search the CPF. Based on the PPS framework, a CMOP was              based on interior-point method. Datta et al. [102] proposed a
+decomposed into a group of simple subproblems [92], with            new multiobjective optimization technology, which combines
+each subproblem corresponding to a subpopulation, and the           an interior-point method with the nonconvex radial bound-
+PPS framework is applied to each subpopulation to solve the         ary intersection. The radial boundary intersection decom-
+related subproblem. Based on the diversity distance measure,        poses the multiobjective optimization problem into sev-
+Wang et al. [93] proposed an objective space modified               eral subproblems, which find the solutions of the near-
+mechanism, which enables the promising infeasible solutions         est reference point radially outward along equidistant lines.
+to be more effective in finding the optimal solutions. In           Morovati and Pourkarimi [103] used the Zoutendijk method
+addition, the PPS search framework is used to adjust the            to solve CMOPs, where the algorithm considers all objec-
+position of the PF to prevent the population from falling into      tives and constraints, and a convex quadratic subproblem is
+the local optimum, and the time complexity can be reduced.          proposed to generate a convenient improved feasible direction.
+Garcia-Garcia et al. [94] utilized the characteristics of cellular  Sch�tze et al. [104] proposed a method to calculate the search
+genetic algorithms (CGAs) and combined PPS technology               direction by using neighborhood information. In this method,
+to solve CMOPs. Tian et al. [95] designed a two-stage               with regards to a given point in the population, the greedy
+evolutionary algorithm, named CMOEA-MS, in which one                search direction of given data is calculated in the use of the
+stage can help the population reach the feasible region, and        neighborhood solution of this point. Lara et al. [32] proposed
+the other stage can make the population spread along the            the construction method of subspace-based movements in
+feasible boundary. In addition, based on the status of the          the search process, in which the multiobjective stochastic
+population, the algorithm can adaptively switch between these       local search is used to guide individuals. Uribe et al. [105]
+two stages. For CMOPs with constraints in both decision and         hybridized MOEAs with a special local search mechanism,
+objective spaces, Liu and Wang [96] suggested a two-stage           proposed a descent directions calculation method for the
+optimization idea. The first stage is a single objective            biobjective optimization problem, in which the constraints
+problem, which aims to search for the promising feasible            information is considered in local search. Cuate et al. [106]
+region; the second stage requires searching for the final PF        combined MOEA with continuation-like technology to obtain
+and reaching the CPF. Xiang et al. [21] proposed a two-stage        a fast and reliable numerical solver. Hern�ndez et al. [107]
+algorithm, named CIC-MOEA/D, the goal of the first stage is         proposed a method of mixing the hypervolume Newton
+to find UPF, so only the objectives are considered; moreover,       method and evolutionary strategy to obtain a fast and reli-
+the constraints are gradually emphasized with the goal of           able algorithm to deal with CMOPs. Sch�tze et al. [108]
+approaching the CPF well in the second stage. In [97], the          combined the gradient subspace approximation with EA to
+whole evolutionary process was divided into two stages. The         solve CMOPs, which allows the descent direction to be cal-
+first stage aims to keep the balance between convergence            culated in a best-fitting manner from the given neighborhood
+and diversity, and the second stage is devoted to maintaining       information.
+feasibility and diversity and, thus, covering a well-distributed
+PF. Yu and Lu [98] proposed a corner point algorithm based          F. Methods of Altering the Reproduction Operators
+on DE by including two stages. The first stage is to find
+the corner points, and the second stage is to search the real          This type of methods focuses on the design of effi-
+CPF. Zhang et al. [30] used the framework of artificial bee         cient and specific operators in the process of reproduction.
+colony to divide the optimization process into two stages. In       Qian et al. [109] combined an adaptive DE with the  con-
+their first stage, fast nondominated sorting is employed in         strained method to solve CMOPs, in which the generation
+promoting the population to reach the PF. In the second stage,      strategies of trial vector and DE parameters are gradually
+the Tchebycheff method is employed to improve population            and adaptively adjusted according to the knowledge learned
+diversity. Ming et al. [99] proposed a two-stage evolutionary       in the previous search process. Yu et al. [110] designed a
+algorithm, in which the first stage is used to find UPF and         new mutation mechanism to deal with infeasible and feasible
+store the feasible solutions obtained, and the second stage         solutions, which can produce a well-distributed CPF. Qu and
+concentrates on exploring CPF.                                      Suganthan [111] proposed a diversity promotion mechanism
+                                                                    to prevent the population from falling into the local optimum.
+E. Hybrid Methods                                                   Xu et al. [33] designed a new DE variant with an infeasible-
+                                                                    guiding mutation operator to solve CMOPs, in which the
+   Although EA can find promising areas from global per-            good infeasible solutions are employed to guide the popu-
+spectives, its subtle search in local regions may be inferior       lation into the promising region. Wang et al. [112] proposed
+to mathematical programming (MP) [100], [101], especially           an adaptive DE with Pareto dominance, in which the param-
+facing equality constraints that usually reduce the dimensions      eters are adjusted adaptively. Ramesh et al. [34] proposed
+of search space. Many constrained optimization algorithms           an improved generalized DE for CMOPs by replacing the
+208  IEEE TRANSACTIONS ON EVOLUTIONARY COMPUTATION, VOL. 27, NO. 2, APRIL 2023
+
+commonly used binomial/exponential crossover with the simu-        MOEA is taken as the main evolution power to approxi-
+lated binary crossover. Liu et al. [113] designed a new strategy   mate the PF with a set of well-converged and well-distributed
+based on group-sorting to maintain population diversity, and       feasible solutions. Naturally, designing CMOEAs by inte-
+the crossover operator was designed for each subpopulation         grating MOEAs (i.e., dominance-based [9], decomposition-
+to improve the exploration ability. In order to solve CMOPs        based [10], and indicator-based algorithms [15]) with CHTs
+with a large number of objectives or variable dimensions,          is a practicable and simple way to cope with CMOPs,
+He et al. [114] emphasized the role of offspring generation        since all of them have been widely studied individually.
+when reproducing promising feasible or valuable infeasible         Based on the current studies, it is observed that CHTs are
+offspring solutions. Miyakawa et al. [115] proposed a direct       often combined with dominance-based and decomposition-
+matching strategy, which can assign a unique search direc-         based MOEAs [44], [58], since they have better flexibil-
+tion to individuals according to their positions in the objective  ity and generalization than the indicator-based MOEAs.
+space. Afterwards, they further proposed a method to con-          Especially, for decomposition-based MOEAs, they transform
+trol the selection area of promising infeasible solutions by       a multiobjective optimization problem into multiple single-
+determining the dominant region of the solutions [116].            objective optimization problems. Therefore, many CHTs
+                                                                   applied to constrained single-objective optimization can be
+G. Other Methods                                                   directly embedded. For the indicator-based MOEAs using
+                                                                   quality indicators to define selection mechanisms, they have
+   Herein, some methods that do not belong to any of the above     represented a promising way to deal with many-objective
+categories are discussed. For some problems, it may be more        optimization problems due to the increase of selection pres-
+beneficial to allow the population to perform nongreedy or         sure [15]. Thus, combining indicator-based MOEAs with
+uphill movement, such as the simulated annealing (SA) [117].       CHTs is a viable alternative for solving constrained many-
+Singh et al. [118] integrated the surrogate assisted method        objective optimization problems.
+into SA to solve CMOPs. The optimization method based
+on the surrogate model can reduce the number of computa-              In addition, based on the above reviews on existing
+tionally expensive simulations. Singh et al. [119] combined        CMOEAs, the advantages and limitations of each category
+the Kriging model with improved multiobjective probabil-           are summarized in Table I. Although the existing algorithms
+ity and feasibility probability to solve CMOPs. Datta and          have exhibited excellent performance in solving CMOPs, some
+Regis [120] proposed a surrogate-assisted evolution strategy       research gaps need to be considered.
+to solve CMOPs with expensive black-box inequality con-
+straints. Zhang and Qian [121] employed an artificial immune          1) CMOPs can be solved on the principle of multi-
+system model for solving nonlinear constrained multiobjective             task optimization [128]-[130]. Based on the knowl-
+problems in a time-varying environment. Based on the super                edge transfer, evolutionary multitask (EMT) has shown
+rectangle search, Wei and Wang et al. [122] proposed a PSO                exceedingly promising performance in solving multiple
+variant, in which the optimal solution of the next time step              different but related tasks simultaneously. Naturally, the
+can be predicted. Considering that the single CHT cannot                  optimization of objectives and the satisfaction of con-
+perform better than other CHTs in every problem, Qu and                   straints can be seen as two related tasks, thus some
+Suganthan [123] hybridized multiple CHTs to solve CMOPs.                  knowledge transfer mechanisms in EMT can be readily
+Zapotecas-Mart�nez and Coello Coello [124] proposed an                    adopted to solve the CMOPs.
+algorithm for continuous box-CMOPs, in which the non-
+linear simplex search scheme is used to obtain the PS.                2) In order to assist the solving of CMOPs, some auxiliary
+Sadollah et al. [125] used the water cycle algorithm to solve             tasks can be created by dynamically considering some
+CMOPs, in which one archive is employed to save the obtained              ones of all constraints. Moreover, for different auxil-
+nondominated solutions. Based on the biological immune                    iary tasks, different CHTs can be employed to exert the
+system, Qian et al. [126] designed an immune optimization                 complementary effects.
+method for solving CMOPs. Yuan et al. [16] introduced an
+indicator-based CHT for CMOPs to guide the population to              3) The fitness landscape of CMOPs can be analyzed. Based
+uniformly explore the promising areas. Li et al. [127] designed           on the characteristics of fitness landscape, more suitable
+a pioneer selection strategy, in which the pioneer individu-              CHTs and evolution operators can be recommended to
+als give no consideration to constraints, and the proportion              a specific CMOP.
+of the pioneer individuals is gradually reduced to obtain a
+well-distributed CPF.                                                 4) The idea of hyperheuristic algorithm [131], [132] is also
+                                                                          beneficial to the utilization of CHTs. The hyperheuristic
+H. Discussion                                                             algorithm has the self-learning ability, which uses the
+                                                                          feedback information of heuristic algorithms to improve
+   The relationship between CHTs and MOEAs is discussed                   its performance. Thus, some hyperheuristic strategies are
+here. In general, one CMOEA is composed of CHT and                        expected to be designed to efficiently use the advantages
+MOEA. To be specific, the CHT is used to tackle the                       of different CHTs in the evolution process.
+constraints and ensure the feasibility of solutions, while
+                                                                                  IV. BENCHMARK TEST PROBLEMS
+
+                                                                      In order to comprehensively test the performance of
+                                                                   CMOEAs, many benchmark test functions have been
+                                                                   proposed, including the SRN test function [133], TNK test
+LIANG et al.: A SURVEY ON EVOLUTIONARY CONSTRAINED MULTIOBJECTIVE OPTIMIZATION  209
+
+                              TABLE I
+ADVANTAGES AND LIMITATIONS OF VARIOUS METHODS
+
+function [134], OSY test function [135], CTP test set [136],      to the PF infeasible. In addition, by using more constraints,
+CF test set [137], NCTP test set [138], C-DTLZ test set [139],    multimodal, and deceptive functions, the complexity of the test
+CMOP test set[140], LIR-CMOP test set [22], MW test               problem can be further increased. The test problems CTP2-
+set [18], DOC test set [96], DAS-CMOPs test set [23], CF          CTP7 make it difficult to optimize the whole search space.
+test set [17], some test problems derived from actual prob-       The constraints of CTP2-CTP7 contain six parameters, and
+lems [141], and equality constrained test sets (CZDT test         the constraint test problems with different difficulties can be
+set [54] and Eq-DTLZ test set [142]). They make substantial       obtained by adjusting these six parameters. Although the CTP
+contributions to improving the performance of evolutionary        problem set has a certain improvement compared with the
+algorithms.                                                       previous three, there are still some defects, i.e., the dimension
+                                                                  is not high enough, the feasible region is large, and all prob-
+   SRN, TNK, and OSY are the first three test problems            lems are restricted to two objectives. In addition, although the
+proposed in the literature, and are often employed for the        number of constraints of CTP1 is adjustable, the shape of its
+performance comparison of algorithms. The constraints used        CPF remains unchanged with the increase of constraints. The
+in SRN eliminate the partial unconstrained PS, that is, its CPF   shapes of CPFs for CTP2-CTP7 are adjustable, but these prob-
+is part of UPF. The feasible objective space of TNK is the same   lems have only one constraint and usually have large feasible
+as the feasible decision variable space. It has a disconnected    regions.
+CPF on the boundary of nonlinear constraints. OSY contains
+six constraints, and its Pareto-optimal region consists of five      Based on the framework of CTP test suite, the CF test
+segments, each segment located at the intersection of some        suite is designed. The CF test set has a nonlinear PF in deci-
+constraints. The main limitations of these three test problems    sion space, its CPF has unconnected geometry, and the CF
+are as follows: 1) low dimension; 2) most objective functions     problems also introduce complex variable linkages, so the
+and constraints are not completely nonlinear, so it is easy to    algorithm finds it difficult to converge when solving the CF
+find good solutions; and 3) the complexity of different con-      problems. However, the CF problems have some defects. For
+straints introduced by them in constrained optimization is not    example, the difficulty is not adjustable, the feasible regions
+adjustable.                                                       are large, and the number of objectives is not extensible.
+
+   Based on the main defects of the above three problems, the        The NCTP test set is developed to address the defects of
+CTP test suite was designed. In the CTP test function set, the    CTP problems, and has the following characteristics: 1) the
+difficulty of constraint functions can be adjusted. The con-      distance function adopts the Rosenbrock function, so the con-
+straint functions used mainly provide two types of difficulties:  vergence difficulty is increased; 2) high-dimensional decision
+1) the difficulty of approaching CPF and 2) the difficulty of     space is considered; and 3) in order to explicitly reduce the
+the whole search space. The CTP test suite contains seven         feasibility ratio, an additional constraint is added. In the NCTP
+test problems, CTP1-CTP7. The landscape of the region near        test suite, the CPFs of NCTP1-NCTP6 are discontinuous, the
+CPF in test problem CTP1 is complicated, because each con-        CPFs of NCTP7-NCTP12 are composed of continuous and
+straint is an implicit nonlinear function of decision variables.  discontinuous parts, and the CPFs of NCTP13-NCTP18 are
+The presence of constraints makes the search area that is near    continuous.
+210  IEEE TRANSACTIONS ON EVOLUTIONARY COMPUTATION, VOL. 27, NO. 2, APRIL 2023
+
+   The C-DTLZ test suite is designed on the basis of the           (a)  (b)
+unconstrained DTLZ test problems [143]. The C-DTLZ test
+set mainly contains three kinds of constraints. An infeasible      (c)  (d)
+barrier can be provided by introducing the first kind of con-
+straints, while the UPF is still feasible. In addition, several    Fig. 4. Classification of CMOPs. (a) Type I. (b) Type II. (c) Type III.
+isolated feasible regions along the UPF are defined by the sec-    (d) Type IV.
+ond kind of constraints, and the CPF is part of UPF. The third
+type of constraints makes the whole UPF infeasible, and CPF        disadvantage of DOC is that the dimensions are fixed and not
+is formed by the boundary of the feasible region. Since the C-     adjustable.
+DTLZ test suite is scalable with multiple difficulties, such as
+multimodality, irregularity, and bias, it has been widely used to     DAS-CMOP test suite has adjustable difficulty and expand-
+evaluate the performance of CMOEAs. However, the position          able objective by employing three primary types of difficulties
+variables on the PSs of the C-DTLZ test suite lack internal        to characterize the constraints. The level of difficulty in DAS-
+independence, which is also its main limitation.                   CMOP is defined by a triplet with each of its parameters
+                                                                   specifying each primary difficulty-type level, respectively. In
+   Fan et al. [140] suggested eight constrained optimization       addition, by combining the three primary constraint types with
+problems, CMOP1-CMOP8. In these problems, a total of three         different difficulty triplets, a variety of constraints can be
+types of constraint functions are defined. The first type of con-  provided for CMOPs.
+straints can determine the shape of the CPF, the second type
+can determine the feasible proportion of the search space, and        Zhou et al. [17] designed 16 scalable constrained test prob-
+the third type can simultaneously focus on the CPF shape and       lems (CF1-CF16) by taking the variable dependencies into
+the proportion of feasible solutions in the entire search space.   account. The constraints introduced by these problems can
+                                                                   be divided into convergence difficulty and diversity difficulty.
+   The LIR-CMOP test suite contains 14 CMOPs with small            The former refers to the introduction of infeasible obstacles
+feasible regions, and there exists a complex relationship          when approaching the CPF, and the position and the distance
+between location and distance variables. The general charac-       variables are related to each other. The diversity difficulty con-
+teristic of LIR-CMOP test problems is that their true CPFs         straints will limit the feasible optimal regions, with the result
+are blocked by a large number of infeasible regions, making        that different shapes of CPFs can be obtained. Among these
+it difficult to be discovered during the evolution process. Its    problems, CF1 and CF2 are the simplest, because they both
+constraint function is composed of a controllable shape func-      have regular CPFs, while the CPFs of the remaining problems
+tion and distance function. Specifically, the shape function is    are irregular, causing difficulties in solving them.
+used to make the shapes of CPFs convex and concave, and the
+distance function can adjust the convergence difficulty.              Picard and Schiffmann [141] used the design of electro-
+                                                                   mechanical actuators to develop realistic benchmark CMOPs.
+   The MW test suite contains 14 test problems with various        Twenty problems are derived with four different constraint
+characteristics. Some problems have narrower parts in their        levels and up to five objectives. These problems are repre-
+continuous/discontinuous feasible regions, and the CPFs of         sentative of a variety of mechanical design applications with
+some problems contain only a few isolated Pareto-optimal           discontinuities in the objective space.
+solutions. Hence, the CPFs of MW test problems are rela-
+tively difficult to find. In the construction of the MW test          On the basis of the unconstrained test set ZDT [144], the
+set, a global control process and a local adjustment process       constrained test suite CZDT was proposed in [54]. It contains
+are introduced, the former can control the size of the feasible    five equality constrained test problems, and each test problem
+region and the latter is able to adjust the complexity of the      has two objectives. In addition, the only feasible solution sets
+boundary in the feasible region. The purpose is to generate        of these problems are the global Pareto-optimal fronts.
+CPF with different geometric constraints. In addition, in the
+MW test set, because the distance function can be extended to         Based on the DTLZ test problems [143], eight equality con-
+any number of decision variables, all test problems are scal-      strained optimization problems were proposed in the Eq-DTLZ
+able in terms of the number of decision variables. Regarding       test suite [142]. These test problems are adjustable in terms
+the number of objectives, only test problems MW4, MW8, and         of the number of decision variables, objectives, and equality
+MW14 are scalable.                                                 constraints.
+
+   The previous constraint test sets have no consideration to
+the constraints both in decision and objective spaces. In light
+of this case, the DOC test set is designed including nine prob-
+lems. The characteristics of the DOC test set are as follows:
+1) it contains objective constraints and decision constraints
+simultaneously; 2) it contains both inequality constraints and
+equality constraints; 3) its CPFs have a variety of properties,
+for example: continuous, disconnected, convex, concave, lin-
+ear, mixed, degenerate, and multimodal; and 4) the feasible
+region in the decision space also exhibits various proper-
+ties, such as nonlinearity, minima, and multimodality. The
+LIANG et al.: A SURVEY ON EVOLUTIONARY CONSTRAINED MULTIOBJECTIVE OPTIMIZATION  211
+
+               TABLE II
+TEST PROBLEMS CLASSIFICATION
+
+   According to the position of the CPF and UPF of each            Fig. 5. Rankings of five compared CHTs by Friedman's test.
+test function in the objective space, the test problems can be
+divided into the following four types [18].                        percentages of the best and second-best IGD results of all
+                                                                   CHTs on each type of problems.
+   1) Type I: The UPF is also feasible, as shown in Fig. 4(a),
+       and it is completely overlapped with CPF.                      From Table IV, for Type I CMOPs, SP outperforms other
+                                                                   CHTs since it performs either best or second-best on 83.3%
+   2) Type II: The UPF is partially feasible, as shown in          of this type of problems. For this kind of problems, the UPF
+       Fig. 4(b), CPF is a part of UPF.                            completely overlap with CPF, so the information of objectives
+                                                                   and constraints on the UPF is very desirable. Since SP prefers
+   3) Type III: As shown in Fig. 4(c), the UPF is partly           individuals with better objectives and lower constraint viola-
+       feasible and partially overlapped with the CPF.             tion, it encourages the population to overcome the infeasible
+                                                                   obstacle to reach the CPF. During the evolution, the degree of
+   4) Type IV: As seen in Fig. 4(d), the UPF is located in the     punishment on infeasible solutions is increasing; thus, more
+       infeasible region; thus, UPF and CPF are completely         efforts can be focused on approaching the CPF. Hence, the SP
+       separated.                                                  method has an advantage on solving Type I CMOPs.
+
+   Obviously, for Type I and Type II problems, the objectives         For Type II CMOPs, the  constrained method and SR
+can be given more preference since the CPF is part of the UPF.     achieve the better performance than other CHTs.  constrained
+That is, finding the UPF is extremely beneficial to obtaining      method takes some infeasible solutions that satisfy the -level
+CPF. For Type III problems, the balance between objectives         as pseudo-feasible solutions. By doing this, these pseudo-
+and constraints should be considered reasonably. While for the     feasible solutions can be evolved toward the UPF. The CPF of
+problems that belong to Type IV, it will be better to emphasize    Type II CMOPs is part of the UPFs, thus searching for the UPF
+the importance of constraints since there is no intersection       is very beneficial for finding the CPF. As the  value gradually
+between UPF and CPF. Hence, different types of problems            decreases, the population is capable of gradually approaching
+require different configurations of preference in objectives and   the CPF. In addition, SR has a certain probability to evolve the
+constraints.                                                       population only considering objectives, thus some infeasible
+                                                                   solutions will be utilized to cover the UPF. This property is
+   According to the above classification method, various test      beneficial for searching for CPF in this type of CMOPs.
+sets are classified in Table II. In addition, the characteristics
+of these test suites are presented in Table III.                      For Type III and Type IV problems, MO obviously out-
+                                                                   performs other CHTs. This method regards the constraint
+                   V. PERFORMANCE ANALYSIS                         violation as an additional objective when comparing infeasible
+                                                                   solutions, and some infeasible solutions close to the bound-
+   In this section, the performance of different CHTs and          ary of the feasible region will be preserved. Consequently,
+CMOEAs on different types of problems are investigated. MW         the population can simultaneously approach the UPF and the
+and LIR-CMOP test suites are employed because they are             boundary of the feasible region. Since the CPF is part of the
+widely used and can be classified into four types of prob-         boundary of feasible region in Type III and Type IV CMOPs,
+lems, as shown in Table II. All experiments are carried out on     MO has the ability to approximate the CPF from both the
+the PlatEMO platform [145], and the parameter settings for         feasible and infeasible sides.
+experiments are given in the supplementary material to retain
+space.                                                                Fig. S-1 of the supplementary material shows the conver-
+                                                                   gence curves of IGD with different CHTs on MW2, MW6,
+A. Comparison of Different CHTs                                    MW7, and LIR-CMOP7. It is worth noting that these four
+                                                                   problems belong to Types I-IV, respectively. We can see that
+   Five popular CHTs are chosen for performance comparison.        different CHTs are suitable to different problems, which are
+They are self-adaptive penalty method (SP) [37], CDP [45],         consistent with the above observations. In addition, Fig. 5
+constrained method [109], SR [71], and MO [77]. For a fair         shows the rankings of all CHTs on MW and LIR-CMOP
+comparison, these CHTs are embedded into the widely used           test sets obtained by Friedman's test [146]. Overall, the
+NSGA-II framework to form CMOEAs. The detailed experi-
+mental results are shown in Table S-1 of the supplementary
+material. To make the analysis easy, Table IV summarizes the
+212  IEEE TRANSACTIONS ON EVOLUTIONARY COMPUTATION, VOL. 27, NO. 2, APRIL 2023
+
+     CHARACTERISTICS OF TEST PROBLEMS. " TABLE III " INDICATES THAT THE TEST SET HAS THIS FEATURE; "�" MEANS THE TEST SET DOES
+                 NOT HAVE THIS FEATURE; AND "" INDICATES THAT SOME FUNCTIONS IN THE TEST SET HAVE THIS FEATURE
+
+                                        TABLE IV                  From the results in Table V and Table S-2, BiCo exhibits
+PERCENTAGE OF THE BEST AND SECOND-BEST IGD RESULTS OBTAINED    competitive performance both on Type I and Type IV CMOPs.
+                                                               The reasons are as follows. BiCo includes one main population
+    BY DIFFERENT CHTS UNDER NSGA-II FRAMEWORK ON MW AND        and one archive population. The main population uses the CDP
+          LIR-CMOP TEST SUITES. THE BEST AND SECOND-BEST       to approach the CPF from the feasible region side. While in
+          PERCENTAGES ARE SHADED WITH A DARK GRAY AND A        the archive population, the nondominated infeasible solutions
+                   LIGHT GRAY BACKGROUND, RESPECTIVELY         are found and an angle-based selection scheme is developed to
+                                                               guide the population toward the CPF also from the infeasible
+                                         TABLE V               side. In addition, for Type IV problems, the solutions between
+PERCENTAGE OF THE BEST AND SECOND BEST IGD RESULTS OBTAINED    UPF and CPF are very effective to find CPF. Therefore, BiCo
+ BY DIFFERENT CMOEAS ON MW AND LIR-CMOP TEST SUITES. THE       is capable of utilizing these solutions stored in the archive
+                                                               population to obtain good performance.
+  BEST AND SECOND-BEST PERCENTAGES ARE SHADED WITH A DARK
+         GRAY AND A LIGHT GRAY BACKGROUNDS, RESPECTIVELY          C-TAEA performs the second-best performance on Type II
+                                                               problems, this superiority mainly derives from MW1, MW5,
+performance of MO achieves the first ranking, followed by      and MW6. The CPFs of these MW problems are discontinu-
+the  constrained method.                                       ous, and are part of the UPFs. These problems require more
+                                                               diversity of population and information of objective function
+B. Comparison of Different CMOEAs                              to find more CPF fragments. The CA in C-TAEA is used to
+   In order to analyze the performance of CMOEAs on            find CPF, and the DA ignores the constraints, and more objec-
+                                                               tive function information is considered. In addition, DA is also
+different types of problems, five representative CMOEAs are    used to find areas that have not been searched by CA, which
+selected, which are BiCo [90], C-TAEA [88], CCMO [87],         increases the diversity of population and makes more CPF
+MOEA/D-DAE [70], and PPS-MOEA/D [19]. These                    fragments be achieved.
+CMOEAs have achieved exceedingly competitive performance
+on CMOPs and are widely used in comparison experiments.           CCMO performs better than other algorithms on the first
+The detailed results are shown in Table S-2 of the supplemen-  three types of problems, especially Type II and Type III prob-
+tary material. Table V summarizes percentages of the best      lems. This is mainly because the UPFs and CPFs of these
+and second-best IGD results obtained by different algorithms   problems have a relatively high degree of overlap. CCMO
+for each type of problems.                                     uses a dual-population mechanism, in which population 1
+                                                               focuses on approaching the CPF by both considering the objec-
+                                                               tives and constraints, while population 2 aims at searching
+                                                               the UPF by completely ignoring the constraints. Meanwhile,
+                                                               these two populations exchange information in the environ-
+                                                               ment selection. By doing this, population 2 can help population
+                                                               1 maintain population diversity and pass through the infeasible
+                                                               barrier, which encourages the search for CPF on the first three
+                                                               types of problems. While the superiority of CCMO degrades
+                                                               on Type IV problems with the completely detached UPF and
+LIANG et al.: A SURVEY ON EVOLUTIONARY CONSTRAINED MULTIOBJECTIVE OPTIMIZATION  213
+
+                            TABLE VI
+SUMMARY OF PRACTICAL APPLICATIONS OF CMOEAS
+
+CPF, because the complementary effect will deteriorate as CPF   Fig. 6. Rankings of five compared algorithms by Friedman's test.
+is far away from UPF.
+                                                                                         VI. APPLICATIONS
+   MOEA/D-DAE mainly performs well on some LIR-                    Many practical problems can be regarded as CMOPs,
+CMOP problems, because its detect-and-escape strategy once      and the CMOEAs have achieved great success in a vari-
+detects the population falls into the local feasible or infea-  ety of fields. In this section, the applications of evolutionary
+sible regions, the constraints will be relaxed by using the     constrained multiobjective optimization in some representa-
+improved  constrained method, to make the population escape     tive areas are introduced. The detailed information of the
+from the local regions, and then gradually move closer to       real-world problems solved by CMOEAs is summarized in
+the CPF.                                                        Table VI.
+
+   PPS-MOEA/D surpasses other competitors on Type IV            A. Engineering Design Problems
+problems. The evolution process of PPS-MOEA/D involves             Engineering design is one of the most common problems
+push and pull stages. The former prefers crossing the
+infeasible regions in front of the UPF, so as to prevent        in real-world, which mainly includes the I-beam optimization
+the population from falling into the local feasible regions.
+The latter focuses on driving the solutions obtained by
+the push stage toward the CPF. By doing this, the indi-
+viduals will be gradually pulled back from the UPF
+to CPF.
+
+   Fig. S-2 in the supplementary material shows the con-
+vergence curves of IGD with different CMOEAs on MW2,
+MW6, MW7, and LIR-CMOP7. In general, the convergence
+speed of CCMO and BiCo has a narrow advantage since their
+second population can help the main population quickly con-
+verge to the CPF. In addition, Fig. 6 presents the rankings
+of CMOEAs on MW and LIR-CMOP test suites obtained
+by Friedman's test [146]. Obviously, CCMO performs the
+best, and the performance rankings of other algorithms are
+comparable.
+214  IEEE TRANSACTIONS ON EVOLUTIONARY COMPUTATION, VOL. 27, NO. 2, APRIL 2023
+
+problem [147], welded beam design problem [91], speed            and Mousa [161] proposed an algorithm, which combined the
+reducer design [148], disc brake design [148], steady-state bi-  dominance principle, a clustering method, and a constraint
+source compressed-air pipeline optimization [149], car side      repair method to solve the economic emission scheduling
+impact problem [139], vibration platform design [150], robot     problem. Yu et al. [110] designed a new DE mutation strategy
+gripper optimization [1], software engineering [151], four-      for solving the CEED problem. In order to solve the problem
+bar truss design [152], spring design [153], servo turntable     of reactive power optimal dispatch in power system operation,
+system [154], antenna design optimization [155], turning pro-    Mohseni-Bonab et al. [162] used the  constrained method and
+cess parameters optimization [157], and reinforced concrete      a fuzzy satisfaction method to select the optimal compromise
+structures optimization [158].                                   solutions.
+
+   Fan et al. [58] combined ACDP with the MOEA/D                 C. Path Planning Problems
+framework to solve the I-beam optimization problem.
+Qian et al. [109] used SADE-DE to solve the welded                  The optimization of the path problem can be used in all
+beam design problem, speed reducer design problem, and           aspects of scientific and technological life, such as vehicle
+disc brake design problem. Peng et al. [29] also applied         routing problems with time windows [163], robot trajec-
+their algorithm to these problems. Xu et al. [33] used IMDE      tory planning [164], constrained multiobjective solid traveling
+to address four common engineering design problems, i.e.,        salesman problems [165], and unmanned aerial vehicle (UAV)
+the design of welding beam, disk brake design problem,           planning [166].
+speed reducer design problem, and the spring design problem.
+Sadollah et al. [125] solved six practical engineering problems     Vehicle routing problem with time windows is a widely
+by using the MOWCA algorithm. Yang et al. [66] used the          studied combinatorial optimization problem with a complex
+MODE-SaE algorithm to deal with the steady-state bi-source       decision space and strict constraints. Tian et al. [87] used the
+compressed-air pipeline optimization problem. Tian et al. [95]   CCMO framework to solve the vehicle routing problems with
+used the CMOEA-MS algorithm to solve the car side                time windows. In order to solve the trajectory optimization
+impact problem, vibration platform design problem, and water     problem of a motor-driven parallel robot, the constrained
+resource problem. Fan et al. [19] proposed the PPS frame-        multiobjective genetic algorithm (MOGA) was used by Chen
+work and achieved good results in solving the optimization       and Pham [164]. The constrained multiobjective entity travel-
+problem of robot gripper. Maminov and Posypkin [174] con-        ing salesman problems in rough, fuzzy rough, and random
+structed the Pareto boundary of the CMOP to solve the robot      rough environments is a particularly challenging problem,
+design optimization problem. Xiang et al. [21] applied the       Maity et al. [165] proposed a rough MOGA (R-MOGA)
+CIC-MOEA/D algorithm to the search-based software engi-          to solve this problem. UAV has been developing rapidly
+neering problem. Singh et al. [156] used CMOEA based on          in recent years. Ramirez-Atencia and Camacho [166] com-
+the surrogate model (ECMO) to solve antenna design prob-         bined a MOEA with a constraint satisfaction problem model
+lems. Zhang et al. [154] proposed a MOPSO and then applied       (NSGA-II-CSP) to solve the UAV task planning problem.
+it to solve the problem of multimodel switching controller
+based on the switched system model. The turning of compos-       D. Resource Optimization Problems
+ite materials needs to consider the feed speed, spindle speed,
+and other parameters, which can be regarded as a CMOP.              In order to make better use of resources or avoid the waste
+Gadagi and Adake [157] solved this problem based on the          of resources, the optimization of resources is important. At
+genetic algorithm and particle swarm optimization algorithm.     present, it mainly includes water resources optimization [167],
+For the optimal design problem of reinforced concrete struc-     water distribution network optimization [168], water resource
+tures, Afshari et al. [158] tested a variety of multiobjective   management problem [169], groundwater remediation
+optimization algorithms, compared their performance, and         design [170], wind farm layout optimization [171], ther-
+analyzed the effects of different algorithms on this problem.    mocline filling layer thermal energy storage [172], and test
+                                                                 resource allocation optimization [173].
+B. Scheduling Optimization Problems
+                                                                    Li et al. [88] proposed the C-TAEA algorithm and applied it
+   The problems of dispatching optimization have emerged         to optimize the water distribution network. Wang and Xu [27]
+unremittingly in recent years, including the urban bus schedul-  proposed a method, named C-AnEA, to solve the five-objective
+ing problem [3], CEED problem [159], the optimal reactive        water resource management problem. Ouyang et al. [170]
+power dispatch (ORPD) problem [162], and so on.                  proposed an adaptive CMOEA based on the multialgorithm
+                                                                 (AMALGAM), then employed it to solve the multiobjective
+   The urban bus scheduling problem is a common practi-          optimization design of groundwater remediation in nonaque-
+cal problem, Ma and Wang [25] employed ShiP to solve             ous liquid contaminated sites. Sorkhabi et al. [171] combined
+this problem and achieved good results. In the economic          NSGA-II with a penalty function method and constrained pro-
+emission scheduling problem of the power system, it is nec-      gramming (CHCP) to solve the constrained multiobjective
+essary to minimize the cost and emission while satisfying        wind farm layout optimization problems. Marti et al. [172]
+various constraints. Chen et al. [160] designed a constrained    used CMOEA to optimize the efficiency and the material cost
+multiobjective population extremal optimization algorithm        of the thermocline packed bed energy storage system with
+(CMOPEO-EED) to solve this kind of problems. El-Shorbagy         air as heat transfer fluid. Chen and Zhou [175] transformed
+                                                                 a complex CMOP into several simple subtasks, and then
+LIANG et al.: A SURVEY ON EVOLUTIONARY CONSTRAINED MULTIOBJECTIVE OPTIMIZATION  215
+
+applied this thought to the constrained multiobjective portfolio       can consume several minutes to many hours for con-
+problem. Su et al. [173] first proposed a multiobjective testing       ducting one evaluation of a candidate solution. Such
+resource allocation problem model with predetermined relia-            problems are computationally expensive. In order to
+bility (ECHTs), which allocated the limited test time to each          solve these problems, surrogates, the computationally
+module, and optimized the system reliability, test cost, and test      cheap models, are used to reduce the function eval-
+time effectively. Yu and Lu [98] suggested a corner point-based        uations. However, the existing surrogate model-based
+algorithm to cope with the problem of resource arrangement             algorithms have not been well expanded to the com-
+in emergency management that is built as a CMOP.                       putationally expensive CMOPs, which are often faced
+                                                                       in real-world applications [120]. Therefore, more effec-
+                    VII. FUTURE DIRECTIONS                             tive surrogate model-based methods should be developed
+                                                                       and combined with the existing CMOEAs to solve
+   Despite the numerous CMOPs that have been tackled by                computationally expensive CMOPs.
+evolutionary algorithms, this is a research area with several      4) Handling Large-Scale CMOPs: Despite the existing
+potential future research topics. Some of them are discussed           CMOEAs achieving promising performance in solving
+as follows.                                                            general CMOPs with small scale decision variables and
+                                                                       objectives, as the decision variables or objectives are
+   1) Handling Dynamical CMOPs: In various real-world sce-             scaled up, their effectiveness may dramatically deterio-
+       narios, the dynamic environment is involved in many             rate since the curse of dimensionality [190]. Large-scale
+       CMOPs. That is, the objectives and/or constraints of            CMOPs are also common, such as the multiobjective
+       CMOPs may change over time, such as the optimal con-            vehicle routing problem [191], time-varying ratio error
+       trol problems [176], the optimization of fluid catalytic        estimation problem [192], and configuring software
+       cracking operation [177], and the operational indices           optimization [193]. To address these problems, the
+       optimization of beneficiation process [178]. These prob-        mechanisms [194] customized for large-scale problems
+       lems are called dynamic CMOPs (DCMOPs), and they                can be embedded into the existing CMOEAs framework.
+       are more challenging due to the simultaneous presence       5) Handling Robust CMOPs: The objectives in many prac-
+       of objectives, constraints, and dynamism. For a DCMOP,          tical problems are easily affected by uncertain environ-
+       its CPF will be changed due to the dynamic environ-             mental factors [195], [196]. This type of problem is
+       ment. As a result, the CPFs in different environments           called the robust optimization problem [197], [198]. In
+       may differ in terms of position, shape, and geometry.           robust CMOPs, both constraints and objectives may be
+       The goal of solving DCMOPs is to rapidly obtain all             affected by external factors. When solving such prob-
+       CPFs in different environments. Hence, the main chal-           lems, it is necessary to obtain the solutions that can
+       lenge in solving such problems is that the optimization         quickly return to the initial position after being disturbed
+       algorithm needs to track changes in the environment             by influencing factors. This kind of robust solutions
+       and adaptively modify the search strategy when changes          is more acceptable than the Pareto-optimal solutions.
+       are detected. However, only a few efforts have been             However, the robust mechanism is more difficult to
+       focused on developing the evolutionary algorithms to            design due to the complicated uncertain environment.
+       solve DCMOPs [179], [180]. Therefore, more efficient            Therefore, it is expected to design reasonable robust-
+       algorithms are expected to be developed for DCMOPs.             ness mechanisms and combine them with constraint
+                                                                       processing technology to solve robust CMOPs.
+   2) Handling Multimodal CMOPs: Multimodal optimization           6) Problem-Type-Guided Evolution: As mentioned in
+       is a kind of problems, in which multiple Pareto-                Section IV, there are different types in the relationship
+       optimal solutions correspond to the same objective, and         between UPF and CPF. If the relationship can be learned
+       all Pareto-optimal solutions are desired [181], [182].          and then used to guide the subsequent evolution opera-
+       Multimodal CMOPs exist in many practical applications,          tors, the searchability will be enhanced efficiently. To be
+       such as the speed reducer model [183] and the pres-             specific, for different types of problems, UPF has dif-
+       sure vessel model [184]. Solving this type of problems          ferent guiding effects on CPF. For example, when the
+       requires a strong diversity to find multiple Pareto-            problem belongs to Type I or Type II, the information
+       optimal solutions. Despite many MOEAs being cus-                on the UPF can be directly used by the CPF. In this
+       tomized to solve multimodal multiobjective optimization         case, the UPF information can help the population find
+       problems [185], it is difficult to address multimodal           CPF through knowledge transfer [199]. Hence, develop-
+       CMOPs, since constraints complicate the decision space.         ing the strategy to obtain the type of problems will be
+       To efficiently solve multimodal CMOPs, some attempts            beneficial to the solving of CMOPs.
+       should be focused on the diversity preservation mecha-      7) Algorithm Recommendation System: According to the
+       nisms in the decision space to obtain multiple feasible         principle of no free lunch [200], no algorithm can
+       Pareto-optimal solutions simultaneously.                        achieve good results on all types of problems. It is
+                                                                       expected that each algorithm is allocated to its own
+   3) Handling Computationally Expensive CMOPs: Some                   suited problems. Hence, various CMOEAs can be com-
+       practical optimization problems require large computing         bined with machine learning [201], deep learning [202],
+       resources and an amount of time for function evalua-
+       tion [186], [187], such as computational electromagnet-
+       ics [188] and computational fluid dynamics [189]. They
+216  IEEE TRANSACTIONS ON EVOLUTIONARY COMPUTATION, VOL. 27, NO. 2, APRIL 2023
+
+       and other techniques to extract the characteristics of                      [9] S. Dutta and K. N. Das, "A survey on Pareto-based EAs to solve
+       different problems, and then recommend the matched                               multi-objective optimization problems," in Soft Computing for Problem
+       algorithms according to the characteristics of the                               Solving. Singapore: Springer, 2019, pp. 807-820.
+       CMOPs [203].
+   8) Landscape-Based Evolution Operators: Different fitness                      [10] A. Trivedi, D. Srinivasan, K. Sanyal, and A. Ghosh, "A survey of
+       landscapes and constraint landscapes [204], [205] exist                          multiobjective evolutionary algorithms based on decomposition," IEEE
+       in different problems. Landscapes have different char-                           Trans. Evol. Comput., vol. 21, no. 3, pp. 440-462, Jun. 2017.
+       acteristics and can reflect the internal properties of
+       problems, so the required evolution operators are also                     [11] M. Behtash and M. J. Alexander-Ramos, "A decomposition-based
+       different. Detecting the fitness landscape of a problem,                         optimization algorithm for combined plant and control design of
+       the algorithm applied to it can be selected according                            interconnected dynamic systems," J. Mech. Des., vol. 142, no. 6, 2020,
+       to the landscape, so the landscape information can be                            Art. no. 061703.
+       considered and used to guide the design of evolution
+       operators in CMOEAs [206].                                                 [12] S. S. Meghwani and M. Thakur, "Adaptively weighted decomposition
+                                                                                        based multi-objective evolutionary algorithm," Appl. Intell., vol. 51,
+                         VIII. CONCLUSION                                               no. 6, pp. 3801-3823, 2021.
+
+   This article reviewed the research of evolutionary con-                        [13] Y. Tian, R. Cheng, X. Zhang, F. Cheng, and Y. Jin, "An indicator-based
+strained multiobjective optimization, covering the basic                                multiobjective evolutionary algorithm with reference point adaptation
+concepts, existing algorithms, benchmark test functions, appli-                         for better versatility," IEEE Trans. Evol. Comput., vol. 22, no. 4,
+cations, and future research directions. First, the relevant                            pp. 609-622, Aug. 2018.
+theoretical background and some concepts have been intro-
+duced. Second, this article has reviewed the existing CMOEAs                      [14] Y. Sun, G. G. Yen, and Z. Yi, "IGD indicator-based evolutionary algo-
+and divided them into seven categories according to their                               rithm for many-objective optimization problems," IEEE Trans. Evol.
+CHTs and internal mechanisms. Third, some existing test                                 Comput., vol. 23, no. 2, pp. 173-187, Apr. 2019.
+function suites have been introduced and classified in detail,
+and the advantages and disadvantages of each test suite                           [15] J. G. Falc�n-Cardona and C. A. Coello Coello, "Indicator-based multi-
+are summarized. Fourth, some popular applications of evo-                               objective evolutionary algorithms: A comprehensive survey," ACM
+lutionary constrained multiobjective optimization have been                             Comput. Surv., vol. 53, no. 2, pp. 1-35, 2020.
+introduced and summarized. Fifth, the performance of dif-
+ferent CHTs and CMOEAs on different types of problems                             [16] J. Yuan, H.-L. Liu, Y.-S. Ong, and Z. He, "Indicator-based evolu-
+was investigated. Finally, some future research directions have                         tionary algorithm for solving constrained multi-objective optimization
+been discussed. It is hoped that the work presented in this                             problems," IEEE Trans. Evol. Comput., early access, Jun. 14, 2021,
+article will help researchers to become familiar with evolu-                            doi: 10.1109/TEVC.2021.3089155.
+tionary constrained multiobjective optimization, and promote
+the future development of this research direction.                                [17] Y. Zhou, Y. Xiang, and X. He, "Constrained multiobjective
+                                                                                        optimization: Test problem construction and performance evaluations,"
+                             REFERENCES                                                 IEEE Trans. Evol. Comput., vol. 25, no. 1, pp. 172-186, Feb. 2021,
+                                                                                        doi: 10.1109/TEVC.2020.3011829.
+   [1] R. Saravanan, S. Ramabalan, N. G. R. Ebenezer, and C. Dharmaraja,
+        "Evolutionary multi criteria design optimization of robot grippers,"      [18] Z. Ma and Y. Wang, "Evolutionary constrained multiobjective
+        Appl. Soft Comput., vol. 9, no. 1, pp. 159-172, 2009.                           optimization: Test suite construction and performance comparisons,"
+                                                                                        IEEE Trans. Evol. Comput., vol. 23, no. 6, pp. 972-986, Dec. 2019.
+   [2] M. Basu, "Economic environmental dispatch using multi-objective dif-
+        ferential evolution," Appl. Soft Comput., vol. 11, no. 2, pp. 2845-2853,  [19] Z. Fan et al.,
+        2011.                                                                           "Push and pull search for solving constrained multi-objective
+                                                                                        optimization problems," Swarm Evol. Comput., vol. 44, pp. 665-679,
+   [3] X. Zuo, C. Chen, W. Tan, and M. Zhou, "Vehicle scheduling of an                  Feb. 2019.
+        urban bus line via an improved multiobjective genetic algorithm," IEEE
+        Trans. Intell. Transp. Syst., vol. 16, no. 2, pp. 1030-1041, Apr. 2015.   [20] M. Ming, A. Trivedi, R. Wang, D. Srinivasan, and T. Zhang, "A dual-
+                                                                                        population-based evolutionary algorithm for constrained multiobjective
+   [4] Y. Cui, Z. Geng, Q. Zhu, and Y. Han, "Multi-objective optimization               optimization," IEEE Trans. Evol. Comput., vol. 25, no. 4, pp. 739-753,
+        methods and application in energy saving," Energy, vol. 125,                    Aug. 2021, doi: 10.1109/TEVC.2021.3066301.
+        pp. 681-704, Apr. 2017.
+                                                                                  [21] Y. Xiang, X. Yang, H. Huang, and J. Wang, "Balancing con-
+   [5] K. Shang, H. Ishibuchi, L. He, and L. M. Pang, "A survey on the hyper-           straints and objectives by considering problem types in constrained
+        volume indicator in evolutionary multiobjective optimization," IEEE             multiobjective optimization," IEEE Trans. Cybern., early access, Jul. 8,
+        Trans. Evol. Comput., vol. 25, no. 1, pp. 1-20, Feb. 2021.                      2021, doi: 10.1109/TCYB.2021.3089633.
+
+   [6] X. Ma, Y. Yu, X. Li, Y. Qi, and Z. Zhu, "A survey of weight                [22] Z. Fan et al., "An improved epsilon constraint-handling method in
+        vector adjustment methods for decomposition-based multiobjective                MOEA/D for CMOPs with large infeasible regions," Soft Comput.,
+        evolutionary algorithms," IEEE Trans. Evol. Comput., vol. 24, no. 4,            vol. 23, no. 23, pp. 12491-12510, 2019.
+        pp. 634-649, Aug. 2020.
+                                                                                  [23] Z. Fan et al., "Difficulty adjustable and scalable constrained
+   [7] A. Asrari, S. Lotfifard, and M. S. Payam, "Pareto dominance-based                multiobjective test problem toolkit," Evol. Comput., vol. 28, no. 3,
+        multiobjective optimization method for distribution network recon-              pp. 339-378, Sep. 2020.
+        figuration," IEEE Trans. Smart Grid, vol. 7, no. 3, pp. 1401-1410,
+        May 2016.                                                                 [24] Z. Xia, Y. Liu, J. Lu, J. Cao, and L. Rutkowski, "Penalty
+                                                                                        method for constrained distributed quaternion-variable optimization,"
+   [8] H. Zhang, D. Yue, X. Xie, S. Hu, and S. Weng, "Pareto-dominance                  IEEE Trans. Cybern., vol. 51, no. 11, pp. 5631-5636, Nov. 2021,
+        based adaptive multi-objective optimization for hydrothermal coordi-            doi: 10.1109/TCYB.2020.3031687.
+        nated scheduling with environmental emission," Appl. Soft Comput.,
+        vol. 69, pp. 270-287, Aug. 2018.                                          [25] Z. Ma and Y. Wang, "Shift-based penalty for evolutionary constrained
+                                                                                        multiobjective optimization and its application," IEEE Trans. Cybern.,
+                                                                                        early access, May 25, 2021, doi: 10.1109/TCYB.2021.3069814.
+
+                                                                                  [26] B.-C. Wang, H.-X. Li, J.-P. Li, and Y. Wang, "Composite differential
+                                                                                        evolution for constrained evolutionary optimization," IEEE Trans. Syst.,
+                                                                                        Man, Cybern., Syst., vol. 49, no. 7, pp. 1482-1495, Jul. 2019.
+
+                                                                                  [27] C. Wang and R. Xu, "An angle based evolutionary algorithm with
+                                                                                        infeasibility information for constrained many-objective optimization,"
+                                                                                        Appl. Soft Comput., vol. 86, Jan. 2020, Art. no. 105911.
+
+                                                                                  [28] C. Segura, C. A. Coello Coello, G. Miranda, and C. Le�n, "Using
+                                                                                        multi-objective evolutionary algorithms for single-objective constrained
+                                                                                        and unconstrained optimization," Ann. Oper. Res., vol. 240, no. 1,
+                                                                                        pp. 217-250, 2016.
+
+                                                                                  [29] C. Peng, H.-L. Liu, and F. Gu, "An evolutionary algorithm with
+                                                                                        directed weights for constrained multi-objective optimization," Appl.
+                                                                                        Soft Comput., vol. 60, pp. 613-622, Nov. 2017.
+
+                                                                                  [30] H. Zhang, K. Tao, L. Ma, and Y. Yong, "Handling constrained multi-
+                                                                                        objective optimization with objective space mapping to decision space
+                                                                                        based on extreme learning machine," in Proc. IEEE Congr. Evol.
+                                                                                        Comput. (CEC), Glasgow, U.K., 2020, pp. 1-7.
+LIANG et al.: A SURVEY ON EVOLUTIONARY CONSTRAINED MULTIOBJECTIVE OPTIMIZATION    217
+
+[31] V. Kelner, F. Capitanescu, O. L�onard, and L. Wehenkel, "A hybrid            [52] T. P. Runarsson and X. Yao, "Stochastic ranking for constrained evo-
+      optimization technique coupling an evolutionary and a local search                lutionary optimization," IEEE Trans. Evol. Comput., vol. 4, no. 3,
+      algorithm," J. Comput. Appl. Math., vol. 215, no. 2, pp. 448-456, 2008.           pp. 284-294, Sep. 2000.
+
+[32] A. Lara, L. Uribe, S. Alvarado, V. A. Sosa, H. Wang, and O. Sch�tze,         [53] F. Jimenez, A. F. Gomez-Skarmeta, G. Sanchez, and K. Deb, "An evo-
+      "On the choice of neighborhood sampling to build effective search                 lutionary algorithm for constrained multi-objective optimization," in
+      operators for constrained mops," Memetic Comput., vol. 11, no. 2,                 Proc. Congr. Evol. Comput. (CEC), vol. 2. Honolulu, HI, USA, 2002,
+      pp. 155-173, 2019.                                                                pp. 1133-1138.
+
+[33] B. Xu, W. Duan, H. Zhang, and Z. Li, "Differential evolution with            [54] A. Saha and T. Ray, "Equality constrained multi-objective
+      infeasible-guiding mutation operators for constrained multi-objective             optimization," in Proc. IEEE Congr. Evol. Comput., Brisbane,
+      optimization," Appl. Intell., vol. 50, no. 12, pp. 4459-4481, 2020.               QLD, Australia, 2012, pp. 1-7.
+
+[34] S. Ramesh, S. Kannan, and S. Baskar, "An improved generalized differ-        [55] J. Wei and Y. Wang, "An infeasible elitist based particle swarm
+      ential evolution algorithm for multi-objective reactive power dispatch,"          optimization for constrained multiobjective optimization and its con-
+      Eng. Optim., vol. 44, no. 4, pp. 391-405, 2012.                                   vergence," Int. J. Pattern Recognit. Artif. Intell., vol. 24, no. 3,
+                                                                                        pp. 381-400, 2010.
+[35] O. A. Jadaan, C. R. Rao, and L. Rajamani, "Solving constrained multi-
+      objective optimization problems using non-dominated ranked genetic          [56] H. Jain and K. Deb, "An evolutionary many-objective optimization
+      algorithm," in Proc. 3rd Asia Int. Conf. Model. Simul., Bundang,                  algorithm using reference-point based nondominated sorting approach,
+      Indonesia, 2009, pp. 113-118.                                                     part II: Handling constraints and extending to an adaptive approach,"
+                                                                                        IEEE Trans. Evol. Comput., vol. 18, no. 4, pp. 602-622, Aug. 2014.
+[36] H. Zhang, Y. Zhu, and X. Yan, "Multi-hive artificial bee colony algo-
+      rithm for constrained multi-objective optimization," in Proc. IEEE          [57] Z. Fan, W. Li, X. Cai, K. Hu, H. Lin, and H. Li, "Angle-based
+      Congr. Evol. Comput., Brisbane, QLD, Australia, 2012, pp. 1-8.                    constrained dominance principle in MOEA/D for constrained multi-
+                                                                                        objective optimization problems," in Proc. IEEE Congr. Evol. Comput.
+[37] Y. G. Woldesenbet, G. G. Yen, and B. G. Tessema, "Constraint han-                  (CEC), Vancouver, BC, Canada, 2016, pp. 460-467.
+      dling in multiobjective evolutionary optimization," IEEE Trans. Evol.
+      Comput., vol. 13, no. 3, pp. 514-525, Jun. 2009.                            [58] Z. Fan, Y. Fang, W. Li, X. Cai, C. Wei, and E. Goodman, "MOEA/D
+                                                                                        with angle-based constrained dominance principle for constrained
+[38] M. A. Jan and Q. Zhang, "MOEA/D for constrained multiobjective                     multi-objective optimization problems," Appl. Soft Comput., vol. 74,
+      optimization: Some preliminary experimental results," in Proc. U.K.               pp. 621-633, Jan. 2019.
+      Workshop Comput. Intell. (UKCI), Colchester, U.K., 2010, pp. 1-6.
+                                                                                  [59] W. Ning, B. Guo, Y. Yan, X. Wu, J. Wu, and D. Zhao, "Constrained
+[39] M. A. Jan, N. Tairan, and R. A. Khanum, "Threshold based                           multi-objective optimization using constrained non-dominated sort-
+      dynamic and adaptive penalty functions for constrained multiobjective             ing combined with an improved hybrid multi-objective evolutionary
+      optimization," in Proc. 1st Int. Conf. Artif. Intell. Model. Simul.,              algorithm," Eng. Optim., vol. 49, no. 10, pp. 1645-1664, 2017.
+      Kota Kinabalu, Malaysia, 2013, pp. 49-54.
+                                                                                  [60] D. K. Saxena, T. Ray, K. Deb, and A. Tiwari, "Constrained many-
+[40] L. Jiao, J. Luo, R. Shang, and F. Liu, "A modified objective                       objective optimization: A way forward," in Proc. IEEE Congr. Evol.
+      function method with feasible-guiding strategy to solve constrained               Comput., Trondheim, Norway, 2009, pp. 545-552.
+      multi-objective optimization problems," Appl. Soft Comput., vol. 14,
+      pp. 363-380, Jan. 2014.                                                     [61] S. Zapotecas-Mart�nez, A. A. Montano, and C. A. Coello Coello,
+                                                                                        "Constrained multi-objective aerodynamic shape optimization via
+[41] H. M. Maldonado and S. Zapotecas-Mart�nez, "A dynamic penalty                      swarm intelligence," in Proc. Annu. Conf. Genet. Evol. Comput., 2014,
+      function within MOEA/D for constrained multi-objective optimization               pp. 81-88.
+      problems," in Proc. IEEE Congr. Evol. Comput. (CEC), Krak�w,
+      Poland, 2021, pp. 1470-1477.                                                [62] Z. Yang, X. Cai, and Z. Fan, "Epsilon constrained method for
+                                                                                        constrained multiobjective optimization problems: some preliminary
+[42] F. Vaz, Y. Lavinas, C. Aranha, and M. Ladeira, "Exploring constraint               results," in Proc. Companion Publ. Annu. Conf. Genet. Evol. Comput.,
+      handling techniques in real-world problems on MOEA/D with limited                 2014, pp. 1181-1186.
+      budget of evaluations," in Proc. Int. Conf. Evol. Multi-Criterion Optim.,
+      2021, pp. 555-566.                                                          [63] R. L. Becerra, C. A. Coello Coello, A. G. Hern�ndez-D�az,
+                                                                                        R. Caballero, and J. Molina, "Alternative techniques to solve hard
+[43] Z. Fan et al., "A learning guided parameter setting for constrained                multi-objective optimization problems," in Proc. 9th Annu. Conf. Genet.
+      multi-objective optimization," in Proc. 1st Int. Conf. Ind. Artif. Intell.        Evol. Comput., 2007, pp. 754-757.
+      (IAI), Shenyang, China, 2019, pp. 1-6.
+                                                                                  [64] S. Zapotecas-Mart�nez and C. A. Coello Coello, "A multi-objective
+[44] Z. Ma, Y. Wang, and W. Song, "A new fitness function with two rank-                evolutionary algorithm based on decomposition for constrained multi-
+      ings for evolutionary constrained multiobjective optimization," IEEE              objective optimization," in Proc. IEEE Congr. Evol. Comput. (CEC),
+      Trans. Syst., Man, Cybern., Syst., vol. 51, no. 8, pp. 5005-5016,                 Beijing, China, 2014, pp. 429-436.
+      Aug. 2021.
+                                                                                  [65] Z. Fan et al., "An improved epsilon constraint handling method
+[45] K. Deb, A. Pratap, S. Agarwal, and T. Meyarivan, "A fast and eli-                  embedded in MOEA/D for constrained multi-objective optimization
+      tist multiobjective genetic algorithm: NSGA-II," IEEE Trans. Evol.                problems," in Proc. IEEE Symp. Series Comput. Intell. (SSCI), Athens,
+      Comput., vol. 6, no. 2, pp. 182-197, Apr. 2002.                                   Greece, 2016, pp. 1-8.
+
+[46] K. Yu, J. Liang, B. Qu, Y. Luo, and C. Yue, "Dynamic selection               [66] Y. Yang, J. Liu, S. Tan, and H. Wang, "A multi-objective differen-
+      preference-assisted constrained multiobjective differential evolution,"           tial evolutionary algorithm for constrained multi-objective optimization
+      IEEE Trans. Syst., Man, Cybern., Syst., early access, Mar. 9, 2021,               problems with low feasible ratio," Appl. Soft Comput., vol. 80,
+      doi: 10.1109/TSMC.2021.3061698.                                                   pp. 42-56, Jul. 2019.
+
+[47] W. Gong and Z. Cai, "Differential evolution with ranking-based muta-         [67] S. Zapotecas-Mart�nez and A. Ponsich, "Constraint handling within
+      tion operators," IEEE Trans. Cybern., vol. 43, no. 6, pp. 2066-2081,              MOEA/D through an additional scalarizing function," in Proc. Genet.
+      Dec. 2013.                                                                        Evol. Comput. Conf., 2020, pp. 595-602.
+
+[48] H. Ma, "An analysis of the equilibrium of migration models                   [68] Y. Yang, J. Liu, and S. Tan, "A constrained multi-objective evolutionary
+      for biogeography-based optimization," Inf. Sci., vol. 180, no. 18,                algorithm based on decomposition and dynamic constraint-handling
+      pp. 3444-3464, 2010.                                                              mechanism," Appl. Soft Comput., vol. 89, Apr. 2020, Art. no. 106104.
+
+[49] J. L. L. Garc�a, R. Monroy, V. A. S. Hern�ndez, and                          [69] Z. Wang, J. Wei, and Y. Zhang, "A multi-constraint handling technique-
+      C. A. Coello Coello, "COARSE-EMOA: An indicator-based                             based niching evolutionary algorithm for constrained multi-objective
+      evolutionary algorithm for solving equality constrained multi-objective           optimization problems," in Proc. IEEE Congr. Evol. Comput. (CEC),
+      optimization problems," Swarm Evol. Comput., vol. 67, Dec. 2021,                  Glasgow, U.K., 2020, pp. 1-6.
+      Art. no. 100983.
+                                                                                  [70] Q. Zhu, Q. Zhang, and Q. Lin, "A constrained multiobjective evolu-
+[50] T. Takahama and S. Sakai, "Constrained optimization by the con-                    tionary algorithm with detect-and-escape strategy," IEEE Trans. Evol.
+      strained differential evolution with gradient-based mutation and feasible         Comput., vol. 24, no. 5, pp. 938-947, Oct. 2020.
+      elites," in Proc. IEEE Int. Conf. Evol. Comput., Vancouver, BC,
+      Canada, 2006, pp. 1-8.                                                      [71] H. Geng, M. Zhang, L. Huang, and X. Wang, "Infeasible elitists and
+                                                                                        stochastic ranking selection in constrained evolutionary multi-objective
+[51] K. Qiao, J. Liang, K. Yu, M. Yuan, B. Qu, and C. Yue, "Self-adaptive               optimization," in Proc. Asia-Pacific Conf. Simul. Evol. Learn., 2006,
+      resources allocation-based differential evolution for constrained evo-            pp. 336-344.
+      lutionary optimization," Knowl. Based Syst., vol. 235, Jan. 2022,
+      Art. no. 107653.                                                            [72] M. A. Jan and R. A. Khanum, "A study of two penalty-parameterless
+                                                                                        constraint handling techniques in the framework of MOEA/D," Appl.
+                                                                                        Soft Comput., vol. 13, no. 1, pp. 128-148, 2013.
+218  IEEE TRANSACTIONS ON EVOLUTIONARY COMPUTATION, VOL. 27, NO. 2, APRIL 2023
+
+[73] W.-Q. Ying, W.-P. He, Y.-X. Huang, D.-T. Li, and Y. Wu, "An adaptive              [94]  C. Garcia-Garcia, M.-G. Mart�nez-Pe�aloza, and A. Morales-Reyes,
+      stochastic ranking mechanism in MOEA/D for constrained multi-                    [95]  "CMOGA/D: A novel cellular ga based on decomposition to tackle
+      objective optimization," in Proc. Int. Conf. Inf. Syst. Artif. Intell. (ISAI),   [96]  constrained multiobjetive problems," in Proc. Genet. Evol. Comput.
+      Hong Kong, 2016, pp. 514-518.                                                    [97]  Conf. Compan., 2020, pp. 1721-1729.
+                                                                                       [98]
+[74] Z.-Z. Liu, Y. Wang, and B.-C. Wang, "Indicator-based con-                         [99]  Y. Tian, Y. Zhang, Y. Su, X. Zhang, K. C. Tan, and Y. Jin, "Balancing
+      strained multiobjective evolutionary algorithms," IEEE Trans. Syst.,            [100]  objective optimization and constraint satisfaction in constrained evo-
+      Man, Cybern., Syst., vol. 51, no. 9, pp. 5414-5426, Sep. 2021,                  [101]  lutionary multiobjective optimization," IEEE Trans. Cybern., early
+      doi: 10.1109/TSMC.2019.2954491.                                                 [102]  access, Mar. 17, 2021, doi: 10.1109/TCYB.2020.3021138.
+                                                                                      [103]
+[75] Q. Gu, Q. Wang, N. N. Xiong, S. Jiang, and L. Chen, "Surrogate-                  [104]  Z.-Z. Liu and Y. Wang, "Handling constrained multiobjective
+      assisted evolutionary algorithm for expensive constrained multi-                [105]  optimization problems with constraints in both the decision and objec-
+      objective discrete optimization problems," Complex Intell. Syst.,               [106]  tive spaces," IEEE Trans. Evol. Comput., vol. 23, no. 5, pp. 870-884,
+      vol. 302, pp. 1-20, Jan. 2021.                                                  [107]  Oct. 2019.
+                                                                                      [108]
+[76] D. A. G. Vieira, R. L. S. Adriano, J. A. Vasconcelos, and                        [109]  K. Yu, J. Liang, B. Qu, and C. Yue, "Purpose-directed two-phase
+      L. Krahenbuhl, "Treating constraints as objectives in multiobjective            [110]  multiobjective differential evolution for constrained multiobjective
+      optimization problems using niched Pareto genetic algorithm," IEEE              [111]  optimization," Swarm Evol. Comput., vol. 60, Feb. 2021,
+      Trans. Magn., vol. 40, no. 2, pp. 1188-1191, Mar. 2004.                         [112]  Art. no. 100799.
+                                                                                      [113]
+[77] T. Ray, H. K. Singh, A. Isaacs, and W. Smith, "Infeasibility driven              [114]  X. Yu and Y. Lu, "A corner point-based algorithm to solve constrained
+      evolutionary algorithm for constrained optimization," in Constraint-            [115]  multi-objective optimization problems," Appl. Intell., vol. 48, no. 9,
+      Handling in Evolutionary Optimization. Heidelberg, Germany:                            pp. 3019-3037, 2018.
+      Springer, 2009, pp. 145-165.
+                                                                                             F. Ming, W. Gong, H. Zhen, S. Li, L. Wang, and Z. Liao,
+[78] A. Isaacs, T. Ray, and W. Smith, "Blessings of maintaining infeasi-                     "A simple two-stage evolutionary algorithm for constrained multi-
+      ble solutions for constrained multi-objective optimization problems,"                  objective optimization," Knowl. Based Syst., vol. 228, Sep. 2021,
+      in Proc. IEEE Congr. Evol. Comput. World Congr. Comput. Intell.,                       Art. no. 107263.
+      Hong Kong, 2008, pp. 2780-2787.
+                                                                                             F. Caraffini, F. Neri, G. Iacca, and A. Mol, "Parallel memetic struc-
+[79] Q. Long, "A constraint handling technique for constrained multi-                        tures," Inf. Sci., vol. 227, pp. 60-82, Apr. 2013.
+      objective genetic algorithm," Swarm Evol. Comput., vol. 15, pp. 66-79,
+      Apr. 2014.                                                                             F. Caraffini, F. Neri, and L. Picinali, "An analysis on separability for
+                                                                                             memetic computing automatic design," Inf. Sci., vol. 265, pp. 1-22,
+[80] Y. Zhou, M. Zhu, J. Wang, Z. Zhang, Y. Xiang, and J. Zhang, "Tri-goal                   May 2014.
+      evolution framework for constrained many-objective optimization,"
+      IEEE Trans. Syst., Man, Cybern., Syst., vol. 50, no. 8, pp. 3086-3099,                 S. Datta, A. Ghosh, K. Sanyal, and S. Das, "A radial bound-
+      Aug. 2020.                                                                             ary intersection aided interior point method for multi-objective
+                                                                                             optimization," Inf. Sci., vol. 377, pp. 1-16, Jan. 2017.
+[81] D. Chafekar, J. Xuan, and K. Rasheed, "Constrained multi-objective
+      optimization using steady state genetic algorithms," in Proc. Genet.                   V. Morovati and L. Pourkarimi, "Extension of zoutendijk method
+      Evol. Comput. Conf., 2003, pp. 813-824.                                                for solving constrained multiobjective optimization problems," Eur. J.
+                                                                                             Oper. Res., vol. 273, no. 1, pp. 44-57, 2019.
+[82] J. Wang, G. Liang, and J. Zhang, "Cooperative differential evolution
+      framework for constrained multiobjective optimization," IEEE Trans.                    O. Sch�tze, S. Alvarado, C. Segura, and R. Landa, "Gradient subspace
+      Cybern., vol. 49, no. 6, pp. 2060-2072, Jun. 2019.                                     approximation: A direct search method for memetic computing," Soft
+                                                                                             Comput., vol. 21, no. 21, pp. 6331-6350, 2017.
+[83] H.-L. Liu and D. Wang, "A constrained multiobjective evolutionary
+      algorithm based decomposition and temporary register," in Proc. IEEE                   L. Uribe, A. Lara, and O. Sch�tze, "On the efficient computation and
+      Congr. Evol. Comput., Cancun, Mexico, 2013, pp. 3058-3063.                             use of multi-objective descent directions within constrained MOEAs,"
+                                                                                             Swarm Evol. Comput., vol. 52, Feb. 2020, Art. no. 100617.
+[84] H.-L. Liu, C. Peng, F. Gu, and J. Wen, "A constrained multi-objective
+      evolutionary algorithm based on boundary search and archive," Int. J.                  O. Cuate, A. Ponsich, L. Uribe, S. Zapotecas-Mart�nez, A. Lara, and
+      Pattern Recognit. Artif. Intell., vol. 30, no. 1, 2016, Art. no. 1659002.              O. Sch�tze, "A new hybrid evolutionary algorithm for the treatment of
+                                                                                             equality constrained mops," Mathematics, vol. 8, no. 1, p. 7, 2020.
+[85] Y. Yang, J. Liu, and S. Tan, "A partition-based constrained multi-
+      objective evolutionary algorithm," Swarm Evol. Comput., vol. 66,                       V. A. S. Hern�ndez, O. Sch�tze, H. Wang, A. Deutz, and
+      Oct. 2021, Art. no. 100940. doi: 10.1016/j.swevo.2021.100940.                          M. Emmerich, "The set-based hypervolume newton method for
+                                                                                             bi-objective optimization," IEEE Trans. Cybern., vol. 50, no. 5,
+[86] B. Liu, H. Ma, X. Zhang, and Y. Zhou, "A memetic co-evolutionary                        pp. 2186-2196, May 2020.
+      differential evolution algorithm for constrained optimization," in Proc.
+      IEEE Congr. Evol. Comput., Singapore, 2007, pp. 2996-3002.                             O. Sch�tze, L. Uribe, and A. Lara, "The gradient subspace approxi-
+                                                                                             mation and its application to bi-objective optimization problems," in
+[87] Y. Tian, T. Zhang, J. Xiao, X. Zhang, and Y. Jin, "A coevolution-                       Proc. Workshop Dyn. Optim. Comput. Honor 60th Birthday Michael
+      ary framework for constrained multiobjective optimization problems,"                   Dellnitz, 2020, pp. 355-390.
+      IEEE Trans. Evol. Comput., vol. 25, no. 1, pp. 102-116, Feb. 2021,
+      doi: 10.1109/TEVC.2020.3004012.                                                        F. Qian, B. Xu, R. Qi, and H. Tianfield, "Self-adaptive differential
+                                                                                             evolution algorithm with -constrained-domination principle for con-
+[88] K. Li, R. Chen, G. Fu, and X. Yao, "Two-archive evolutionary algo-                      strained multi-objective optimization," Soft Comput., vol. 16, no. 8,
+      rithm for constrained multiobjective optimization," IEEE Trans. Evol.                  pp. 1353-1372, 2012.
+      Comput., vol. 23, no. 2, pp. 303-315, Apr. 2019.
+                                                                                             X. Yu, X. Yu, Y. Lu, G. G. Yen, and M. Cai, "Differential evolution
+[89] J. Wang, Y. Li, Q. Zhang, Z. Zhang, and S. Gao, "Cooperative                            mutation operators for constrained multi-objective optimization," Appl.
+      multiobjective evolutionary algorithm with propulsive pop-                             Soft Comput., vol. 67, pp. 452-466, Jun. 2018.
+      ulation for constrained multiobjective optimization," IEEE
+      Trans. Syst., Man, Cybern., Syst., early access, Apr. 9, 2021,                         B. Qu and P. N. Suganthan, "Constrained multi-objective optimization
+      doi: 10.1109/TSMC.2021.3069986.                                                        algorithm with diversity enhanced differential evolution," in Proc. IEEE
+                                                                                             Congr. Evol. Comput., 2010, pp. 1-5.
+[90] Z.-Z. Liu, B.-C. Wang, and K. Tang, "Handling constrained
+      multiobjective optimization problems via bidirectional coevo-                          Y.-N. Wang, L.-H. Wu, and X.-F. Yuan, "Multi-objective self-adaptive
+      lution," IEEE Trans. Cybern., early access, Apr. 6, 2021,                              differential evolution with elitist archive and crowding entropy-based
+      doi: 10.1109/TCYB.2021.3056176.                                                        diversity measure," Soft Comput., vol. 14, no. 3, pp. 193-209, 2010.
+
+[91] L. V. Santana-Quintero, A. G. Hern�ndez-D�az, J. Molina,                                Y. Liu, X. Li, and Q. Hao, "A new constrained multi-objective
+      C. A. Coello Coello, and R. Caballero, "DEMORS: A hybrid                               optimization problems algorithm based on group-sorting," in Proc.
+      multi-objective optimization algorithm using differential evolution                    Genet. Evol. Comput. Conf. Compan., 2019, pp. 221-222.
+      and rough set theory for constrained problems," Comput. Oper. Res.,
+      vol. 37, no. 3, pp. 470-480, 2010.                                                     C. He, R. Cheng, Y. Tian, X. Zhang, K. C. Tan, and Y. Jin,
+                                                                                             "Paired offspring generation for constrained large-scale multiobjective
+[92] Z. Fan et al., "Push and pull search embedded in an M2M framework                       optimization," IEEE Trans. Evol. Comput., vol. 25, no. 3, pp. 448-462,
+      for solving constrained multi-objective optimization problems," Swarm                  Jun. 2021, doi: 10.1109/TEVC.2020.3047835.
+      Evol. Comput., vol. 54, May 2020, Art. no. 100651.
+                                                                                             M. Miyakawa, K. Takadama, and H. Sato, "Directed mating using
+[93] H. Wang, T. Cai, K. Li, and W. Pedrycz, "Constraint handling                            inverted PBI function for constrained multi-objective optimization," in
+      technique based on lebesgue measure for constrained multiobjective                     Proc. IEEE Congr. Evol. Comput. (CEC), 2015, pp. 2929-2936.
+      particle swarm optimization algorithm," Knowl. Based Syst., vol. 221,
+      Sep. 2021, Art. no. 107131, doi: 10.1016/j.knosys.2021.107131.
+LIANG et al.: A SURVEY ON EVOLUTIONARY CONSTRAINED MULTIOBJECTIVE OPTIMIZATION             219
+
+[116]  M. Miyakawa, K. Takadama, and H. Sato, "Controlling selection areas          [139]  H. Jain and K. Deb, "An evolutionary many-objective optimization
+       of useful infeasible solutions for directed mating in evolutionary con-      [140]  algorithm using reference-point based nondominated sorting approach,
+[117]  strained multi-objective optimization," Ann. Math. Artif. Intell., vol. 76,  [141]  part II: Handling constraints and extending to an adaptive approach,"
+[118]  nos. 1-2, pp. 25-46, 2016.                                                   [142]  IEEE Trans. Evol. Comput., vol. 18, no. 4, pp. 602-622, Aug. 2014.
+[119]  H. K. Singh, T. Ray, and W. Smith, "C-PSA: Constrained Pareto simu-          [143]  Z. Fan, W. Li, X. Cai, H. Li, K. Hu, and H. Yin, "Difficulty controllable
+[120]  lated annealing for constrained multi-objective optimization," Inf. Sci.,    [144]  and scalable constrained multi-objective test problems," in Proc. Int.
+[121]  vol. 180, no. 13, pp. 2499-2513, 2010.                                       [145]  Conf. Ind. Informat. Comput. Technol. Intell. Technol. Ind. Inf. Integr.,
+[122]  H. K. Singh, T. Ray, and W. Smith, "Surrogate assisted simulated             [146]  2015, pp. 76-83.
+[123]  annealing (SASA) for constrained multi-objective optimization," in           [147]  C. Picard and J. Schiffmann, "Realistic constrained multiobjective
+[124]  Proc. IEEE Congr. Evol. Comput., 2010, pp. 1-8.                              [148]  optimization benchmark problems from design," IEEE Trans. Evol.
+[125]  P. Singh, I. Couckuyt, F. Ferranti, and T. Dhaene, "A constrained            [149]  Comput., vol. 25, no. 2, pp. 234-246, Apr. 2021.
+[126]  multi-objective surrogate-based optimization algorithm," in Proc. IEEE       [150]  O. Cuate, L. Uribe, A. Lara, and O. Sch�tze, "A benchmark for equal-
+[127]  Congr. Evol. Comput. (CEC), 2014, pp. 3080-3087.                             [151]  ity constrained multi-objective optimization," Swarm Evol. Comput.,
+       R. Datta and R. G. Regis, "A surrogate-assisted evolution strategy for       [152]  vol. 52, Feb. 2020, Art. no. 100619.
+[128]  constrained multi-objective optimization," Expert Syst. Appl., vol. 57,      [153]  K. Deb, L. Thiele, M. Laumanns, and E. Zitzler, "Scalable
+[129]  pp. 270-284, Sep. 2016.                                                      [154]  test problems for evolutionary multiobjective optimization," in
+[130]  Z. Zhang and S. Qian, "Artificial immune system in dynamic envi-             [155]  Evolutionary Multiobjective Optimization. London, U.K.: Springer,
+[131]  ronments solving time-varying non-linear constrained multi-objective         [156]  2005, pp. 105-145.
+       problems," Soft Comput., vol. 15, no. 7, pp. 1333-1349, 2011.                [157]  E. Zitzler, K. Deb, and L. Thiele, "Comparison of multiobjective evo-
+[132]  J. Wei and Y. Wang, "Hyper rectangle search based particle swarm             [158]  lutionary algorithms: Empirical results," Evol. Comput., vol. 8, no. 2,
+[133]  algorithm for dynamic constrained multi-objective optimization prob-         [159]  pp. 173-195, 2000.
+[134]  lems," in Proc. Evol. Comput., 2012, pp. 1-8.                                [160]  Y. Tian, R. Cheng, X. Zhang, and Y. Jin, "PlatEMO: A MATLAB
+       B. Qu and P. N. Suganthan, "Constrained multi-objective optimization                platform for evolutionary multi-objective optimization [educational
+[135]  algorithm with an ensemble of constraint handling methods," Eng.                    forum]," IEEE Comput. Intell. Mag., vol. 12, no. 4, pp. 73-87,
+[136]  Optim., vol. 43, no. 4, pp. 403-416, 2011.                                          Nov. 2017.
+[137]  S. Zapotecas-Mart�nez and C. A. Coello Coello, "MONSS: A multi-                     J. Derrac, S. Garc�a, D. Molina, and F. Herrera, "A practical tutorial
+       objective nonlinear simplex search approach," Eng. Optim., vol. 48,                 on the use of nonparametric statistical tests as a methodology for com-
+[138]  no. 1, pp. 16-38, 2016.                                                             paring evolutionary and swarm intelligence algorithms," Swarm Evol.
+       A. Sadollah, H. Eskandar, and J. H. Kim, "Water cycle algorithm for                 Comput., vol. 1, no. 1, pp. 3-18, 2011.
+       solving constrained multi-objective optimization problems," Appl. Soft              A. Osyczka, "Multicriteria optimization for engineering design," in
+       Comput., vol. 27, pp. 279-298, Feb. 2015.                                           Design Optimization. Oxford, U.K.: Elsevier, 1985, pp. 193-227.
+       S. Qian, Y. Ye, B. Jiang, and J. Wang, "Constrained multiobjective                  M. A. Tawhid and V. Savsani, "A novel multi-objective optimization
+       optimization algorithm based on immune system model," IEEE Trans.                   algorithm based on artificial algae for multi-objective engineering
+       Cybern., vol. 46, no. 9, pp. 2056-2069, Sep. 2016.                                  design problems," Appl. Intell., vol. 48, no. 10, pp. 3762-3781, 2018.
+       L. Li, C. He, W. Xu, and L. Pan, "Pioneer selection for evo-                        Y. Yang, J. Liu, S. Tan, and H. Wang, "Application of constrained
+       lutionary multiobjective optimization with discontinuous feasible                   multi-objective evolutionary algorithm in multi-source compressed-air
+       region," Swarm Evol. Comput., vol. 65, Aug. 2021, Art. no. 100932,                  pipeline optimization problems," IFAC-PapersOnLine, vol. 51, no. 18,
+       doi: 10.1016/j.swevo.2021.100932.                                                   pp. 168-173, 2018.
+       A. Gupta, Y.-S. Ong, and L. Feng, "Multifactorial evolution: Toward                 T. Ray, K. Tai, and K. C. Seow, "Multiobjective design optimization by
+       evolutionary multitasking," IEEE Trans. Evol. Comput., vol. 20, no. 3,              an evolutionary algorithm," Eng. Optim., vol. 33, no. 4, pp. 399-424,
+       pp. 343-357, Jun. 2016.                                                             2001.
+       J. Liang et al., "Evolutionary multi-task optimization for parameters               Y. Xiang, X. Yang, Y. Zhou, and H. Huang, "Enhancing decomposition-
+       extraction of photovoltaic models," Energy Convers. Manag., vol. 207,               based algorithms by estimation of distribution for constrained optimal
+       Mar. 2020, Art. no. 112509.                                                         software product selection," IEEE Trans. Evol. Comput., vol. 24, no. 2,
+       Y.-S. Ong and A. Gupta, "Evolutionary multitasking: A computer sci-                 pp. 245-259, Apr. 2020.
+       ence view of cognitive multitasking," Cogn. Comput., vol. 8, no. 2,                 C. A. Coello Coello, G. T. Pulido, and M. S. Lechuga, "Handling
+       pp. 125-142, 2016.                                                                  multiple objectives with particle swarm optimization," IEEE Trans.
+       E. K. Burke, M. R. Hyde, G. Kendall, G. Ochoa, E. �zcan,                            Evol. Comput., vol. 8, no. 3, pp. 256-279, Jun. 2004.
+       and J. R. Woodward, "A classification of hyper-heuristic approaches:                M. Kotinis, "A particle swarm optimizer for constrained multi-
+       Revisited," in Handbook of Metaheuristics. Cham, Switzerland:                       objective engineering design problems," Eng. Optim., vol. 42, no. 10,
+       Springer, 2019, pp. 453-477.                                                        pp. 907-926, 2010.
+       M. Abd Elaziz and S. Mirjalili, "A hyper-heuristic for improving the                Q. Zhang, Q. Wang, and G. Li, "Switched system identification based
+       initial population of whale optimization algorithm," Knowl. Based Syst.,            on the constrained multi-objective optimization problem with applica-
+       vol. 172, pp. 42-63, May 2019.                                                      tion to the servo turntable," Int. J. Control Autom. Syst., vol. 14, no. 5,
+       N. Srinivas and K. Deb, "Muiltiobjective optimization using nondom-                 pp. 1153-1159, 2016.
+       inated sorting in genetic algorithms," Evol. Comput., vol. 2, no. 3,                L. Vallozzi, W. Vandendriessche, H. Rogier, C. Hertleer, and
+       pp. 221-248, 1994.                                                                  M. Scarpello, "Design of a protective garment GPS antenna," Microw.
+       M. Tanaka, H. Watanabe, Y. Furukawa, and T. Tanino, "GA-based                       Opt. Technol. Lett., vol. 51, no. 6, pp. 1504-1508, 2009.
+       decision support system for multicriteria optimization," in Proc. IEEE              P. Singh, M. Rossi, I. Couckuyt, D. Deschrijver, H. Rogier, and
+       Int. Conf. Syst. Man Cybern. Intell. Syst. 21st Century, vol. 2, 1995,              T. Dhaene, "Constrained multi-objective antenna design optimization
+       pp. 1556-1561.                                                                      using surrogates," Int. J. Numer. Model. Electron. Netw. Devices Fields,
+       A. Osyczka and S. Kundu, "A new method to solve generalized mul-                    vol. 30, no. 6, pp. 1-5, 2017.
+       ticriteria optimization problems using the simple genetic algorithm,"               A. Gadagi and C. Adake, "A constrained multi-objective optimization
+       Struct. Optim., vol. 10, no. 2, pp. 94-99, 1995.                                    of turning process parameters by genetic algorithm and particle swarm
+       K. Deb, A. Pratap, and T. Meyarivan, "Constrained test problems for                 optimization techniques," Mater. Today Proc., vol. 42, pp. 1207-1212,
+       multi-objective evolutionary optimization," in Proc. Int. Conf. Evol.               Feb. 2021.
+       Multi-Criterion Optim., 2001, pp. 284-298.                                          H. Afshari, W. Hare, and S. Tesfamariam, "Constrained multi-objective
+       Q. Zhang, A. Zhou, S. Zhao, P. N. Suganthan, W. Liu, and S. Tiwari,                 optimization algorithms: Review and comparison with application in
+       "Multiobjective optimization test instances for the CEC 2009 special                reinforced concrete structures," Appl. Soft Comput., vol. 83, Oct. 2019,
+       session and competition," School Comput. Sci. Electron. Eng., Univ.                 Art. no. 105631.
+       Essex, Colchester, U.K.; School Elect. Electron. Eng., Nanyang Tech.                U. G�venc, Y. S�nmez, S. Duman, and N. Y�r�keren, "Combined
+       Univ., Nanyang Avenue, Singapore; Dept. Mech. Eng., Clemson Univ.,                  economic and emission dispatch solution using gravitational search
+       Clemson, SC, USA, Rep. CES-887, 2008.                                               algorithm," Scientia Iranica, vol. 19, no. 6, pp. 1754-1762, 2012.
+       J.-P. Li, Y. Wang, S. Yang, and Z. Cai, "A comparative                              M.-R. Chen, G.-Q. Zeng, and K.-D. Lu, "Constrained multi-objective
+       study of constraint-handling techniques in evolutionary constrained                 population extremal optimization based economic-emission dispatch
+       multiobjective optimization," in Proc. IEEE Congr. Evol. Comput.                    incorporating renewable energy resources," Renew. Energy, vol. 143,
+       (CEC), 2016, pp. 4175-4182.                                                         pp. 277-294, Dec. 2019.
+220    IEEE TRANSACTIONS ON EVOLUTIONARY COMPUTATION, VOL. 27, NO. 2, APRIL 2023
+
+[161]  M. A. El-Shorbagy and A. Mousa, "Constrained multiobjective equi-          [184]  K. Deb and A. Srinivasan, "Monotonicity analysis, evolutionary multi-
+[162]  librium optimizer algorithm for solving combined economic emission         [185]  objective optimization, and discovery of design principles," Indian Inst.
+[163]  dispatch problem," Complexity, vol. 2021, Jan. 2021, Art. no. 6672131.     [186]  Technol., Kanpur Genet. Algorithm Lab. (KanGAL), Kanpur, India,
+[164]  S. M. Mohseni-Bonab, A. Rabiee, and B. Mohammadi-Ivatloo,                  [187]  Rep. 2006004, 2006.
+[165]  "Voltage stability constrained multi-objective optimal reactive power      [188]  R. Tanabe and H. Ishibuchi, "A review of evolutionary multimodal
+[166]  dispatch under load and wind power uncertainties: A stochastic             [189]  multiobjective optimization," IEEE Trans. Evol. Comput., vol. 24, no. 1,
+[167]  approach," Renew. Energy, vol. 85, pp. 598-609, Jan. 2016.                 [190]  pp. 193-200, Feb. 2020.
+[168]  L. H. Lee, K. C. Tan, K. Ou, and Y. H. Chew, "Vehicle capacity             [191]  D. Zhan and H. Xing, "Expected improvement for expensive
+[169]  planning system: A case study on vehicle routing problem with time         [192]  optimization: A review," J. Global Optim., vol. 78, no. 3, pp. 507-544,
+[170]  windows," IEEE Trans. Syst., Man, Cybern. A, Syst., Humans, vol. 33,       [193]  2020.
+       no. 2, pp. 169-178, Mar. 2003.                                             [194]  J.-S. Pan, N. Liu, S.-C. Chu, and T. Lai, "An efficient surrogate-assisted
+[171]  C.-T. Chen and H.-V. Pham, "Trajectory planning in parallel kine-          [195]  hybrid optimization algorithm for expensive optimization problems,"
+[172]  matic manipulators using a constrained multi-objective evolutionary        [196]  Inf. Sci., vol. 561, pp. 304-325, Jun. 2021.
+[173]  algorithm," Nonlinear Dyn., vol. 67, no. 2, pp. 1669-1681, 2012.           [197]  B. Liu, Q. Zhang, and G. G. E. Gielen, "A Gaussian process surro-
+[174]  S. Maity, A. Roy, and M. Maiti, "A rough multi-objective genetic           [198]  gate model assisted evolutionary algorithm for medium scale expensive
+[175]  algorithm for uncertain constrained multi-objective solid travelling       [199]  optimization problems," IEEE Trans. Evol. Comput., vol. 18, no. 2,
+[176]  salesman problem," Granular Comput., vol. 4, no. 1, pp. 125-142,           [200]  pp. 180-192, Apr. 2014.
+[177]  2019.                                                                      [201]  A. I. Forrester, N. W. Bressloff, and A. J. Keane, "Optimization using
+[178]  C. Ramirez-Atencia and D. Camacho, "Constrained multi-objective            [202]  surrogate models and partially converged computational fluid dynam-
+[179]  optimization for multi-UAV planning," J. Ambient Intell. Humanized         [203]  ics simulations," Proc. Royal Soc. A, Math. Phys. Eng. Sci., vol. 462,
+[180]  Comput., vol. 10, no. 6, pp. 2467-2484, 2019.                              [204]  no. 2071, pp. 2177-2204, 2006.
+[181]  K. Musselman and J. Talavage, "A tradeoff cut approach to multiple         [205]  Y. Tian, C. Lu, X. Zhang, K. C. Tan, and Y. Jin, "Solving large-scale
+[182]  objective optimization," Oper. Res., vol. 28, no. 6, pp. 1424-1435,        [206]  multiobjective optimization problems with sparse optimal solutions via
+[183]  1980.                                                                             unsupervised neural networks," IEEE Trans. Cybern., vol. 51, no. 6,
+       H. Mala-Jetmarova, N. Sultanova, and D. Savic, "Lost in optimisation              pp. 3115-3128, Jun. 2021.
+       of water distribution systems? A literature review of system operation,"          T.-C. Chiang and W.-H. Hsu, "A knowledge-based evolutionary algo-
+       Environ. Model. Softw., vol. 93, pp. 209-254, Jul. 2017.                          rithm for the multiobjective vehicle routing problem with time win-
+       T. Ray, K. Tai, and C. Seow, "An evolutionary algorithm for                       dows," Comput. Oper. Res., vol. 45, pp. 25-37, May 2014.
+       multiobjective optimization," Eng. Optim, vol. 33, no. 3, pp. 399-424,            C. He, R. Cheng, C. Zhang, Y. Tian, Q. Chen, and X. Yao,
+       2001.                                                                             "Evolutionary large-scale multiobjective optimization for ratio error
+       Q. Ouyang, W. Lu, Z. Hou, Y. Zhang, S. Li, and J. Luo, "Chance-                   estimation of voltage transformers," IEEE Trans. Evol. Comput.,
+       constrained multi-objective optimization of groundwater remediation               vol. 24, no. 5, pp. 868-881, Oct. 2020.
+       design at dnapls-contaminated sites using a multi-algorithm geneti-               Y. Xiang, Y. Zhou, Z. Zheng, and M. Li, "Configuring software product
+       cally adaptive method," J. Contaminant Hydrol., vol. 200, pp. 15-23,              lines by combining many-objective optimization and sat solvers," ACM
+       May 2017.                                                                         Trans. Softw. Eng. Methodol., vol. 26, no. 4, pp. 1-46, 2018.
+       S. Y. D. Sorkhabi, D. A. Romero, J. C. Beck, and C. H. Amon,                      Y. Tian et al., "Evolutionary large-scale multi-objective optimization:
+       "Constrained multi-objective wind farm layout optimization: Novel                 A survey," J. ACM, vol. 54, no. 8, p. 174, 2022.
+       constraint handling approach based on constraint programming,"                    W. Du, W. Song, Y. Tang, Y. Jin, and F. Qian, "Searching
+       Renew. Energy, vol. 126, pp. 341-353, Oct. 2018.                                  for robustness intervals in evolutionary robust optimization," IEEE
+       J. Marti, L. Geissb�hler, V. Becattini, A. Haselbacher, and A. Steinfeld,         Trans. Evol. Comput., vol. 26, no. 1, pp. 58-72, Feb. 2022,
+       "Constrained multi-objective optimization of thermocline packed-                  doi: 10.1109/TEVC.2021.3092343.
+       bed thermal-energy storage," Appl. Energy, vol. 216, pp. 694-708,                 Y. He, M. Shahidehpour, Z. Li, C. Guo, and B. Zhu, "Robust
+       Apr. 2018.                                                                        constrained operation of integrated electricity-natural gas system con-
+       Z. Su et al., "Enhanced constraint handling for reliability-constrained           sidering distributed natural gas storage," IEEE Trans. Sustain. Energy,
+       multiobjective testing resource allocation," IEEE Trans. Evol. Comput.,           vol. 9, no. 3, pp. 1061-1071, Jul. 2018.
+       vol. 25, no. 3, pp. 537-551, Jun. 2021.                                           G. Nicosia, S. Rinaudo, and E. Sciacca, "An evolutionary algorithm-
+       A. Maminov and M. Posypkin, "Constrained multi-objective robot's                  based approach to robust analog circuit design using constrained multi-
+       design optimization," in Proc. IEEE Conf. Russian Young Res. Electr.              objective optimization," in Proc. Int. Conf. Innov. Techn. Appl. Artif.
+       Electron. Eng. (EIConRus), 2020, pp. 1992-1995.                                   Intell., 2007, pp. 7-20.
+       Y. Chen and A. Zhou, "Variable division and optimization for con-                 S. Kwag and S.-Y. Ok, "Robust design of seismic isolation system
+       strained multiobjective portfolio problems," 2021, arXiv:2101.08552.              using constrained multi-objective optimization technique," KSCE J.
+       M. Schlegel and W. Marquardt, "Adaptive switching structure detection             Civil Eng., vol. 17, no. 5, pp. 1051-1063, 2013.
+       for the solution of dynamic optimization problems," Ind. Eng. Chem.               L. Argote, P. Ingram, J. M. Levine, and R. L. Moreland, "Knowledge
+       Res., vol. 45, no. 24, pp. 8083-8094, 2006.                                       transfer in organizations: Learning from the experience of others," Org.
+       Q. Chen, J. Ding, T. Chai, and Q. Pan, "Evolutionary optimization                 Behav. Human Decis. Processes, vol. 82, no. 1, pp. 1-8, 2000.
+       under uncertainty: The strategies to handle varied constraints for                D. H. Wolpert and W. G. Macready, "No free lunch theorems for
+       fluid catalytic cracking operation," IEEE Trans. Cybern., early access,           optimization," IEEE Trans. Evol. Comput., vol. 1, no. 1, pp. 67-82,
+       Jul. 28, 2020, doi: 10.1109/TCYB.2020.3005893.                                    Apr. 1997.
+       C. Yang and J. Ding, "Constrained dynamic multi-objective evolution-              B. Mahesh, "Machine learning algorithms--A review," Int. J. Sci. Res.,
+       ary optimization for operational indices of beneficiation process," J.            vol. 9, no. 1, pp. 381-386, 2020.
+       Intell. Manuf., vol. 30, no. 7, pp. 2701-2713, 2019.                              Z. Zhang, P. Cui, and W. Zhu, "Deep learning on graphs: A survey,"
+       R. Azzouz, S. Bechikh, L. B. Said, and W. Trabelsi, "Handling                     IEEE Trans. Knowl. Data Eng., vol. 34, no. 1, pp. 249-270, Jan. 2022.
+       time-varying constraints and objectives in dynamic evolutionary multi-            doi: 10.1109/TKDE.2020.2981333.
+       objective optimization," Swarm Evol. Comput., vol. 39, pp. 222-248,               H. Jiang, Y. Wang, Y. Tian, X. Zhang, and J. Xiao, "Feature construc-
+       Apr. 2018.                                                                        tion for meta-heuristic algorithm recommendation of capacitated vehi-
+       Q. Chen, J. Ding, S. Yang, and T. Chai, "A novel evolutionary algorithm           cle routing problems," ACM Trans. Evol. Learn. Optim., vol. 1, no. 1,
+       for dynamic constrained multiobjective optimization problems," IEEE               p. 3, Apr. 2021. [Online]. Available: https://doi.org/10.1145/3447540
+       Trans. Evol. Comput., vol. 24, no. 4, pp. 792-806, Aug. 2020.                     K. M. Sallam, S. M. Elsayed, R. A. Sarker, and D. L. Essam,
+       C. Yue et al., "Differential evolution using improved crowding distance           "Landscape-assisted multi-operator differential evolution for solv-
+       for multimodal multiobjective optimization," Swarm Evol. Comput.,                 ing constrained optimization problems," Expert Syst. Appl., vol. 162,
+       vol. 62, Apr. 2021, Art. no. 100849.                                              Dec. 2020, Art. no. 113033.
+       J. Liang et al., "A clustering-based differential evolution algorithm             K. Sallam, S. Elsayed, R. Sarker, and D. Essam, "Landscape-based
+       for solving multimodal multi-objective optimization problems," Swarm              differential evolution for constrained optimization problems," in Proc.
+       Evol. Comput., vol. 60, Feb. 2021, Art. no. 100788.                               IEEE Congr. Evol. Comput. (CEC), 2018, pp. 1-8.
+       A. Kurpati, S. Azarm, and J. Wu, "Constraint handling improvements                P. A. Consoli, Y. Mei, L. L. Minku, and X. Yao, "Dynamic selection of
+       for multiobjective genetic algorithms," Struct. Multidiscipl. Optim.,             evolutionary operators based on online learning and fitness landscape
+       vol. 23, no. 3, pp. 204-213, 2002.                                                analysis," Soft Comput., vol. 20, no. 10, pp. 3889-3914, 2016.
+LIANG et al.: A SURVEY ON EVOLUTIONARY CONSTRAINED MULTIOBJECTIVE OPTIMIZATION                                                                             221
+
+                               Jing Liang (Senior Member, IEEE) received the           Kangjia Qiao (Member, IEEE) received the B.E.
+                               B.E. degree in automation from the Harbin Institute     degree from Jianghan University, Wuhan, China,
+                               of Technology, Harbin, China, in 2003, and the          in 2018, and the M.S. degree from Zhengzhou
+                               Ph.D. degree in electrical and electronic engineering   University, Zhengzhou, China, in 2021, where he is
+                               from Nanyang Technological University, Singapore,       currently pursuing the Ph.D. degree.
+                               in 2009.
+                                                                                          His current research interests include differ-
+                                  She is currently a Professor with the School         ential evolution, multitasking optimization, con-
+                               of Electrical Engineering, Zhengzhou University,        strained optimization, and multimodal multiobjective
+                               Zhengzhou, China. Her main research interests           optimization.
+                               are evolutionary computation, swarm intelligence,
+                               multiobjective optimization, and neural network.        Caitong Yue (Member, IEEE) received the B.E.
+   Prof. Liang currently serves as an Associate Editor for the IEEE                    degree in bioengineering and the Ph.D. degree in
+TRANSACTIONS ON EVOLUTIONARY COMPUTATION and the Swarm and                             control science and engineering from Zhengzhou
+Evolutionary Computation.                                                              University, Zhengzhou, China, in 2014 and 2020,
+                                                                                       respectively.
+                               Xuanxuan Ban (Graduate Student Member, IEEE)
+                               received the B.E. degree from Luoyang Institute            He is currently a Lecturer with the School of
+                               of Science and Technology, Luoyang, China, in           Electrical Engineering, Zhengzhou University. His
+                               2019. He is currently pursuing the M.S. degree with     research interests include multimodal multiobjective
+                               Zhengzhou University, Zhengzhou, China.                 optimization, pattern recognition, neural network,
+                                                                                       and particle swarm optimization.
+                                  His current research interests include evolutionary
+                               computing, differential evolution, and constrained
+                               optimization.
+
+                               Kunjie Yu (Member, IEEE) received the B.E.                                        Ke Chen (Member, IEEE) received the B.E.
+                               degree in automation from the Zhengzhou                                           degree from Weifang University, Weifang, China,
+                               University of Light Industry, Zhengzhou, China,                                   in 2014, the M.S. degree from Yanshan University,
+                               in 2012, and the Ph.D. degree in control science                                  Qinhuangdao, China, in 2017, and the Ph.D. degree
+                               and engineering from the East China University                                    from Shandong University, Jinan, China, in 2021.
+                               of Science and Technology, Shanghai, China, in
+                               2017.                                                                                He is currently a Research Associate Professor
+                                                                                                                 with the School of Electrical Engineering,
+                                  He is currently an Associate Professor with                                    Zhengzhou University, Zhengzhou, China. His
+                               the School of Electrical Engineering, Zhengzhou                                   current research interests include evolutionary
+                               University, Zhengzhou. His current research                                       computation, feature selection, multitasking
+                               interests include evolutionary computation, con-                                  optimization, multiobjective optimization, and
+strained optimization, multiobjective optimization, and their applications in                                    machine learning.
+chemical process, photovoltaic system, and energy system.
+                                                                                                                 Kay Chen Tan (Fellow, IEEE) received the B.Eng.
+Evolutionary                Boyang Qu (Member, IEEE) received the B.E.                                           degree (First Class Hons.) in electronics and elec-
+                            and Ph.D. degrees in electrical and electronic engi-                                 trical engineering and the Ph.D. degree from the
+                            neering from Nanyang Technological University,                                       University of Glasgow, Glasgow, U.K., in 1994 and
+                            Singapore, in 2007 and 2012, respectively.                                           1997, respectively.
+
+                               He is a Professor with the School of Electric                                        He is currently a Chair Professor with the
+                            and Information Engineering, Zhongyuan University                                    Department of Computing, The Hong Kong
+                            of Technology, Zhengzhou, China. His research                                        Polytechnic University, Hong Kong, SAR. He is
+                            interests include machine learning, neural network,                                  an Honorary Professor with the University of
+                            genetic and evolutionary algorithms, swarm intelli-                                  Nottingham, Nottingham, U.K., and the Chief
+                            gence, and multiobjective optimization.                                              Co-Editor of Springer Book Series on Machine
+                                                                                  Learning: Foundations, Methodologies, and Applications. He has published
+                               Prof. Qu is an Associate Editor of the Swarm and   over 300 refereed articles and seven books.
+              Computation.                                                           Dr. Tan was the Editor-in-Chief of the IEEE TRANSACTIONS ON
+                                                                                  EVOLUTIONARY COMPUTATION from 2015 to 2020, and currently serves
+                                                                                  as an editorial board member of over ten journals.
+

@@ -1,0 +1,11 @@
+{
+  "dataset": "MERGED",
+  "unique_train": 1448,
+  "flashover_train": 725,
+  "broken_train": 730,
+  "repeat_flash": 2,
+  "repeat_broken": 2,
+  "list_entries": 2903,
+  "list": "E:\\创新创业\\Demos\\训练样本\\MERGED\\train_flash2x_broken2x.txt",
+  "yaml": "E:\\创新创业\\Demos\\训练样本\\MERGED\\data_flash2x_broken2x.yaml"
+}

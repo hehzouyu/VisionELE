@@ -1,0 +1,45 @@
+# ---------- 大文件与生成物（不进版本库） ----------
+# 训练虚拟环境与第三方包
+Demos/.venv/
+.venv/
+# 数据集（FBID / FLASH / MERGED，数百 MB 到 GB）
+Demos/训练样本/
+# 沙箱临时目录
+Demos/.tmp*/
+.tmp*/
+.tmp_pip/
+.pytest_tmp/
+.pytest_basetmp/
+pytest-cache-files-*/
+# 训练产物中的大件：权重、batch 可视化图
+Demos/insulator_guardian/runs/
+Demos/results/runs/**
+!Demos/results/runs/*/results.csv
+!Demos/results/runs/*/args.yaml
+Demos/results/runs/*/weights/
+Demos/results/runs/*/*.pt
+Demos/results/runs/*/train_batch*.jpg
+Demos/results/runs/*/val_batch*.jpg
+Demos/results/enhanced/**/*.pt
+
+# ---------- 私人 / 会话数据 ----------
+.dsh-meow/
+.dsh-progress/
+
+# ---------- 课程素材与申报材料 ----------
+# 含参考文献 PDF、同学样例报告、带个人签名的申报书，默认不公开
+创新创业课/
+国创/
+
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# ---------- 其它 ----------
+.DS_Store
+Thumbs.db
+*.log
+!Demos/results/**/*.log

@@ -1,0 +1,995 @@
+                                    Journal of Manufacturing Systems 64 (2022) 561-577
+                                          Contents lists available at ScienceDirect
+
+                             Journal of Manufacturing Systems
+
+                               journal homepage: www.elsevier.com/locate/jmansys
+
+Semi-supervised multi-scale attention-aware graph convolution network for
+intelligent fault diagnosis of machine under extremely-limited
+labeled samples
+
+Zongliang Xie a, Jinglong Chen a,*, Yong Feng a, Shuilong He b,*
+
+a State Key Laboratory for Manufacturing and Systems Engineering, Xi'an Jiaotong University, Xi'an 710049, PR China
+b School of Mechanical and Electrical Engineering, Guilin University of Electronic Technology, Guilin 541004, PR China
+
+ARTICLE INFO                 ABSTRACT
+
+Keywords:                    Labeled data are generally scarce in engineering practice, while data-driven methods fail to mine the correlations
+Intelligent fault diagnosis  between samples to utilize the rich unlabeled data, so they cannot achieve satisfactory performance under
+Graph convolution network    limited labeled data. To address this problem, a semi-supervised multi-scale attention-aware graph convolution
+Multi-scale                  network (MSA-GCN) is proposed for fault diagnosis under extremely-limited labeled samples. First, available
+Attention mechanism          labeled data are transformed with unlabeled data into a graph via determining the k-nearest neighbors in fre­
+Semi-supervised learning     quency domain to construct the neighbor relations. To obtain the useful structural and feature information of
+                             unlabeled samples from different neighborhoods, multi-scale graph convolution is implemented to aggregate
+                             multi-scale information for labeled samples. Besides, attention mechanism is utilized and a novel adaptive
+                             feature fusing layer is designed to achieve cross-scale information fusion of different neighborhoods. With semi-
+                             supervised graph learning, the proposed method can fully utilize topological and feature information from un­
+                             labeled samples, resulting in a powerful classifier using only few labeled samples. The proposed method is fully
+                             verified on three bearing datasets, experimental results show that MSA-GCN can reach an identification accuracy
+                             of above 95 % with even as few as 5 labeled training samples each class, which demonstrates its effectiveness
+                             under low-label-ratio data.
+
+1. Introduction                                                              such as artificial neural network (ANN) [5], support vector machine
+                                                                             (SVM) [6], and random forest (RN) [7], etc. Although these conven­
+    Rotating machinery is the fundamental equipment in numerous              tional ML-based methods have achieved certain results, their nonlinear
+fields of the modern industry such as aerospace, power, mechanical           learning ability to handle complex data is limited due to the
+manufacturing, and so on [1]. Meanwhile, the working environment of          shallow-layer structure.
+rotating machinery is becoming severer and more complex with high
+speed, high pressure, and a long-term operating time, which may cause            As a branch of ML, deep learning (DL) based methods boomed and
+failures of machines and bring economic losses and serious accidents [2,     showed effectiveness. With multi-layer structure and powerful nonlinear
+3]. Therefore, detecting the mechanical faults of rotating machinery         learning ability, DL-based methods can extract deeper and more
+(especially, its core components such as bearings, gears, etc.) accurately   discriminative features [8]. Thus, DL-based methods can overcome the
+and in-time is essential to ensure safety in the operation course to avoid   limitation of traditional fault diagnosis methods which rely heavily on
+casualty [4].                                                                subjective expert experience [9]. In recent years, a variety of DL-based
+                                                                             methods, including deep belief network (DBN) [10], auto-encoder
+    In recent years, with the rapid development of artificial intelligence,  (AE) [11], convolution neural network (CNN) [12,13], recurrent neu­
+research on intelligent fault diagnosis (IFD) has become a hotspot and       ral network (RNN) [14] and so on, have been widely applied to fault
+lots of IFD methods have been successfully applied in mechanical fault       diagnosis. For instance, Wen et al. proposed a data-driven two-dimen­
+diagnosis. First, the traditional machine learning (ML) based methods        sional CNN to recognize the mechanical faults [15]. Shao et al. solved
+were developed and applied in the field of mechanical fault diagnosis,       the locomotive bearing fault diagnosis with a convolutional deep belief
+
+  * Corresponding authors.
+     E-mail addresses: jlstrive2008@163.com (J. Chen), xiaofeilonghe@163.com (S. He).
+
+https://doi.org/10.1016/j.jmsy.2022.08.007
+Received 4 June 2022; Received in revised form 15 July 2022; Accepted 17 August 2022
+Available online 23 August 2022
+0278-6125/© 2022 The Society of Manufacturing Engineers. Published by Elsevier Ltd. All rights reserved.
+Z. Xie et al.                                                                    Journal of Manufacturing Systems 64 (2022) 561-577
+
+               Fig. 1. Schematic depiction of message passing mechanism.
+
+network (CDBN) [16]. Zhang et al. proposed a DL method based on RNN              classification, there is still an important issue needed to be considered.
+for fault diagnosis of rotating machinery [17].                                  First, a traditional GCN can only aggregated information from local
+                                                                                 neighbors at a fixed distance (just like a fixed kernel in CNN). As a result,
+    Though DL-based methods have obtained great success, there are               some useful information hidden in the farther and related unlabeled
+still some limitations as follows: 1) most of the existing DL-based              neighbor nodes may be overlooked.
+methods in IFD are Data-driven, therefore, sufficient labeled training
+data are required to guarantee the convergence of model training and                 Based on the above motivations, and to overcome the aforemen­
+good performance of fault recognition [18]. However, a majority of the           tioned limitations of traditional DL-based methods and the shortcoming
+monitoring data collected in the actual industrial environment are un­           of traditional GCNs, we convert the fault diagnosis problem into a semi-
+labeled. Moreover, it is a time-consuming and laborious task to get the          supervised classification problem in graph learning, and a semi-
+machine health states of the collected data (or the data labels) [19]; 2)        supervised multi-scale attention-aware graph convolution network
+the conventional DL-based methods represented by CNN only learn                  (MSA-GCN) is proposed in this paper. First, few available labeled sam­
+features from every input sample separately in the Euclidean domain,             ples along with abundant unlabeled samples are converted into an as­
+but ignore the relations between samples [20]. Thus, it is difficult to          sociation graph to explicitly construct the neighbor relations, and the
+mine the structure information of data e.g., data distribution and geo­          obtained graph-structured data is used to train the model. Then, multi-
+metric data structure [21,22]. And the rich unlabeled data cannot be             scale graph convolution (MS-GConv) layer with multi-scale graph
+utilized, which can provide additional information for better learning           convolution kernels is designed in MSA-GCN. The MS-GConv layer is
+fault features.                                                                  applied to extract the effective structural and feature information of
+                                                                                 unlabeled samples from different neighborhoods, and aggregate useful
+    According to the use of labeled and unlabeled data during training,          information for the few labeled samples in the graph. To adaptively fuse
+DL-based IFD methods can be further divided into three types: super­             the cross-scale information, i.e., the multi-scale features extracted by the
+vised fault diagnosis, semi-supervised fault diagnosis, and unsupervised         MS-GConv layer from different neighborhoods in the graph, a self-
+fault diagnosis [23]. Among them, the semi-supervised learning (SSL)             attention mechanism based adaptive feature fusing layer is designed.
+approach, which only requires a few labeled data and utilizes useful             It is applied to allocate attention weights for the multi-scale features so
+information from abundant unlabeled data to enhance the model per­               as to strengthen the important parts and suppress useless parts. Through
+formance, can alleviate the mass labeled data dependence issue.                  semi-supervised graph learning, MSA-GCN utilizes unlabeled data to
+                                                                                 learn more informative and robust feature representations for limited
+    Graph is a unique non-Euclidean data structure, which contains a set         labeled data to train a powerful classifier for better fault recognition.
+of samples (nodes) and their relations (edges), and it can retain the rich
+structure information of data. Therefore, by constructing the input                  The main contribution of this paper can be summarized as follows:
+samples into an association graph, the missing relations between sam­
+ples can be obtained. Graph-structured data owns great expressive                1) A graph construction method combined with Fast Fourier Transform,
+power, but traditional DL-based models cannot process such non-                      k-nearest neighbor and the Gaussian kernel function is designed.
+Euclidean data. Graph convolution networks (GCNs) [24] are intro­                    Then, the signal samples are converted into association graph to
+duced by researchers to generalize CNN to graph data. As is shown in                 explicitly model the neighbor relations between labeled and unla­
+Fig. 1, GCNs are based on message passing mechanism, that is, the GCNs               beled samples.
+can learn feature representations for each node based on their own
+features and the aggregated feature information from their neighbors,            2) MS-GConv layer with multiple-scale graph convolution kernels is
+and the final learned node features can be used to train the model for               designed in MSA-GCN. It can utilize the structural and feature in­
+node label prediction.                                                               formation of unlabeled samples from different neighborhoods
+                                                                                     around each labeled sample in the graph, and aggregate useful in­
+    Graph is basic data in social network, e-commerce, and citation                  formation for the limited labeled samples.
+network [25] in the field of graph learning, where the semi-supervised
+node classification is a common task. Semi-supervised node classifica­           3) To obtain more effective features, self-attention mechanism is
+tion can be defined as using the neural networks to learn a parameter­               adopted and an adaptive feature fusion (AFF) layer is designed to
+ized classifier f based on a small portion of labeled and abundant                   achieve the cross-scale information fusion of the extracted multi-
+unlabeled nodes in the graph. GCNs have achieved good performance in                 scale features from MS-GConv layer.
+semi-supervised node classification task for the convincing performance
+in mining and capturing sample relations in graph data. Due to the               4) Extensive experiments under few labeled samples are carried out to
+unique feature learning mechanism, the rich features contained in un­                validate the effectiveness of MSA-GCN on three different vibration
+labeled nodes can be passed to the labeled nodes through the edge                    datasets. The performance of MSA-GCN is also compared with
+connections between them, GCNs can comprehensively utilize the                       related methods, and quantitative results and qualitative analysis are
+labeled information, unlabeled information and the geometric structural              given.
+information contained in graph to learn a more effective and powerful
+classifier.                                                                          The rest of this paper is organized as follows: Section 2 is the pre­
+                                                                                 liminaries of this study. Then the proposed method is detailed in Section
+    Although GCNs have achieved good results in semi-supervised                  3. In Section 4, experiments are carried out and experiment results are
+
+                                                                            562
+Z. Xie et al.                                                                                                                              Journal of Manufacturing Systems 64 (2022) 561-577
+
+provided. In Section 5, some discussions are made about MSA-GCN.                          is the supervised loss of all the labeled nodes (such as cross entropy loss).
+Finally, the conclusion is drawn in Section 6.
+
+2. Preliminaries                                                                          2.2. Spectral graph convolution networks
+
+    In this section, we give a brief introduction of the preliminaries of                     To process graph-structural data, spectral GCNs are developed by
+some related work. Section 2.1 gives the definition of semi-supervised                    researchers from graph signal processing [28]. In this section, an
+learning and further introduce semi-supervised graph learning; Then,                      introduction to the mathematical background of spectral GCNs is given.
+GCNs and some corresponding mathematical background are presented
+in Section 2.2. And finally, some related work of graph construction is                   Definition 1. (Undirected graph): An undirected graph containing n
+introduced in Section 2.3.                                                                nodes can be represented as G(V, E, A), where V and E are node set and
+                                                                                          edge set, accordingly. Let vi  V denotes a node, eij = (vi, vj)  E denotes
+2.1. Semi-supervised graph learning                                                       an edge in the graph. Usually, the adjacency matrix A  Rn×n is used to
+                                                                                          describe a graph, the value of Aij can be denoted as:
+Semi-supervised learning (SSL) [26] is a learning paradigm which
+                                                                                                 {
+lies between supervised and unsupervised learning. Given a training                       Aij = 1 ifeij  Eandi = j; 0 otherwise. (2)
+
+dataset  that  consists  of  both  labeled  samples  XL  =                  L  and   un­      The degree matrix D  Rn×n and can be obtained as Dii = Aij.
+
+                                                            {(xi, yi)}i=1                                                                                                                                                 j
+
+labeled  samples                    U  Semi-supervised   classification        aims  to
+
+                  XU = {xi}i=1
+
+train a generalizable parameterized classifier f: xiy based on XL and XU                  Definition 2. (Graph Laplacian): The normalized graph Laplacian is a
+
+to recognize the unlabeled test samples.                                                  basic operator in spectral graph analysis defined as: L = IN -
+
+Semi-supervised graph learning (SSGL) [27] is an extension of SSL to                      D- 1/2AD- 1/2, where IN is the identity matrix. As L is a real symmetric
+
+deal with graph data. Graph structure reflects the relations and simi­                    positive semidefinite matrix, it can be factored as: L = UU- 1, where
+
+larity between nodes. Given a graph, where only a few nodes have la­                       = diag([1, 2, ..., n])  Rn×n is the eigenvalue matrix of L, and U =
+
+bels. Semi-supervised node classification aims to train a classifier:                     [u 1,        ...,          Rn×n  is  the  orthonormal  matrix  of  eigenvectors  or­
+                                                                                                 u 2,        u n]
+f: xiy based on the labeled and unlabeled nodes as well as the graph
+                                                                                          dered by eigenvalues (U- 1 = UT).
+structure, to recognize the unlabeled test nodes.
+
+For the problem of semi-supervised node classification in SSGL, the                           Giving a filter f = diag() parameterized by   RN in the Fourier
+                                                                                          domain, the spectral graph convolution operation on the node v is
+unified form of the objective function is                                                 denoted as:
+
+L = Ls + Lr                                                                          (1)
+
+where Ls is the supervised loss of the labeled nodes, Lr denotes the graph                f  x = UfUT x = Uf()UT x                                                         (3)
+
+regularization loss of both labeled and unlabeled nodes. To achieve                       where * denotes the graph convolution, x is the node feature, UTx is the
+                                                                                          graph Fourier transform of x. f is the eigenfunction of , i.e. f().
+semi-supervision, traditional SSGL methods require designing various
+                                                                                              Based on the above definition, Bruna et al. [29] proposed the first
+regularization term in the objective function L e.g., graph Laplacian                     GCN with a graph convolution layer defined as:
+                                                                                          Hi+1 = ( UfUT Hi) (4)
+regularization term Lr = aij||f(xi) - f (xj)|| . Recently, GNN models2
+
+                             i,j
+
+represented by GCNs are developed an applied by researchers to deal
+
+with semi-supervised classification problem in graph data. Through                                                                  n×m
+
+message passing, GCNs can directly propagate and update features be­                      where Hi       Rn×m      and Hi+1      R       are the input and output features of  a
+
+tween each node pair by using neural networks. Thus, GCNs train a                         graph convolution layer,  is an activation function such as relu.
+
+classifier using the available labeled nodes, and the geometric infor­                        However, graph convolution shown in Eq. (3) is computationally
+                                                                                          expensive. To circumvent this problem, the finite Kth order Chebyshev
+mation of graph as well as the information of the unlabeled nodes within
+
+the neighborhood of labeled nodes is utilized to achieve semi-                            polynomials Tk(x) is utilized to by researchers well-approximated f()
+
+supervision through message passing mechanism. Then the train clas­                       [30] as follows:
+
+sifier can be applied to recognize the unlabeled test nodes based on the                         K
+
+final, hidden state of the GCN models. To sum up, GCNs can encode the                     f()  kTk()                                                                       (5)
+
+graph structure straightly using a neural network f(X, A) and can be                             k=0
+
+trained on a supervised target Ls for all nodes with labels, therefore                    where  = 2/max - IN. The Chebyshev polynomials are defined
+                                                                                          recursively by Tk(x) = 2xTk- 1(x) - Tk- 2(x), with T0(x) = 1 and T1(x) =
+avoiding explicit graph-based regularization in the loss function. Thus,
+
+the objective function of the GCNs in semi-supervised node classification
+
+                                                            Fig. 2. Schematic depiction of multi-layer GCN.
+                                                                                              563
+Z. Xie et al.                                                                                                                             Journal of Manufacturing Systems 64 (2022) 561-577
+
+                                         Fig. 3. Schematic depiction of three different graph construction methods.
+
+x. Noticing that UkUT = (UUT)k = Lk, the graph convolution with the                                             layers. Xi and Zi denote the input feature and extracted feature of each
+filter f can be defined as:                                                                                     node. Softmax is the softmax function, defined as softmax(zi) =
+
+       K                                                                                                                  
+f  x  kTk(L)x                                                                                                   exp(zi)/ zi.
+                                                                                          (6)
+                                                                                                                                 i
+       k=0
+                                                                                                                2.3. Graph construction
+where L = 2L/max - IN. Then, a GCN based on the Chebyshev graph
+convolution (ChebConv) layer of the Kth Chebyshev polynomials can be                                                Graph is an effective and powerful mathematical tool to describe the
+                                                                                                                universal relations between objects. Usually, graphs are provided in
+defined as:                                                                                                     advance or can be easily abstracted from the practical problem, such as
+                                                                                                                the social network graph, citation network graph, etc. However, in most
+         (     K                 )                                                                              real-world scenarios, the graphs are not readily available but needed to
+                                                                                                                be learned from data [32]. In this section, a brief introduction is given
+Hi+1 =              k Tk (L)H i                                                           (7)                   about graph construction.
+
+               k=0                                                                                                  Given a set of nodes (or samples), usually, there are two steps needed
+                                                                                                                to construct a graph. (1) Determine the neighbors for each node (learn
+    Kipf et al. [31] further approximate f() as first-order Chebyshev                                           the graph topology), i.e. the edge set E (E-step). (2) Based on the edge set
+polynomials, and to finally simplify the graph convolution operation as:                                        E, determine the edge weight between each node and generate the
+f  x  ( IN + D- 1/2AD- 1/2)x (8)                                                                                weight matrix W (W-step).
+
+Based on this, they proposed a widely used standard GCN with the                                                    For the graph topology learning in E-step, there are three common
+                                                                                                                methods: 1) k- nearest neighbor (knn-graph); 2) -ball neighborhood
+graph convolution layer as follow:                                                                              (-graph); 3) path-graph. In the knn-graph, the top-k nearest nodes
+                                                                                                                (usually use Euclidean distance to decide) are defined as the neighbors
+i+1 (  i i)                                                                                                     for each node; In the -graph, the similarity (such as cosine similarity)
+H =  AH W                                                                                 (9)                   between every two nodes is calculated and a threshold  is given. If the
+                                                                                                                calculated similarity between two nodes is higher than , then they are a
+where  A = IN +D-   1/2 AD-         1/2                                            is  a  trainable weight ma­
+
+                                         and Wi  Rm×m
+
+trix.
+
+The structure of a classical GCN model for node classification is
+
+shown in Fig. 2, which is composed of multiple graph convolution
+
+                                                                                          Fig. 4. The process of constructing knn-graph.
+                                                                                                                           564
+Z. Xie et al.                                                                                                                                                                                      Journal of Manufacturing Systems 64 (2022) 561-577
+
+neighbor to each other; In the path-graph, the nodes are connected                                                                                                     { }k             ( ){                          }
+
+sequentially to form a graph. The schematic diagram of the three                                                                                                  (xi) = xj j=1, ifdis xi, xj  D(1), D(2), ..., D(k)              (13)
+
+methods is shown in Fig. 3.
+
+  For the weight matrix computation in W-step, there are also three                                                                                              where (xi) is the neighbor set of xi, k is the number of neighbors,
+
+common ways as follows. 1) Binary kernel. The easiest way to estimate                                                                                            dis(·) is the function of Euclidean distance. If xj is one of the neighbors
+
+W is to set W=A directly, thus Wij = Aij, and each entity in W is either                                                                                                   
+
+0 or 1. It means the connection strength of all the edges in E is the same                                                                                       of xi, there is an undirected edge connection between them. Through
+
+and is equal to 1. 2) Another direct way to determine the edge weights is                                                                                        experiments, it is found that when k is 5, the quality of the constructed
+
+based on a given similarity measure, such as cosine similarity, Pearson's                                                                                        graph is satisfactory.
+
+Correlation, etc. 3) In practice, the weight matrix W is usually redefined                                                                                                                                                                                      
+
+                                                                                                                                                                   After getting the neighbor set of xi, the weight between every two
+
+based on different measure for better interpretability. The Gaussian                                                                                             nodes can be calculated through the Gaussian kernel function as follows:
+
+kernel function is a commonly used method to assign edge weights, the                                                                                                   (             (  )2)
+                                                                                                                                                                         exp -        d xi, xj
+weight expression is:                                                                                                                                            wij =                22 , ifxj  (xi);
+
+               ( ( )2)                                                                                                                                                                                                            (14)
+
+Wij = exp -       d xi, xj                                    (10)                                                                                                     0, otherwise.
+
+                       2  2
+
+                                                                                                                                                                                                                             
+                                                                                                                                                                 where d(xi, xj) is the Euclidean distance between xi and xj,  is the
+where d(xi, xj) is a pairwise distance or similarity measure,  is the
+bandwidth variance of the Gaussian function.                                                                                                                     bandwidth variance of the Gaussian functions and 2 is set equal to
+
+                                                                                                                                                                 length of sample xi. From the above definition we know that 0  wij  1,
+
+                                                                                                                                                                 if xi and xj are neighbors, the closer their distance is, the closer wij is to 1.
+
+3. Proposed method                                                                                                                                               In other words, it means that the more similar these two nodes are.
+
+    The proposed method is introduced in this section. First, the pro­                                                                                             By repeating the steps in (13) and (14) for every node, we can finally
+posed graph construction method is introduced. Then, MSA-GCN is
+detailed in Section 3.2. Finally, a general process of applying MSA-GCN                                                                                          obtain the constructed association graph. The graph construction of test
+in intelligent fault diagnosis of rotating machinery is given.
+                                                                                                                                                                 sample set (all sample are unlabeled) follows the same process.
+
+                                                                                                                                                                 3.2. Multi-scale attention-aware graph convolution network
+
+3.1. Association graph construction
+
+  The construction of an association graph is crucial to accurately                                                                                              3.2.1. Multi-scale graph convolution layer
+                                                                                                                                                                     The localization of a graph filter is defined by taking all the neigh­
+model the interactions between samples. Taken the graph construction
+                                                                                                                                                                 bors at a distance of k hops (k refers the shortest path distance in graph
+of training samples as examples, Fig. 4 shows the process of the asso­                                                                                           between two nodes) into account for the spectral convolution of a node
+                                                                                                                                                                 vi in the graph. The non-parametric filters in the original graph convo­
+ciation graph construction in this paper.                                                                                                                        lution depicted in Eq. (3) are not localized. A polynomial filter can be
+                                                                                                                                                                 used to solve this problem, shown as:
+  The knn-graph method is used in this paper to construct the graph
+
+from raw vibration signals. First, the vibrational signals are divided into
+
+subsamples with a predefined length or dimension d. Suppose the                                                                                                            K
+                                                                                                                                                                 f() = kk
+training sample set X consists of a small number of labeled samples and                                                                                                                                                           (15)
+                                                                                                                                                                                 k=0
+large amounts of unlabeled samples, which can be denoted as:
+
+                       ()                                                                                                                                          The value at node j of the filter f centered at node i can be given by:
+ X = {Xl, Xu}           lu
+                                                                                                                                                                                              ( )
+                                                                                                                                                                 (f(L)i)j = (f(L))i,j = k L i,j k
+ X  l = (xi, yi)i=1 l                                         (11)                                                                                                                                                                (16)
+
+  Xu = (xi)i=1 u                                                                                                                                                                                k
+
+where Xl is the labeled part and Xu is the unlabeled part. Suppose n                                                                                             where i  Rn is Kronecker delta function. Based on [33], we can explain
+= l +u is the total number of samples.
+                                                                                                                                                                 how the graph filters of specific kernel sizes (or receptive fields) can be
+    In order to reduce the interference of noise and obtained more
+effective features to construct the graph, fast Fourier transform (FFT) is                                                                                       derived. Let G be an undirected weighted graph, L denotes the graph
+performed on each sample xi = [xi(0),xi(2),...,xi(N - 1)]  RN, and the
+obtained frequency spectrums are taken as features for each sample. The                                                                                          Laplacian, and k > 0 is an integer (k represents the k-hop neighbor),
+process of FFT can be expressed as:
+                                                                                                                                                                 then for any two nodes i and j:
+
+                                                                                                                                                                 ( k)  {   dG(i, j)  k
+
+                                                                                                                                                                 L i,j = 0 otherwise (17)
+
+          N- 1                                                (12)                                                                                               where dG is the shortest path distance connecting two nodes, i.e., the
+xi(n) = xi(k)e- j2nk/N , n = 0, 1, 2, ..., N - 1                                                                                                                 minimum number of edges between them.  is the weight sum of the
+                                                                                                                                                                 edges on dG. Hence, from Eq. (17), the spectral filters represented by kth
+                k=0                                                                                                                                              order polynomial (such as Chebyshev polynomials) of the Laplacian are
+                                                                                                                                                                 exactly k-hop localized. It can aggregate feature from k-hop neighbors.
+where FFT(·) is the FFT operator to transform each sample into the                                                                                               Thus, the parameter k can be regarded as the kernel size or receptive
+                                                                                                                                                                 field of the graph convolution, and aggregating features from neighbors
+                                                                                                                                                                 at different hops can be understood as learning features from different
+                                                                                                                                                                 scales.
+frequency domain, and half of the result (denoted as xi) is taken as
+features for each sample.                                                                                                                                            Traditional GCNs are usually implemented by using multiple graph
+                                                                                                                                                                 convolution layers sequentially, with a fixed kernel. For a single graph
+    Then, each sample is treated as a node, and k-nearest neighbor                                                                                               convolution layer in GCN, it can only aggregated information from local
+                                                                                                                                                                 neighbors at a fixed distance, and some useful information hidden in
+method is used to search the k-nearest nodes as the neighbor set for each                                                                                        farther neighbor nodes may be overlooked.
+node. The process can be denoted as follows: let (D(1), D(2), ..., D(n- 1))T
+                                                                                                                                                                     Therefore, to maximize the effective utilization of structural and
+                                                                                                                                                      
+
+be the order statistic of the Euclidean distance between xi and the rest n-
+                                                                                                       
+
+1 samples; the neighbors of node xi are selected by the k-nearest
+Euclidean distance, which can be denoted as:
+
+                                                                                                                                                            565
+Z. Xie et al.                                                                                                                                                                                                   Journal of Manufacturing Systems 64 (2022) 561-577
+
+Fig. 5.  The   schematic  framework  of  MSA-GCN.  Hi    denotes the learned feature from the jth branch of the ith MS-GConv layer. wj                                                                                        represents the respective attention
+
+                                                      j
+
+weight coefficients of the extracted features from different scale.
+
+feature information of unlabeled samples from different neighborhoods                                                                                                                     Table 1
+                                                                                                                                                                                          The detailed structure of MSA-GCN. (C denotes the number of classes).
+around each labeled sample in the association graph, a multi-scale graph
+
+convolution (MS-GConv) layer is designed in this paper to aggregate
+
+useful information for the limited labeled samples.                                                                                                                                       No. Layer name  Input shape         Output shape
+
+MS-GConv layer is composed of multiple Chebyshev graph convo­                                                                                                                             1  Input        -                   512 × 1
+                                                                                                                                                                                                          512 × 1             [256 × 1, 256 × 1,
+lution (ChebConv) layers in parallel with different kernel sizes, which                                                                                                                   2  MS-GConv                         256 × 1]
+                                                                                                                                                                                                          [256 × 1, 256 × 1,  256 × 1
+can simultaneously extract multi-scale features from varying neighbor­                                                                                                                       layer        256 × 1]
+                                                                                                                                                                                                          256 × 1             [128 × 1, 128 × 1,
+                                                                                                                                                                                          3  AFF layer                        128 × 1]
+                                                                                                                                                                                                          [128 × 1, 128 × 1,  128 × 1
+hoods in a graph. For an association graph with node feature X = [x1,x2,                                                                                                                  4  MS-GConv     128 × 1]
+                                                                                                                                                                                                          128 × 1             C×1
+                                                                                                                                                                                             layer        C×1                 C×1
+..., xN], the features learned by each graph convolution layer can be
+
+expressed as:                                                                                                                                                                             5  AFF layer
+
+                          (  j           )
+
+Hj = ChebConvj(X) = ReLU                 kTk(L)X , j = 1, 2, ..., m  (18)                                                                                                                 6  FC layer
+
+                             k=0                                                                                                                                                          7  softmax
+
+where j presents the kernel size (or the order of Chebyshev polynomial),                                                                                                                  3.2.3. MSA-GCN for semi-supervised fault diagnosis
+and m is the number of kernels, i.e., the number of the parallel graph                                                                                                                        In this paper, the number of kernels m is set as 3, namely, the MS-
+convolution layers.
+                                                                                                                                                                                          GConv layer contains three graph convolution layers in parallel with
+3.2.2. Adaptive feature fusion layer                                                                                                                                                      different kernel sizes of 1-3. The multi-scale attention-aware graph
+                                                                                                                                                                                          convolution network is composed of two MS-GConv layers, two AFF
+To achieve the cross-scale information fusion of different unlabeled                                                                                                                      layers, and a fully connected (FC) layer. Each MS-GConv layer along
+                                                                                                                                                                                          with an AFF layer can be viewed as a basic feature extraction block in the
+neighborhood and obtain more informative and robust feature pre­                                                                                                                          model. The MS-GConv layer is used to learn multi-scale node features
+                                                                                                                                                                                          from both labeled and unlabeled samples in graph, and then, an AFF
+sentations, inspired by the work of the self-attention mechanism [34],                                                                                                                    layer is followed to adaptively fuse the extracted multi-scale feature.
+                                                                                                                                                                                          Finally, the FC layer is used as the classifier. The framework of MSA-GCN
+we propose a novel adaptive feature fusion (AFF) layer.                                                                                                                                   is shown in Fig. 5, and the detailed structure is shown in Table 1.
+
+The input of the AFF layer is a set of multi-scale features learned by                                                                                                                        For a graph with node feature X, the output of the first MS-GConv
+                                                                                                                                                                                          layer and AFF layer can be expressed as:
+the MS-GConv layer, which can be denoted as {H1, H2, ..., Hm}, Hm 
+RN×F is the node features learned by the mth ChebConv layer with the
+
+kernel size of m, N represents the number of nodes and F is the feature
+
+dimension of each node. The AFF layer first computes the attention
+coefficients of node features {w1, w2, ..., wm}, where wj  RN (j = 1,2...,
+
+m) indicate the importance of the extracted features of different scales to                                                                                                                         3
+                                                                                                                                                                                          H1 = wj ChebConvj(X)
+each node, and then outputs a fused node representation Hi. To                                                                                                                                                                                                   (21)
+                                                                                                                                                                                                           j=1
+accomplish the above process, a single-layer feedforward neural
+
+network is utilized in this paper, which is parametrized by a shared                                                                                                                      where H1 is the learned feature representation, ChebConvj(X) is the
+weight vector   RF. Computation of attention weights can be                                                                                                                               output of Chebyshev graph convolution layer with the kernel size of j, wj
+
+expressed as:                                                                                                                                                                             is respective weight coefficients.
+                                                                                                                                                                                              Then, H1 is used as the input of the second MS-GConv layer and AFF
+            ( ( ))                                                   (19)
+       exp tanh Hij                                                                                                                                                                       layer to get the final feature representation H2 as:
+wj = m ( ( ))
+                                                                                                                                                                                             3            ()
+         exp tanh Hit
+
+          t=1
+
+                                                                                                                                                                                          H2 = wj ChebConvj H1                                                   (22)
+
+where tanh is the tanh activation function. And the final feature is:                                                                                                                        j=1
+
+       m                                                             (20)                                                                                                                     Finally, node classification is accomplished through the FC layer,
+Hi = wtHti                                                                                                                                                                                which can be denoted as follows:
+
+           t=1
+
+                                                                                                                                                                                     566
+Z. Xie et al.                                                                                                     Journal of Manufacturing Systems 64 (2022) 561-577
+
+                                            Fig. 6. General process of intelligent fault diagnosis with MSA-GCN.
+
+Z = softmax( FC( H2)) (23)                                                          1) Data acquisition: The labeled and unlabeled vibration signals are
+                                                                                        collected from the test rig.
+where Z is the prediction results.
+    Cross-entropy loss is applied for the multi-fault classification task.          2) Obtaining the sample datasets: The collected vibration signals are
+                                                                                        first divided into multiple independent samples and fast Fourier
+For the MSA-GCN model in this paper, the cross-entropy loss function of                 transform is performed on each sample to get their spectrum data;
+the labeled nodes (or samples) is used as the objective function for back-              Then, the spectrum samples are divided into training samples and
+propagation, which can be denoted as:                                                   test samples; The training samples contain a few labeled samples
+                                                                                        while the rest are unlabeled samples. The test samples are unlabeled.
+LCE = -        1  C            ()              (24)
+                               yij log pij                                          3) Knn-graph construction: The training sample set and test sample are
+         |Vlabel| iVlabel j=1                                                           converted into graph data respectively with the proposed graph
+                                                                                        construction method, which can be denoted as Gtrain and Gtest.
+where Vlabel denotes the set of labeled nodes, |Vlabel| denotes the num­
+ber of labeled nodes, C is the number of categories, yij and pij are the one-       4) Model training and testing: The proposed method MSA-GCN is
+hot label and the predicted probability of the ith labeled node.                        trained with Gtrain. Then, the trained model is applied to identify the
+                                                                                        test samples in Gtest, and realize fault diagnosis and classification.
+    In brief, MSA-GCN can automatically extract and fuse multi-scale
+feature in the graph to obtain more informative and robust node pre­                4. Case study
+sentations compared with traditional GCNs. It can maximize the effec­
+tive utilization of structural and feature information of both labeled and              In this section, three case studies are conducted to evaluate the
+unlabeled samples in graph, and to learn a classifier which has good                effectiveness of MSA-GCN. Besides, four other related methods SSGCN
+generalization ability to identify the unseen samples. The category in­             [35], ChebyNet [36], ResCNN [37] and MCCNN [38] are used for
+formation of the labeled samples is utilized as the objective loss function         comparison. First, a brief introduction to these comparison methods is
+to optimize the model parameter in the training stage. Finally, the fault           given. Then, we apply these methods and carry out a series of compar­
+diagnosis is realized.                                                              ison experiments with limited labeled samples on three datasets
+                                                                                    collected from different testbeds. The three datasets are compound fault
+3.3. Intelligent fault diagnosis with MSA-GCN                                       dataset- Shipborne Antenna (SA) dataset, multi-speed bearing
+                                                                                    dataset-Spectra Quest (SQ) dataset, and multi-load bearing dataset-Case
+    To comprehensively utilize the labeled information, unlabeled in­               Western Reserve University (CWRU) dataset.
+formation, and the geometric structural information of data, this paper
+proposed a semi-supervised GNN named MSA-GCN. This section details                      Besides, it's necessary to define the range of extremely-limited
+how to apply the proposed MSA-GCN for intelligent fault diagnosis of                sample here. In existing related research, scholars define the small
+rotating machinery. Specifically, the overall flowchart of the intelligent          sample condition as using no more than 30 training samples each class to
+fault diagnosis method based on MAS-GCN is shown in Fig. 6.                         train the model and then verify the effectiveness of the model [39]. In
+                                                                                    this paper, we further define the extremely-limited sample condition as
+    The specific diagnostic steps are described as follows:                         using no more than 10 labeled training samples each class. In the
+                                                                                    following experiments, we take 2, 5, 10, 20 samples in the training set as
+
+                                                                               567
+Z. Xie et al.                                                                                                  Journal of Manufacturing Systems 64 (2022) 561-577
+
+               Fig. 7. Structure of the compound fault test rig.
+
+                                                                                       Table 2
+                                                                                       Identification accuracy(%) under different numbers of labeled samples.
+
+                                                                                       Methods   Number of labeled samples/Label ratios
+
+                                                                                                 2/0.04        5/0.10        10/0.21       20/0.42
+
+                                                                                       ResCNN    46.35 ± 1.73  53.85 ± 2.87  68.44 ± 1.31  78.12 ± 2.66
+                                                                                       MCCNN     63.75 ± 3.51  69.48 ± 3.14  77.81 ± 1.79  85.94 ± 1.98
+                                                                                       SSGCN     76.15 ± 3.36  92.29 ± 1.96  95.62 ± 1.83  97.19 ± 1.86
+                                                                                       ChebyNet  73.02 ± 2.22  92.40 ± 2.38  97.60 ± 1.45  99.58 ± 0.68
+                                                                                       MSA-GCN   81.67 ± 1.62  95.21 ± 1.62  99.48 ± 0.74  100 ± 0.00
+
+Fig. 8. Bearing and gear faults in SA dataset: OF-outer ring fault; ReF-retainer                                    Fig. 9. Test results on SA dataset.
+fault; GF-gear fault.
+                                                                                       4.2. Case 1: compound fault dataset-SA dataset
+labeled samples to validate the proposed model and the four comparison
+methods. All the models are trained for 200 epochs, with an initial                    4.2.1. Dataset introduction
+learning rate of 0.001, the cross-entropy loss is used as the loss function                The test rig of SA dataset is shown in Fig. 7, which mainly consists of
+for each model and the optimizer is Adam. In addition, all the methods
+are trained and tested five times repeatedly to obtain more reliable test              a motor, sensors, and a gearbox. Rolling bearings and gears with mul­
+results for analysis.                                                                  tiple failures are fabricated and installed in the gearbox for testing. The
+                                                                                       type of the rolling bearing used in this test rig is 32007X. Failure bear­
+    All the models are written in the Python 3.8 environment and the                   ings and gears are shown in Fig. 8, including bearing outer ring fault
+Pytorch 1.8 deep learning framework, and experiments are conducted                     (OF), bearing retainer fault (ReF), and gear fault (GF). Besides, bearing
+with a Windows 10 operating system that contains a GTX 1660s GPU.                      of normal condition (NC) is also tested. Therefore, there are four types of
+                                                                                       health states in SA dataset (the labels are 0, 1, 2, and 3 respectively), and
+4.1. Comparison methods                                                                vibration signals are collected through acceleration sensors with a
+                                                                                       sampling frequency of 5 kHz. The rotating speed frequency of the motor
+    To demonstrate the superiority of MSA-GCN, four related models are                 is 20 Hz. For the vibration signal for each health condition, 1024 signal
+compared in our study. SSGCN [35] and ChebyNet [36] are two                            points are divided into a sample and 96 samples are obtained, then the
+GCN-based models. SSGCN is a typical two-layer graph convolution                       96 samples are randomly divided into training samples and test samples
+network based on semi-supervised learning (SSL). ChebyNet is a con­                    with a ratio of 1:1. Finally, The training set contains 48 × 4 = 192
+ventional two-layer Chebyshev graph convolution network with a kernel                  samples, and the test set contains 48 × 4 = 192 samples.
+size of 3. ResCNN [37] and MCCNN [38] are two traditional CNN-based
+models. ResCNN is based on deep residual learning and consists of
+multiple residual modules. MCCNN is a deep convolution neural
+network with multi-scale information. SSGCN and ChebyNet follow the
+same data preprocessing steps in the proposed method, that is, the
+training samples and testing samples are converted into graph data. For
+ResCNN and MCCNN, they use the independent samples for training and
+testing, only the labeled samples are used to train the model in the
+training stage.
+
+                                                                                  568
+Z. Xie et al.                                                                   Journal of Manufacturing Systems 64 (2022) 561-577
+
+               Fig. 10. T-SNE visualization of each model at one trial on SA dataset.
+
+4.2.2. Fault diagnosis with limited labeled samples                             comparison methods (SSGCN and ChebyNet).
+    To validate the effectiveness of MSA-GCN on the compound fault test             The test results of the proposed method and the comparison methods
+
+rig with limited labeled data, we conducted a series of experiments. In         are shown in Table 2. Besides, Fig. 9 displays the test results and error
+the training set, we randomly selected 2, 5, 10, and 20 samples from            bars of each model in the form of a histogram, which is more intuitive.
+each class as the labeled samples to fully simulate the condition of            As we can see from the results, the two traditional CNN-based methods:
+extremely-limited samples and verify the effectiveness of the model. The        ResCNN and MCCNN perform poorly in each experiment. These two
+rest samples in the training et are unlabeled. The fewer the labeled            models are based on supervised learning and are data-driven. When the
+training samples, the more difficult it is to the train model and perform       training data is insufficient, the models cannot be trained completely
+accurate fault diagnosis. During the experiments, the labeled samples in        and will tend to overfit. Therefore, their performance is bad. We can also
+the training set before constructing the knn-graph are used as the input        see that other three GCN-based semi-supervised methods perform much
+of the CNN-based comparison methods (ResCNN and MCCNN), the knn-                better than ResCNN and MCCNN. It indicates that GNN model combined
+graph is used as the input of the proposed method, and the GCN-based            with semi-supervised learning can effectively solve the fault diagnosis
+
+                                                                           569
+Z. Xie et al.                                                                                             Journal of Manufacturing Systems 64 (2022) 561-577
+
+               Fig. 11. Test rig of SQ dataset.
+
+                                                                                 Table 3
+                                                                                 Description of the two datasets under different speeds from SQ dataset.
+
+                                                                                 Speed Load    Training   Testing  Fault categories/label
+                                                                                               samples    samples
+
+                                                                                 29 Hz  equal  50 × 7     50 × 7   NC/0, IF-1/1, IF-2/2, IF-3/3,
+                                                                                 39 Hz         50 × 7     50 × 7   OF-1/4, OF-2/5, OF-3/6
+
+                                                                                 Table 4
+                                                                                 Identification accuracy(%) under different numbers of labeled samples at
+                                                                                 different speeds.
+
+                                                                                 Speed Methods Number of labeled samples/Label ratios
+
+                                                                                                  2/0.04  5/0.10   10/0.21             20/0.42
+
+              Fig. 12. Picture of different fault bearings in SQ dataset.        29 Hz  ResCNN    25.71   45.20    64.17               96.91
+                                                                                 39 Hz            ± 1.20  ± 2.99   ± 1.64              ± 3.92
+task under limited labeled samples. Among three GCN-based models,                       MCCNN     35.43   58.40    83.60               96.29
+our proposed model outperforms SSGCN and ChebyNet in each experi­                                 ± 7.33  ± 3.02   ± 2.66              ± 2.05
+ment under different numbers of labeled samples. Even under two                         SSGCN     70.11   91.09    97.89               99.71
+labeled samples each class, our model could reach the identification                              ± 2.83  ± 1.96   ± 1.48              ± 0.64
+accuracy of more than 80 %, which is higher than SSGCN and ChebyNet.                    ChebyNet  77.54   94.00    99.89               100 ± 0.00
+Meanwhile, the standard deviations of MSA-GCN are lower than other                                ± 1.33  ± 1.46   ± 0.16
+models in each experiment, which means our model is more stable.                        MSA-      84.74   96.91    100 ± 0.00          100 ± 0.00
+                                                                                        GCN       ± 0.69  ± 0.51
+    Moreover, take the experiment with 10 labeled samples as an                         ResCNN    38.23   53.71    75.14               93.77
+example, the features extracted by each model are visualized through t-                           ± 1.57  ± 2.20   ± 3.71              ± 3.06
+distributed stochastic neighbor embedding (t-SNE) and the corre­                        MCCNN     44.80   68.06    91.60               99.66
+sponding classification results are displayed in Fig. 10. We can see that                         ± 3.49  ± 2.33   ± 2.54              ± 0.47
+the distribution of the features extracted by ResCNN, MCCNN, and                        SSGCN     76.57   92.63    99.03               99.49
+SSGCN are mixed partly, and their classification performances are                                 ± 2.48  ± 1.79   ± 0.87              ± 0.71
+relatively poor. ChebyNet could extract more distinguishable features                   ChebyNet  79.26   94.74    99.43               100 ± 0.00
+than the above three methods, but the local classification boundaries of                          ± 2.54  ± 1.06   ± 0.45
+some classes are still unobvious to be classified completely. MSA-GCN                   MSA-      88.29   98.51    99.83               100 ± 0.00
+could extract more discriminate and more compact features to better                     GCN       ± 1.07  ± 0.93   ± 0.26
+classify different categories compared with other methods.
+                                                                                 recorder. Test bearings used in this test rig are NSK6203 type. The vi­
+4.3. Case 2: multi-speed bearing dataset-SQ dataset                              bration data of the test bearings are collected under two different
+                                                                                 rotating frequencies (29 Hz and 39 Hz), the sampling frequency is
+4.3.1. Dataset introduction                                                      25.6 kHz. The load is the same at the two speeds. Six types of fault
+    The working condition of the previous case is single. In real-world          bearings were manufactured with different sing-point defects. As shown
+                                                                                 in Fig. 12, bearings with different failure categories are mild inner ring
+engineering, the rotating machinery is usually operating in working              fault (IF-1), medium inner ring fault (IF-2), severe inner ring fault (IF-3),
+conditions of multiple rotating speeds. So, to validate the effectiveness        mild outer ring fault (OF-1), medium outer ring fault (OF-2), and severe
+of the proposed model under the working condition of different speeds,           outer ring fault (OF-3). Therefore, there are seven kinds of bearing
+experiments were carried out on SQ dataset, which is collected from a            health states in SQ dataset, including the bearing of normal condition
+multi-speed test rig.                                                            (NC).
+
+    The test rig of SQ dataset is shown in Fig. 11, which is composed of a           For the vibration data collected under each speed, 1024 data points
+motor, a rotor system, an acceleration sensor, a load device, and a              are divided into one sample and 100 independent samples can be ob­
+                                                                                 tained from the signal of each health state, then we randomly divided
+                                                                                 the 100 samples into training samples and test samples with the ratio of
+                                                                                 1:1. As shown in Table 3, we finally get 50 × 7 training samples and
+                                                                                 50 × 7 test samples for each speed condition, and two groups of
+
+                                                                            570
+Z. Xie et al.                                                                         Journal of Manufacturing Systems 64 (2022) 561-577
+
+               Fig. 13. Chart for test results under different speeds in SQ dataset.
+
+               Fig. 14. Confusion matrix for the test result of models at one trial under different speeds.
+
+experiments under different speeds will be carried out in the following             The test results are shown in Table 4 and Fig. 13. It can be seen from
+section.                                                                        the results that the classification accuracies of ResCNN and MCCNN are
+                                                                                lower than the other three methods, and their performance drops
+4.3.2. Fault diagnosis with limited labeled samples                             sharply when the number of labeled samples decreases. SSGCN and
+    To verify the effectiveness of MSA-GCN on the multi-speed test rig          ChebyNet could get good classification results when the number of
+                                                                                labeled samples is relatively sufficient (such as 10 or 20 each class). But
+under limited labeled samples, two groups of experiments under                  when there are only a few labeled samples (such as 2 or 5 each class),
+different speed conditions are conducted. In each group of experiment,          their classification results also decline obviously. For example, their
+we also randomly selected 2, 5, 10, and 20 samples from each class as the       classification accuracies with 2 labeled samples each class are all lower
+labeled samples.
+
+                                                                           571
+Z. Xie et al.                                                                                          Journal of Manufacturing Systems 64 (2022) 561-577
+
+                                             Fig. 15. Test rig of CWRU data.
+
+Table 5                                                                            Table 6
+Description of the three datasets under different loads from CWRU dataset.         Identification accuracy(%) under different numbers of labeled samples at
+                                                                                   different loads.
+Load  Training  Testing  Health state/label
+      samples   samples
+                                                                                   Load Methods Number of labeled samples/Label ratios
+
+1Hp 50 × 10     50 × 10  NC/0, IF-1/1, IF-2/2, IF-3/3, OF-1/4, OF-                             2/0.04  5/0.10  10/0.21                  20/0.42
+2Hp 50 × 10     50 × 10  2/5, OF-3/6, RF-1/7, RF-2/8, RF-3/9
+3Hp 50 × 10     50 × 10                                                            1Hp ResCNN  52.24   66.52   77.20                    94.00
+                                                                                                       ± 2.68  ± 2.55                   ± 3.19
+                                                                                               ± 4.17  78.28   86.40                    96.76
+                                                                                                       ± 4.22  ± 2.00                   ± 1.51
+                                                                                   MCCNN       54.48   88.12   95.04                    99.28
+                                                                                                       ± 3.80  ± 1.32                   ± 0.18
+than 80 % under different speeds, while MSA-GCN can reach about 85 %                           ± 1.45  95.20   98.44                    99.52
+accuracy or higher under such limited labeled samples. In summary, the                                 ± 1.05  ± 0.48                   ± 0.30
+proposed method achieves the best identification results under                     SSGCN       74.88   98.80   99.44                    100 ± 0.00
+extremely-limited samples, its error bar is also much smaller than other                               ± 0.89  ± 0.43
+comparison methods.                                                                            ± 4.51  62.76   74.92                    91.88
+                                                                                                       ± 4.26  ± 2.44                   ± 1.96
+    In addition, we give the confusion matrixes of the classification result       ChebyNet 77.84      71.32   88.00                    96.28
+of each model under each speed condition when using 10 labeled sam­                                    ± 3.44  ± 3.06                   ± 1.54
+ples each class, which are shown in Fig. 14. The results show that the                         ± 1.26  89.40   94.72                    100 ± 0.00
+four comparison methods all have the problem of misclassification of                                   ± 1.62  ± 2.87
+some classes to a certain degree while the proposed method could                   MSA-        82.84   94.64   97.20                    99.90
+classify different fault categories accurately.                                                        ± 3.30  ± 0.75                   ± 0.12
+                                                                                   GCN         ± 1.34  98.28   99.84                    100 ± 0.00
+    In short, the test results demonstrate the effectiveness and superi­                               ± 0.58  ± 0.09
+ority of the proposed method compared with other methods, and also                 2Hp ResCNN  47.40   61.32   74.96                    90.84
+verify the generalization ability under the working condition of different                             ± 2.98  ± 1.58                   ± 0.55
+speeds.                                                                                        ± 3.75  68.56   90.20                    97.20
+                                                                                                       ± 1.77  ± 3.22                   ± 1.27
+4.4. Case3: multi-load bearing dataset-CWRU dataset                                MCCNN       45.52   92.73   98.64                    100 ± 0.00
+                                                                                                       ± 2.47  ± 0.95
+4.4.1. Dataset introduction                                                                    ± 2.72  96.16   98.84                    99.92
+    In the previous two cases, experiments are conducted at different                                  ± 1.11  ± 0.84                   ± 0.18
+                                                                                   SSGCN       77.84   97.68   99.88                    100 ± 0.00
+speeds. To further verify the effectiveness of the proposed method under                               ± 0.59  ± 0.27
+the working condition of different loads, the Case Western Reserve                             ± 3.71
+University (CWRU) bearing dataset [40] is adopted, which is a widely
+used public dataset in the field of mechanical fault diagnosis. As shown           ChebyNet 80.00
+in Fig. 15, the test rig is composed of an electric motor, a torque sensor,
+and a dynamometer. Type of the test bearing used in this test rig is                           ± 3.72
+6205-2RS JEM SKF. The vibration data of the bearings are collected
+from acceleration sensors installed at the drive end, and the sampling             MSA-        85.56
+frequency is 12 kHz. There are four types of bearings in CWRU dataset:
+normal condition (NC), inner ring fault (IF), outer ring fault (OF), and           GCN         ± 1.21
+rolling element fault (RF). For each fault bearing, three different fault
+diameters of 0.007, 0.014, and 0.021 in. were manufactured to simulate             2Hp ResCNN  41.00
+different fault severities. We use NC, IF-1, IF-2, IF-3, OF-1, OF-2, OF-3,
+RF-1, RF-2, RF-3 to represent the ten health states (1, 2, and 3 indicate                      ± 1.97
+the fault diameter of 0.007, 0.014, and 0.021 in., respectively). The
+motor worked under three different loads: 1Hp, 2Hp, and 3Hp.                       MCCNN       49.24
+
+    For the vibration data collected under each load, we divide 1024                           ± 2.97
+data points into a sample and 100 independent samples can be obtained
+from the signal of each health state, then we randomly divided the 100             SSGCN       82.56
+samples into training samples and test samples with the ratio of 1:1. As
+shown in Table 5, we finally get 50 × 10 training samples and 50 × 10                          ± 1.98
+test samples for each load condition, and three groups of experiments
+under different loads are conducted in the following section.                      ChebyNet 78.32
+
+                                                                                               ± 2.09
+
+                                                                                   MSA-        88.28
+
+                                                                                   GCN         ± 0.94
+
+                                                                                   4.4.2. Fault diagnosis with limited labeled samples
+                                                                                       To verify the effectiveness of MSA-GCN on the multi-load test rig
+
+                                                                                   under limited labeled samples, three groups of experiments under
+                                                                                   different load conditions are conducted. In each group of experiment, 2,
+                                                                                   5, 10, and 20 samples from each class are randomly selected as the
+                                                                                   labeled samples.
+
+                                                                                       The test results of each model are shown in Table 6 and Fig. 16. From
+                                                                                   the results, we can see that the proposed method outperforms other
+                                                                                   methods under different load conditions. With 10 or 20 labeled samples
+                                                                                   each class, MSA-GCN could reach about 100 % classification accuracy.
+                                                                                   Besides, the performance of MSA-GCN is more stable when the number
+                                                                                   of labeled samples decreases. For instance, in the experiments with 2
+                                                                                   labeled samples each class, ResCNN and MCCNN perform badly under
+                                                                                   each load condition with an accuracy of less than 55 %; SSGCN and
+                                                                                   ChebyNet are better than ResCNN and MCCNN, their accuracies can
+                                                                                   reach up to about 80 % under each load condition; MSA-GCN obtains the
+                                                                                   best performance, its accuracy is more than 5 % higher than SSGCN and
+                                                                                   ChebyNet under each load condition.
+
+                                                                                       Furthermore, take one trail of the experiments with 10 labeled
+
+                                                                              572
+Z. Xie et al.                                                                          Journal of Manufacturing Systems 64 (2022) 561-577
+
+               Fig. 16. Chart for test results under different loads in CWRU dataset.
+
+samples each class as an example, we give the confusion matrixes and t-        5.1. Number of neighbors k in knn-graph
+SNE visualization of the classification results of the proposed method
+under different load conditions, which is shown in Fig. 17. We can see             In our proposed method, graph construction is an essential step to
+that MSA-GCN can classify bearings with different fault types and fault        model the geometric structure information of data and the interactions
+severities accurately, the features extracted by MSA-GCN are distin­           between samples. Moreover, the useful information contained in labeled
+guishable and there is no overlap between each cluster.                        samples and unlabeled samples are bridged together in the graph for the
+                                                                               model to learn and utilize. In knn-graph, the number of neighbors k for
+    To sum up, the test results on CWRU dataset validate the effective­        each node is an important parameter that may influence the quality of
+ness of the proposed model under the working condition of different            the constructed graph and the diagnosis results. Therefore, the influence
+loads.                                                                         of the number of neighbors k is studied in this section. The test results on
+                                                                               the three datasets with different values of k are shown in Fig. 18.
+5. Discussion
+                                                                                   As the value of k increases, the performance of the model first raises
+    In this section, we give some discussions of the proposed method.          and then declines. When k is too small, the constructed knn-graph
+First, the number of neighbors to be selected in the knn-graph con­            cannot fully model the interactions between samples, and some of the
+struction step is studied. Second, experiments are carried out to inves­       useful geometric information may be overlooked. When k is too large,
+tigate the influence of the number of kernels in MSA-GCN on the                the constructed knn-graph may contain many redundant edge connec­
+diagnosis results. Finally, as attention mechanism is adopted in the           tions which will cost more storage and computing resources, and the
+proposed method, the effectiveness of the adaptive feature fusing layer        possibility of wrong edge connections may increase which will reduce
+is discussed.                                                                  the performance of the model. It can be seen from the results that when
+                                                                               the value of k is around 5, the model has a better performance on
+    It should be noted that in the following analyses, SA dataset, SQ          different datasets. Therefore, in the step of knn-graph construction, we
+dataset under 39 Hz, and CWRU dataset under 3Hp are used, as shown             set k to 5.
+in Table 7. All the experiments are based on the above three datasets
+with the labeled training samples of 10 each class. In each experiment,
+the model is repeatedly trained and tested 5 times to obtain more reli­
+able results for analysis.
+
+                                                                          573
+Z. Xie et al.                                                                        Journal of Manufacturing Systems 64 (2022) 561-577
+
+                      Fig. 17. Confusion matrix and t-SNE visualization for the test results of MSA-GCN at one trial under different loads.
+
+Table 7                                                                              feature extracted by the MS-GConv layer. To demonstrate the effec­
+Description of the three datasets used in the discussion. (10 labeled training       tiveness of the AFF layer, we compare it with three other feature fusing
+samples each class).                                                                 strategies: sum, average, and max-pooling. For the sum fusing strategy,
+                                                                                     the multi-scale features extracted from different kernels are summed
+Name           Working    Training  Testing  Fault                                   together. For the average fusing strategy, we take the average result of
+               condition  samples   samples  classes                                 the extracted multi-scale feature. For the max-pooling fusing strategy,
+                                                                                     the maximum value of features extracted from different scales is kept.
+SA dataset     20 Hz      48 × 4    48 × 4   4                                       The experimental results are shown in Table 8.
+SQ dataset     39 Hz      50 × 7
+CWRU           3Hp        50 × 10   50 × 7   7                                           As shown in Table 8, with AFF layer, the model could achieve more
+                                                                                     than 99 % of recognition accuracies on each dataset, which is higher
+  dataset                           50 × 10  10                                      than other feature fusing strategies. The test results verify that AFF layer
+                                                                                     can greatly improve the performance of the model and demonstrate its
+5.2. Number of kernels m                                                             effectiveness.
+
+    In MSA-GCN, the MS-GConv layer contains multiple kernels of                      5.4. Advantages and shortcomings
+different sizes to extract multi-scale features from graph data. In this
+section, a series of experiments are conducted to explore the influence of               The effectiveness of the proposed method has been demonstrated
+the number of kernels (m) on the performance of the model. The number                through the above experiments and discussions. The advantages of the
+of kernels in the MS-GConv layer is increased from 1 to 7, and the                   proposed method can be summarized as follows:
+experimental results on three datasets are shown in Fig. 19.
+                                                                                         First, a graph construction method combined with FFT and k-nearest
+    As shown in Fig. 19, it can be seen that the test accuracies of the              neighbor is proposed to convert the vibration signal samples into graph
+model first increase and then decline, with m increasing. The test results           data. through this step, the geometric structural information of data or
+indicate that aggregating the features of nodes from a closer neighbor­              the relations between samples is modeled into the graph for the model to
+hood can improve the performance of the model. The neighbor nodes                    learn and utilize.
+from farther hops may belong to a different class, the aggregated fea­
+tures from them might be discrepant and negative to the central node,                    Second, we develop semi-supervised graph learning in MSA-GCN to
+and the wrongly learned information will decrease the performance of                 utilize the unlabeled data. The model can be trained well with limited
+the model. Besides, as m increases, the training time increases a lot, and           labeled samples along with abundant unlabeled samples by converting
+the stability of the model declines. From the results, the model obtains             them into an association graph. The use of unlabeled data helps to
+the best performance when m is 3. Therefore, we set the number of                    alleviate the reliance on labeled data in real-world situations.
+kernels m to 3, with the kernel size of 1, 2, and 3, respectively.
+                                                                                         Third, MSA-GCN is capable of extracting and adaptively fusing multi-
+5.3. Effectiveness of AFF layer                                                      scale features from the constructed graph to obtain robust representa­
+                                                                                     tions for each node, then implements node classification to realize fault
+    In our proposed method, attention mechanism is adopted and an                    identification.
+adaptive feature fusing (AFF) layer is established to fuse the multi-scale
+                                                                                         And finally, based on MSA-GCN, an end-to-end fault diagnosis
+                                                                                     framework under the situation of limited labeled samples was presented.
+
+                                                                                574
+Z. Xie et al.                                                                    Journal of Manufacturing Systems 64 (2022) 561-577
+
+               Fig. 18. Test results with different k values on three datasets.
+
+    Despite the above-mentioned advantages of the proposed method, it          6. Conclusion
+still has some shortcomings to be improved. First, in the graph con­
+struction step, Euclidean distance is used to measure the similarity be­           In this article, a multi-scale attention-aware graph convolution
+tween samples. In some engineering scenarios, the collected data may be        network (MSA-GCN) was proposed for fault diagnosis of rotating ma­
+more complex and nosier, using Euclidean distance as a similarity              chinery under limited labeled samples. Based on MSA-GCN, an end-to-
+measurement may cause wrong results, as it is too simple. Second, in           end fault diagnosis pipeline for rotating machinery was proposed. This
+many actual industrial situations, the collected data are often unbal­         method can alleviate the dependence on labeled data while improving
+anced, usually, the normal data is much more than fault data. Our              the recognition performance by utilizing unlabeled data. Labeled and
+method is currently unable to solve the problem of fault diagnosis under       unlabeled samples were converted into association graphs through the
+data imbalance.                                                                proposed graph construction method, and the geometric information of
+                                                                               data and relations between samples were modeled. The MSA-GCN was
+5.5. Future work                                                               applied to learn the rich labeled, unlabeled, and geometric information
+                                                                               contained in graph. MSA-GCN can learn and adaptively fuse multi-scale
+    In the previous sections, extensive experiments were carried out to        features learned from graph, and then obtain robust node presentations
+verify the excellent performance of MSA-GCN. Despite the advantages,           for fault diagnosis. Extensive experiments with limited labeled samples
+there is still room for improvement of the proposed method. According          were conducted on three different datasets to evaluate the performance
+the aforementioned disadvantages, Euclidean distance is utilized as the        of the proposed method. The test results demonstrated the outstanding
+similarity measurement of samples, which is too simple to process more         identification ability and generalization ability of the proposed method
+complex and noise data. So, it's necessary to develop more robust sim­         under multiple working conditions. Besides, the experimental results
+ilarity measurement methods. Deep metric learning (DML) [41] is a              also verified the effectiveness and superiority of the proposed method
+potential research direction, which aims to measure the similarity             compared with other methods. Future work can be conducted based on
+among samples using an optimal distance metric. Second, our method is          the discussion given in Section 5.5, which can extend the application of
+currently unable to solve data imbalance issue. So, our future work will       the proposed method in actual industrial practice.
+be focus on how to extend the proposed method to solve the fault
+diagnosis under data imbalance. Generative adversarial network [42]            Declaration of Competing Interest
+and self-supervised learning [43] are potential solutions to solve the
+data imbalance problem.                                                            The authors declare that they have no known competing financial
+
+                                                                          575
+Z. Xie et al.                                                                              Journal of Manufacturing Systems 64 (2022) 561-577
+
+                                       Fig. 19. Test results with different numbers of kernels on three datasets.
+
+Table 8                                                                                    References
+Test results on three datasets with different feature fusing strategies. (10 labeled
+training samples each class).                                                               [1] Feng Y, Chen J, Zhang T, He S, Xu E, Zhou Z. Semi-supervised meta-learning
+                                                                                                  networks with squeeze-and-excitation attention for few-shot fault diagnosis. ISA
+Feature fusing strategy  Datasets                                                                 Trans 2021. https://doi.org/10.1016/j.isatra.2021.03.013. S0019057821001543.
+
+                         SA dataset    SQ dataset    CWRU dataset                           [2] Zhang K, Chen J, Zhang T, Zhou Z. A compact convolutional neural network
+                                                                                                  augmented with multiscale feature extraction of acquired monitoring data for
+Sum                      97.60 ± 0.70  97.77 ± 0.93  98.16 ± 1.78                                 mechanical intelligent fault diagnosis. J Manuf Syst 2020;55:273-84. https://doi.
+Average                  96.67 ± 0.70  98.46 ± 0.77  98.20 ± 1.81                                 org/10.1016/j.jmsy.2020.04.016.
+Max-pooling              98.33 ± 1.13  97.89 ± 0.77  98.48 ± 0.64
+AFF layer                99.27 ± 0.70  99.66 ± 0.47  99.80 ± 0.20                           [3] Zhao B, Zhang X, Zhan Z, Wu Q. Deep multi-scale adversarial network with
+                                                                                                  attention: a novel domain adaptation method for intelligent fault diagnosis.
+interests or personal relationships that could have appeared to influence                         J Manuf Syst 2021;59:565-76. https://doi.org/10.1016/j.jmsy.2021.03.024.
+the work reported in this paper.
+                                                                                            [4] Li X, Zhang W, Ma H, Luo Z, Li X. Deep learning-based adversarial multi-classifier
+Acknowledgements                                                                                  optimization for cross-domain machinery fault diagnostics. J Manuf Syst 2020;55:
+                                                                                                  334-47. https://doi.org/10.1016/j.jmsy.2020.04.017.
+    The authors would like to sincerely thank all the anonymous re­
+viewers for the valuable comments that greatly helped to improve the                        [5] Zuo L, Zhang L, Zhang Z-H, Luo X-L, Liu Y. A spiking neural network-based
+manuscript.                                                                                       approach to bearing fault diagnosis. J Manuf Syst 2021;61:714-24. https://doi.
+                                                                                                  org/10.1016/j.jmsy.2020.07.003.
+    This research is supported financially by the National Natural Sci­
+ence Foundation of China (No. 51875436), Guangxi Science and Tech­                          [6] Yan X, Jia M. A novel optimized SVM classification algorithm with multi-domain
+nology Major Project (No. Guike AA22068001), National Key Research                                feature and its application to fault diagnosis of rolling bearing. Neurocomputing
+and Development Program of China (No.2019YFF0302204), Scientific                                  2018;313:47-64. https://doi.org/10.1016/j.neucom.2018.05.002.
+Research and Technology Development in Liuzhou (No.
+2021AAA0112)Open Fund of State Key Laboratory (No.                                          [7] Hu Q, Si X-S, Zhang Q-H, Qin A-S. A rotating machinery fault diagnosis method
+sklms2022005) and Fundamental Research Funds for the Central Uni­                                 based on multi-scale dimensionless indicators and random forests. Mech Syst
+versities (No. XZY022022026, No. XZY022021006).                                                   Signal Process 2020;139:106609. https://doi.org/10.1016/j.ymssp.2019.106609.
+
+                                                                                            [8] Feng Y, Chen J, Yang Z, Song X, Chang Y, He S, et al. Similarity-based meta-
+                                                                                                  learning network with adversarial domain adaptation for cross-domain fault
+                                                                                                  identification. Knowl-Based Syst 2021;217:106829. https://doi.org/10.1016/j.
+                                                                                                  knosys.2021.106829.
+
+                                                                                            [9] Shao H, Lin J, Zhang L, Galar D, Kumar U. A novel approach of multisensory fusion
+                                                                                                  to collaborative fault diagnosis in maintenance. Inf Fusion 2021;74:65-76. https://
+                                                                                                  doi.org/10.1016/j.inffus.2021.03.008.
+
+                                                                                           [10] Yu J, Liu G. Knowledge extraction and insertion to deep belief network for gearbox
+                                                                                                  fault diagnosis. Knowl-Based Syst 2020;197:105883. https://doi.org/10.1016/j.
+                                                                                                  knosys.2020.105883.
+
+                                                                                      576
+Z. Xie et al.                                                                                                                                   Journal of Manufacturing Systems 64 (2022) 561-577
+
+[11] Zhiyi H, Haidong S, Lin J, Junsheng C, Yu Y. Transfer fault diagnosis of bearing          [28] Shuman DI, Narang SK, Frossard P, Ortega A, Vandergheynst P. The emerging field
+       installed in different machines using enhanced deep auto-encoder. Measurement                  of signal processing on graphs: Extending high-dimensional data analysis to
+       2020;152:107393. https://doi.org/10.1016/j.measurement.2019.107393.                            networks and other irregular domains. IEEE Signal Process Mag 2013;30:83-98.
+                                                                                                      https://doi.org/10.1109/MSP.2012.2235192.
+[12] Cao H, Shao H, Zhong X, Deng Q, Yang X, Xuan J. Unsupervised domain-share CNN
+       for machine fault transfer diagnosis from steady speeds to time-varying speeds.         [29] Bruna J, Zaremba W, Szlam A, LeCun Y. Spectral networks and locally connected
+       J Manuf Syst 2022;62:186-98. https://doi.org/10.1016/j.jmsy.2021.11.016.                       networks on graphs. ArXiv 2014;13126203(Cs).
+
+[13] Xie Z, Chen J, Feng Y, Zhang K, Zhou Z. End to end multi-task learning with               [30] Defferrard M, Bresson X, Vandergheynst P. Convolutional neural networks on
+       attention for multi-objective fault diagnosis under small sample. J Manuf Syst                 graphs with fast localized spectral filtering. ArXiv 2017;160609375(Cs, Stat).
+       2022;62:301-16. https://doi.org/10.1016/j.jmsy.2021.12.003.
+                                                                                               [31] Kipf TN, Welling M. Semi-supervised classification with graph convolutional
+[14] Han T, Pang J, Tan ACC. Remaining useful life prediction of bearing based on                     networks. ArXiv 2017;160902907(Cs, Stat).
+       stacked autoencoder and recurrent neural network. J Manuf Syst 2021;61:576-91.
+       https://doi.org/10.1016/j.jmsy.2021.10.011.                                             [32] Qiao L, Zhang L, Chen S, Shen D. Data-driven graph construction and graph
+                                                                                                      learning: a review. Neurocomputing 2018;312:336-51. https://doi.org/10.1016/j.
+[15] Wen L, Li X, Gao L, Zhang Y. A new convolutional neural network-based data-                      neucom.2018.05.084.
+       driven fault diagnosis method. IEEE Trans Ind Electron 2018;65:5990-8. https://
+       doi.org/10.1109/TIE.2017.2774777.                                                       [33] Hammond DK, Vandergheynst P, Gribonval R. Wavelets on graphs via spectral
+                                                                                                      graph theory. Appl Comput Harmon Anal 2011;30:129-50. https://doi.org/
+[16] Shao H, Jiang H, Zhang H, Liang T. Electric locomotive bearing fault diagnosis                   10.1016/j.acha.2010.04.005.
+       using a novel convolutional deep belief network. IEEE Trans Ind Electron 2018;65:
+       2727-36. https://doi.org/10.1109/TIE.2017.2745473.                                      [34] Velickovi´c P, Cucurull G, Casanova A, Romero A, Lio` P, Bengio Y. Graph attention
+                                                                                                      networks. ArXiv 2018;171010903(Cs, Stat).
+[17] Zhang Y, Zhou T, Huang X, Cao L, Zhou Q. Fault diagnosis of rotating machinery
+       based on recurrent neural networks. Measurement 2021;171:108774. https://doi.           [35] Gao Y, Chen M, Yu D. Semi-supervised graph convolutional network and its
+       org/10.1016/j.measurement.2020.108774.                                                         application in intelligent fault diagnosis of rotating machinery. Measurement 2021;
+                                                                                                      186:110084. https://doi.org/10.1016/j.measurement.2021.110084.
+[18] Lei Y, Yang B, Jiang X, Jia F, Li N, Nandi AK. Applications of machine learning to
+       machine fault diagnosis: A review and roadmap. Mech Syst Signal Process 2020;           [36] Li T, Zhou Z, Li S, Sun C, Yan R, Chen X. The emerging graph neural networks for
+       138:106587. https://doi.org/10.1016/j.ymssp.2019.106587.                                       intelligent fault diagnostics and prognostics: a guideline and a benchmark study.
+                                                                                                      Mech Syst Signal Process 2022;168:108653. https://doi.org/10.1016/j.
+[19] Zhuang F, Qi Z, Duan K, Xi D, Zhu Y, Zhu H, et al. A comprehensive survey on                     ymssp.2021.108653.
+       transfer learning. ArXiv:191102685 [Cs, Stat] 2020.
+                                                                                               [37] Zhang W, Li X, Ding Q. Deep residual learning-based fault diagnosis method for
+[20] Tang Y, Zhang X, Zhai Y, Qin G, Song D, Huang S, et al. Rotating machine systems                 rotating machinery. ISA Trans 2019;95:295-305. https://doi.org/10.1016/j.
+       fault diagnosis using semisupervised conditional random field-based graph                      isatra.2018.12.025.
+       attention network. IEEE Trans Instrum Meas 2021;70:1-10. https://doi.org/
+       10.1109/TIM.2021.3091212.                                                               [38] Huang W, Cheng J, Yang Y, Guo G. An improved deep convolutional neural
+                                                                                                      network with multi-scale information for bearing fault diagnosis. Neurocomputing
+[21] Zhang K. Triplet metric driven multi-head GNN augmented with decoupling                          2019;359:77-92. https://doi.org/10.1016/j.neucom.2019.05.052.
+       adversarial learning for intelligent fault diagnosis of machines under varying
+       working condition. J Manuf Syst 2022:16.                                                [39] Zhang T, Chen J, Li F, Pan T, He S. A small sample focused intelligent fault
+                                                                                                      diagnosis scheme of machines via multimodules learning with gradient penalized
+[22] Li T, Zhao Z, Sun C, Yan R, Chen X. Domain adversarial graph convolutional                       generative adversarial networks. IEEE Trans Ind Electron 2021;68:10130-41.
+       network for fault diagnosis under variable working conditions. IEEE Trans Instrum              https://doi.org/10.1109/TIE.2020.3028821.
+       Meas 2021;70:1-10. https://doi.org/10.1109/TIM.2021.3075016.
+                                                                                               [40] Welcome to the Case Western Reserve University Bearing Data Center Website |
+[23] Zhao X, Jia M, Liu Z. Semisupervised graph convolution deep belief network for                   Case School of Engineering | Case Western Reserve University. Case School of
+       fault diagnosis of electormechanical system with limited labeled data. IEEE Trans              Engineering; 2021. https://engineering.case.edu/bearingdatacenter/welcome
+       Ind Inf 2021;17:5450-60. https://doi.org/10.1109/TII.2020.3034189.                             (Accessed 21 May 2022).
+
+[24] Wu Z, Pan S, Chen F, Long G, Zhang C, Yu PS. A comprehensive survey on graph              [41] Kaya Bilge. Deep metric learning: a survey. Symmetry 2019;11:1066. https://doi.
+       neural networks. IEEE Trans Neural Netw Learn Syst 2021;32:4-24. https://doi.                  org/10.3390/sym11091066.
+       org/10.1109/TNNLS.2020.2978386.
+                                                                                               [42] Zhou F, Yang S, Fujita H, Chen D, Wen C. Deep learning fault diagnosis method
+[25] Zhou J, Cui G, Hu S, Zhang Z, Yang C, Liu Z, et al. Graph neural networks: a review              based on global optimization GAN for unbalanced data. Knowl-Based Syst 2020;
+       of methods and applications. AI Open 2020;1:57-81. https://doi.org/10.1016/j.                  187:104837. https://doi.org/10.1016/j.knosys.2019.07.008.
+       aiopen.2021.01.001.
+                                                                                               [43] Hou R, Chen J, Feng Y, Liu S, He S, Zhou Z. Contrastive-weighted self-supervised
+[26] Chong Y, Ding Y, Yan Q, Pan S. Graph-based semi-supervised learning: a review.                   model for long-tailed data classification with vision transformer augmented. Mech
+       Neurocomputing 2020;408:216-30. https://doi.org/10.1016/j.                                     Syst Signal Process 2022;177:109174. https://doi.org/10.1016/j.
+       neucom.2019.12.130.                                                                            ymssp.2022.109174.
+
+[27] Song Z, Yang X, Xu Z, King I. Graph-based semi-supervised learning: a
+       comprehensive review. ArXiv:210213303 [Cs] 2021.
+
+                                                                                          577
+

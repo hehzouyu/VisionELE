@@ -1,0 +1,396 @@
+% !TeX program = xelatex
+\documentclass[UTF8,a4paper,11pt]{ctexart}
+
+\usepackage[margin=2.4cm]{geometry}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{amsmath}
+\usepackage{siunitx}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,linkcolor=black,citecolor=black,urlcolor=blue!60!black}
+\captionsetup{font=small,labelsep=quad}
+\setlist{itemsep=2pt,topsep=3pt}
+
+\title{\textbf{绝缘卫士：CA-YOLO 绝缘子缺陷检测}\\[0.4em]
+\large 真实数据训练与消融实验报告（2026-10-29）}
+\author{何周俣\\武汉理工大学 \, 电气工程创新创业实践}
+\date{2026 年 10 月 29 日}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent 本报告记录「基于 CA 注意力机制的绝缘子缺陷检测」这一视觉模块从仿真链路走向真实
+数据训练的全过程：完成公开数据集 FBID（1600 张真实巡检照片）的下载、类别映射与划分，
+在 RTX 4090 Laptop 上以 YOLOv8n 为基线完成多组 60 epoch 训练，并对三类因素做对照——
+(1) 坐标注意力（CoordAtt, CA）的注入位置（不注入 / 注入 SPPF 层 / 注入 backbone 全部 9 层）；
+(2) batch size（32 / 64 / 96）；(3) flashover 类别的数据补充（3 倍过采样与同源新增样本合并）。
+以 broken 为主验证类别时，CA 的两种注入方式均未表现出可复现的精度增益，差异落在 seed 与
+batch 造成的噪声范围之内；batch size 对吞吐影响显著（batch 96 可达 17--19 s/epoch、GPU
+利用率 65\%），但对精度并非单调有利。本报告如实记录这些负结果，并给出后续可执行的验证路线。
+\end{abstract}
+
+\section{实验目的}
+
+视觉模块的最终任务是：在绝缘子巡检图像中检出 \textbf{normal}（正常）、\textbf{flashover}
+（闪络/污秽）与 \textbf{broken}（破损）三类目标，并把缺陷位置交给决策层规划复检机位。
+
+此前版本使用几何投影的仿真检测器（\texttt{src/integration/sim\_detector.py}）打通控制链路，
+它只回答「框落在图像哪里」，不回答「识别准不准」。本轮的目标因此是：
+
+\begin{enumerate}[label=(\arabic*)]
+  \item 用\textbf{真实标注数据}训练、评测检测器，给出可引用的 mAP 数字；
+  \item 验证论文构想中的 \textbf{CA 坐标注意力}是否带来增益，若没有，如实记录；
+  \item 找出影响精度的\textbf{非模型因素}（batch、seed、数据分布），为后续实验定口径。
+\end{enumerate}
+
+\section{数据集}
+
+\subsection{FBID 数据集}
+
+训练与评测使用 GitHub 公开数据集 \textbf{FBID}（\url{https://github.com/xxlree/FBID}，
+EPL-2.0 许可），共 1600 张真实无人机/地面巡检照片。原始标注为 3 类
+（\texttt{0 pollution\_flashover}、\texttt{1 broken}、\texttt{2 insulator}），
+按项目类别定义重映射为：
+
+\begin{center}
+\begin{tabular}{ccc}
+\toprule
+FBID 原始类别 & 项目类别 & 说明 \\
+\midrule
+\texttt{2 insulator} & \texttt{0 normal} & 正常绝缘子 \\
+\texttt{0 pollution\_flashover} & \texttt{1 flashover} & 闪络/污秽 \\
+\texttt{1 broken} & \texttt{2 broken} & 破损 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+原始 \texttt{train}（1280 张）按「是否含缺陷」分层抽 10\% 作为验证集，原始 \texttt{test}
+（320 张）保持独立，最终划分如表~\ref{tab:data}。转换脚本为
+\texttt{scripts/prepare\_dataset.py}，产物为 \texttt{训练样本/FBID/yolo/}。
+
+\begin{table}[htbp]
+\centering
+\caption{FBID 数据划分与标注框统计（按项目类别）}
+\label{tab:data}
+\begin{tabular}{lccc}
+\toprule
+split & 图像数 & normal / flashover / broken 框数 & 含缺陷图数 \\
+\midrule
+train & 1152 & 1331 / 1729 / 823 & 569（flashover）+ 578（broken） \\
+val   & 128  & 149 / 212 / 78   & --- \\
+test  & 320  & 352 / 507 / 192  & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{flashover 补充数据}
+
+flashover 是三类中指标最低的一类（表~\ref{tab:overall} 中 test 仅 0.82），尝试补充数据。
+调研发现可用的公开集只有 \texttt{zxc060413/Insulator-defect\_yolo\_format}
+（论文 InsuFault-Net，1688 张、4 类）；按文件名比对与 FBID \textbf{82.5\% 同源}，
+按图像内容 md5 去重后真正新增仅 \textbf{296 张}（其中 156 张含 flashover）。
+因此「外部数据」实际上是同源扩展，不能期望独立的域增益。
+
+\section{训练环境与超参}
+
+\begin{table}[htbp]
+\centering
+\caption{训练环境}
+\begin{tabular}{ll}
+\toprule
+项目 & 配置 \\
+\midrule
+GPU & NVIDIA GeForce RTX 4090 Laptop，16\,GB \\
+Python & 3.13.9（独立 venv：\texttt{Demos/.venv}） \\
+PyTorch / torchvision & 2.9.1+cu126 / 0.24.1+cu126 \\
+Ultralytics & 8.4.192 \\
+模型 & YOLOv8n（3.15\,M 参数，CA 注入后 3.17\,M） \\
+训练轮数 / 优化器 & 60 epoch / AdamW，余弦退火，warmup 3 \\
+batch size & 32 / 64 / 96（对照变量） \\
+输入分辨率 & 640（960 实验待跑） \\
+增强 & HSV、水平翻转、mosaic=1.0（Ultralytics 默认组合） \\
+数据缓存 & \texttt{cache=ram}（FBID 约 0.6\,GB） \\
+随机种子 & seed 0（主要），seed 1（复现） \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent\textbf{关于 DataLoader 进程数。}受运行环境限制（多进程命名管道被拒绝，
+\path{PermissionError: [WinError 5]}），训练与评测统一使用 \texttt{workers=0}，
+数据增强在单进程内完成。这也是 batch size 成为吞吐主要杠杆的原因（见第~\ref{sec:speed} 节）。
+
+\section{实验结果}
+
+\subsection{整体与逐类指标（batch 32，两 seed）}
+
+\begin{table}[htbp]
+\centering
+\caption{整体 mAP（batch 32）。每格为 mAP@0.5 / mAP@0.5:0.95}
+\label{tab:overall}
+\begin{tabular}{lcccc}
+\toprule
+run & val mAP50 & val mAP50-95 & test mAP50 & test mAP50-95 \\
+\midrule
+baseline s0      & 0.9112 & 0.5999 & 0.9056 & 0.6086 \\
+baseline s1      & 0.9161 & 0.6069 & 0.9167 & 0.6086 \\
+CA@SPPF s0       & 0.9172 & 0.6075 & 0.9031 & 0.6013 \\
+CA@SPPF s1       & 0.9124 & 0.6024 & 0.9168 & 0.6089 \\
+CA@backbone s0   & 0.9132 & 0.6112 & 0.9062 & 0.6094 \\
+\midrule
+两 seed 均值（baseline） & 0.9137 & 0.6034 & 0.9112 & 0.6086 \\
+两 seed 均值（CA@SPPF）  & 0.9148 & 0.6050 & 0.9100 & 0.6051 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+CA@SPPF 与基线的两 seed 均值差：val $+0.12$\,pt、test $-0.12$\,pt，而\textbf{同配置
+seed 之间的极差为 0.48--0.49\,pt}。也就是说，注意力带来的差异小于随机种子带来的波动，
+在该数据与超参下\textbf{测不出 CA 的正向作用}。
+
+\begin{table}[htbp]
+\centering
+\caption{逐类 mAP@0.5（batch 32，seed 0）}
+\begin{tabular}{lcccccc}
+\toprule
+run & \multicolumn{2}{c}{normal} & \multicolumn{2}{c}{flashover} & \multicolumn{2}{c}{broken} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
+ & val & test & val & test & val & test \\
+\midrule
+baseline        & 0.995 & 0.995 & 0.800 & 0.820 & 0.938 & 0.902 \\
+CA@SPPF         & 0.995 & 0.995 & 0.804 & 0.813 & 0.953 & 0.901 \\
+CA@backbone     & 0.995 & 0.995 & 0.804 & 0.818 & 0.941 & 0.905 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+normal 已达到饱和（0.995），瓶颈集中在 flashover（0.80--0.82）与 broken（0.90--0.95）。
+其中 flashover 与「污秽」在视觉上高度混淆、标注本身也不稳定，更适合作为数据质量问题记录，
+而不适合作为算法验证目标；因此后续以 \textbf{broken}（结构破损，标注可信）作为主验证类别。
+
+\subsection{broken 主指标：batch 档位 $\times$ CA 注入位置}
+
+\begin{table}[htbp]
+\centering
+\caption{broken 单类指标。每格为 mAP@0.5 / mAP@0.5:0.95，同一 batch 内可直接比较}
+\label{tab:broken}
+\begin{tabular}{llcccc}
+\toprule
+batch & run & val mAP50 & val mAP50-95 & test mAP50 & test mAP50-95 \\
+\midrule
+32 & baseline      & 0.9380 & 0.5223 & 0.9015 & 0.5018 \\
+32 & CA@SPPF       & 0.9525 & 0.5314 & 0.9013 & 0.4928 \\
+32 & CA@backbone   & 0.9408 & \textbf{0.5519} & 0.9050 & 0.5108 \\
+\midrule
+64 & baseline      & 0.9446 & 0.5285 & 0.9081 & 0.5048 \\
+64 & CA@SPPF       & 0.9440 & 0.5044 & 0.9048 & 0.5014 \\
+64 & CA@backbone   & 0.9343 & 0.5038 & 0.9087 & 0.5104 \\
+\midrule
+96 & baseline      & \textbf{0.9514} & 0.5233 & \textbf{0.9095} & 0.5021 \\
+96 & CA@backbone   & 0.9167 & 0.4988 & 0.9024 & 0.4808 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+这是本报告最重要的负面结果：
+
+\begin{enumerate}[label=(\arabic*)]
+  \item \textbf{CA 注入位置没有可复现的增益。} batch 32 上 CA@backbone 的
+        broken mAP50-95 比基线高 3.0\,pt（val），但同配置在 batch 64 变为 $-2.5$\,pt、
+        batch 96 变为 $-2.4$\,pt；batch 32 上 CA@SPPF 的 mAP50 高 1.45\,pt，
+        到 batch 64 反低 0.06\,pt。差异没有一致方向。
+  \item \textbf{差异量级小于噪声。} 同 batch 内三档 broken mAP50 的最大差距为 1.5\,pt；
+        而 seed 之间为 0.9--2.1\,pt、batch 之间为 0.7--1.2\,pt。1.5\,pt 落在噪声带内，
+        不能据此宣称「某个注入位置更好」。
+  \item \textbf{batch 对精度不是单调有利。} broken mAP50 随 batch 上升
+        （0.9380 $\to$ 0.9446 $\to$ 0.9514），但 test 几乎不动
+        （0.9015 $\to$ 0.9081 $\to$ 0.9095）；整体 mAP50-95 反而是 batch 64 最好。
+\end{enumerate}
+
+\subsection{吞吐：batch 96 的真实收益}
+\label{sec:speed}
+
+\begin{table}[htbp]
+\centering
+\caption{训练吞吐（640 分辨率、60 epoch、单进程数据管线）}
+\begin{tabular}{lccc}
+\toprule
+batch & 每轮耗时 & 显存占用 & GPU 利用率 \\
+\midrule
+32 & $\sim$30--35\,s & 5.4\,GB & $\sim$40\,\% \\
+64 & $\sim$30\,s      & 7.9\,GB & $\sim$45\,\% \\
+96 & \textbf{17--19\,s} & 11.9\,GB & \textbf{$\sim$65\,\%} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+batch 96 把一轮 60 epoch 从约 30 分钟压到约 15 分钟，是本轮唯一稳定可复现的「提升」；
+但它在精度上并不占优。若要继续提速，只能改用多进程数据加载（本环境不支持）或
+减少增强开销，而不是继续加大 batch。
+
+\subsection{flashover 补充数据实验}
+
+\begin{table}[htbp]
+\centering
+\caption{flashover 补充实验（每格为整体 mAP@0.5 / flashover mAP@0.5 / broken mAP@0.5）}
+\label{tab:flash}
+\begin{tabular}{llcccc}
+\toprule
+split & run & batch & mAP50 & flashover & broken \\
+\midrule
+val  & baseline            & 32 & 0.9112 & 0.800 & 0.938 \\
+val  & E2 flashover$\times$3 & 32 & 0.9193 & \textbf{0.852} & 0.911 \\
+val  & baseline            & 64 & \textbf{0.9234} & 0.830 & 0.945 \\
+val  & E3 MERGED+$\times$3   & 64 & 0.9149 & \textbf{0.853} & 0.897 \\
+val  & E4 CA@backbone      & 64 & 0.9161 & 0.819 & 0.934 \\
+\midrule
+test & baseline            & 32 & 0.9056 & 0.820 & 0.902 \\
+test & E2 flashover$\times$3 & 32 & 0.9043 & 0.830 & 0.888 \\
+test & baseline            & 64 & 0.9125 & 0.834 & 0.908 \\
+test & E3 MERGED+$\times$3   & 64 & \textbf{0.9199} & \textbf{0.856} & 0.909 \\
+test & E4 CA@backbone      & 64 & 0.9027 & 0.804 & 0.909 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+补充 flashover 数据确实把该单类在两个划分上都推高约 2.2\,pt（E3-b64），test 整体 +0.74\,pt；
+代价是 val 的 broken 掉 4.8\,pt——过采样挤占了其他类别的采样权重，整体基本持平。
+这从另一个侧面说明：\textbf{当前瓶颈是数据分布，不是注意力结构}。
+
+\section{结论与口径}
+
+\begin{enumerate}[label=(\arabic*)]
+  \item 真实数据上，YOLOv8n 在 FBID 的整体 test mAP@0.5 为 \textbf{0.906--0.917}，
+        broken 单类为 \textbf{0.90--0.95}（mAP50-95 0.50--0.55）；这是可以对外引用的数字。
+  \item \textbf{CA 坐标注意力在本数据/本规模下测不出稳定增益}，两种注入位置均未超过 seed 噪声。
+        论文与答辩中应将 CA 表述为「结构上的可选增强」，而不是「精度提升点」；
+        若要做 CA 的正向结论，必须每档至少 3 个 seed 并报告均值$\pm$极差。
+  \item batch size 与 seed 的交互大于 CA 的影响；cross-batch 的数字\textbf{不可}直接比较，
+        所有对照必须同 batch、同 seed 数、同数据划分。
+  \item flashover 的短板来自标注与视觉歧义，补同源公开数据只能缓解、不能根治；
+        真正的下一步是现场巡检图，以及分辨率的提升（broken 目标小，960 输入有物理依据）。
+\end{enumerate}
+
+\section{复现与产物}
+
+\begin{verbatim}
+# 数据准备（FBID 原始标注 -> 项目 3 类 YOLO 划分）
+python scripts/prepare_dataset.py --src ../训练样本/FBID/raw \
+       --dst ../训练样本/FBID/yolo
+
+# 训练：基线 / CA@SPPF / CA@backbone（batch 96 示例）
+python scripts/train_vision.py --run-name real_baseline_b96_v8n \
+       --no-ca --epochs 60 --batch 96 --cache ram --seed 0
+python scripts/train_vision.py --run-name real_ca_sppf_b64_v8n \
+       --epochs 60 --batch 64 --cache ram --seed 0
+python scripts/train_vision.py --run-name real_ca_backbone_b96_v8n \
+       --epochs 60 --batch 96 --cache ram --seed 0 --ca-inject backbone
+
+# 评测（val / test）
+python scripts/evaluate_vision.py --weights ../results/runs/<run>/weights/best.pt \
+       --split test --device 0
+
+# 汇总表
+python scripts/summarize_runs.py              # training_summary.md
+python scripts/summarize_runs.py --focus broken  # broken_summary.md
+\end{verbatim}
+
+\noindent 产物位置：
+\begin{itemize}
+  \item 权重与训练曲线：\texttt{Demos/results/runs/<run>/}；
+  \item 评测 JSON：\texttt{Demos/results/benchmarks/vision\_eval\_*.json}；
+  \item 汇总表：\texttt{training\_summary.md}、\texttt{broken\_summary.md}；
+  \item 工作日志（含全部实验矩阵与踩坑记录）：\texttt{Demos/WORKLOG.md}。
+\end{itemize}
+
+\section{已知限制}
+
+\begin{itemize}
+  \item 数据集为公开集，与决赛现场工况、拍摄角度不完全一致；同源数据已接近天花板。
+  \item 单 seed 主实验 + 少量两 seed 复现，$\pm1$\,pt 级别的差异尚不具备统计说服力。
+  \item 受环境限制，数据加载为单进程，吞吐不代表硬件上限。
+  \item imgsz 960 与 conf 阈值扫描实验已准备但\textbf{尚未运行}，是本报告之后最直接的补强项。
+\end{itemize}
+
+\clearpage
+\appendix
+\section{创新点与论证缺口}
+
+本附录把项目对外主张的每条创新点，与截至本轮的实验证据逐条对照，标出证据不足、口径
+风险与处置建议。它不改变正文的实验结论，只回答一个问题：\textbf{现在能不能写}. 各条
+对应的原始数字见 \texttt{Demos/results/benchmarks/} 与 \texttt{Demos/WORKLOG.md}。
+
+\begin{footnotesize}
+\begin{longtable}{@{}>{\raggedright\arraybackslash}p{2.15cm}
+                     >{\raggedright\arraybackslash}p{3.95cm}
+                     >{\raggedright\arraybackslash}p{4.05cm}
+                     >{\raggedright\arraybackslash}p{3.45cm}@{}}
+\caption{各创新点的现有证据、问题与处置}\label{tab:novelty}\\
+\toprule
+创新点 & 现有证据 & 问题 & 处置建议 \\
+\midrule
+\endfirsthead
+\multicolumn{4}{@{}l}{\footnotesize 表~\thetable（续）}\\[2pt]
+\toprule
+创新点 & 现有证据 & 问题 & 处置建议 \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+CA 坐标注意力
+  & 3 档 batch × 3 种注入共 10 组 run；同 batch 内差 $\le 1.5$\,pt，跨 batch 方向相反
+  & 无稳定增益；CA 本身是 2021 年已有方法，非新结构
+  & 只写「可选结构增强」；或补 SE / CBAM / ECA 对照，每档 $\ge 3$ seed \\
+\addlinespace
+RFA 多尺度聚合
+  & 仅有 \texttt{src/vision/rfa.py} 代码，从未训练、从未评测
+  & 零实验证据，写进创新点即为空头
+  & 补训练与消融，或从创新点中删除 \\
+\addlinespace
+频域增强（CWT / VMD）
+  & 真实裁剪 32$\times$32，空间特征 40.78\% $\rightarrow$ 融合 38.98\%
+  & 负增益
+  & 定位为光照/退化归一化分支，不与检测 mAP 挂钩 \\
+\addlinespace
+图结构 / 小样本（MSA-GCN、cDMTH）
+  & 3 类手工特征 45.7\% / 42.6--45.9\%，随机基线 33\%
+  & 只证明流程可运行，未接入主干，不构成检测增益
+  & 降为探索性实验，不与检测指标并列 \\
+\addlinespace
+cDCGAN 数据增广
+  & 60 / 300 epoch，生成样本仍为低频色块
+  & 生成质量未收敛，不能作为增广数据使用
+  & 明写「管线跑通、质量不可用」 \\
+\addlinespace
+缺陷驱动复检调度 + A*/DWA 联动
+  & 仿真闭环 789 步 / 7 任务 / 0 碰撞；随机图基准 50 例成功率 94\%，2 例碰撞
+  & 组件均为成熟算法，新意只在联动；证据全部来自仿真
+  & \textbf{建议作为创新主线}，并补半实物或真机验证 \\
+\addlinespace
+数据集贡献
+  & 使用公开集 FBID，仅做类别映射与重新划分
+  & 无自有数据、无新增标注
+  & 不作为数据集贡献主张 \\
+\end{longtable}
+\end{footnotesize}
+
+\noindent 另有三条跨条目的共性缺口，任何一条创新点想站住都必须先补：
+
+\begin{enumerate}[label=(\arabic*)]
+  \item 主实验为单 seed，缺显著性检验；$\pm1$\,pt 量级的差异不足以下结论。
+  \item 无 SOTA 对比：未与 YOLOv8s/m、YOLOv10/11、RT-DETR 等横向比较，
+        也未在 CPLID / IDID 等公开集上交叉验证。
+  \item test 仅 320 图（broken 192 框），val/test 之间 0.5--1.5\,pt 的差异属抽样抖动。
+\end{enumerate}
+
+\noindent 综上，本轮真正立得住的是\textbf{系统层}：检测 $\rightarrow$ 世界坐标 $\rightarrow$
+复检机位 $\rightarrow$ 路径规划 $\rightarrow$ 任务完成的闭环；建议创新点叙事以此为主线，
+CA 降为设计选择而非卖点。
+
+\end{document}

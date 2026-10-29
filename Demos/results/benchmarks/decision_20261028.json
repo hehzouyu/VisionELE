@@ -1,0 +1,1653 @@
+{
+  "meta": {
+    "generated_at": "2026-10-28T22:44:01+08:00",
+    "script": "scripts/benchmark_decision.py",
+    "date_tag": "20261028",
+    "seed": 2026,
+    "rows": 80,
+    "cols": 80,
+    "resolution": 0.1,
+    "obstacle_ratio": 0.12,
+    "min_start_goal_m": 3.0,
+    "max_steps": 1500,
+    "dt": 0.1,
+    "robot_radius": 0.3,
+    "goal_tolerance": 0.15,
+    "astar": {
+      "connectivity": 8,
+      "turn_penalty": 0.5,
+      "heuristic": "octile",
+      "smooth_method": "douglas_peucker",
+      "smooth_epsilon": 0.15,
+      "bspline_iterations": 2
+    },
+    "dwa": {
+      "v_max": 1.0,
+      "v_acc": 0.5,
+      "w_max": 1.5,
+      "w_acc": 1.0,
+      "horizon": 2.0,
+      "lookahead": 0.6,
+      "stop_distance": 0.3
+    },
+    "planner": {
+      "goal_tolerance": 0.15,
+      "deviation_threshold": 0.5,
+      "replan_cooldown": 0.2,
+      "max_replans": 2000,
+      "safety_margin": 0.1
+    },
+    "machine": {
+      "python": "3.13.9",
+      "numpy": "2.3.5",
+      "platform": "Windows-11-10.0.26200-SP0"
+    },
+    "elapsed_s": 10.26
+  },
+  "summary": {
+    "n_maps": 50,
+    "n_success": 47,
+    "n_failure": 3,
+    "success_rate": 0.94,
+    "n_attempted": 50,
+    "success_rate_attempted": 0.94,
+    "failure_breakdown": {
+      "collision": 2,
+      "timeout": 1
+    },
+    "collisions_total": 6,
+    "steps": {
+      "mean": 188.106,
+      "std": 64.115,
+      "min": 97.0,
+      "median": 178.0,
+      "max": 342.0,
+      "p95": 313.7,
+      "n": 47
+    },
+    "traveled_length_m": {
+      "mean": 6.496,
+      "std": 3.347,
+      "min": 2.987,
+      "median": 5.506,
+      "max": 18.516,
+      "p95": 11.816,
+      "n": 47
+    },
+    "replans": {
+      "mean": 2.17,
+      "std": 3.076,
+      "min": 1.0,
+      "median": 1.0,
+      "max": 15.0,
+      "p95": 8.8,
+      "n": 47
+    },
+    "min_clearance_m": {
+      "mean": 0.472,
+      "std": 0.178,
+      "min": 0.1,
+      "median": 0.5,
+      "max": 1.2,
+      "p95": 0.7,
+      "n": 47
+    },
+    "wall_time_s_total": 8.29
+  },
+  "runs": [
+    {
+      "status": "success",
+      "failure_reason": null,
+      "success": true,
+      "steps": 206,
+      "replans": 10,
+      "collisions": 0,
+      "traveled_length_m": 11.818,
+      "global_path_length_m": 5.087,
+      "min_clearance_path_m": 0.5,
+      "min_clearance_traveled_m": 0.5,
+      "final_distance_m": 0.139,
+      "dwell_steps": 0,
+      "stuck_trace": [],
+      "wall_time_s": 0.079,
+      "start": [
+        4.75,
+        6.55
+      ],
+      "goal": [
+        2.85,
+        2.25
+      ],
+      "start_goal_distance_m": 4.701,
+      "component_cells": 2713,
+      "index": 1,
+      "map_seed": 2026
+    },
+    {
+      "status": "success",
+      "failure_reason": null,
+      "success": true,
+      "steps": 328,
+      "replans": 14,
+      "collisions": 0,
+      "traveled_length_m": 17.005,
+      "global_path_length_m": 5.87,
+      "min_clearance_path_m": 0.5,
+      "min_clearance_traveled_m": 0.3,
+      "final_distance_m": 0.133,
+      "dwell_steps": 7,
+      "stuck_trace": [],
+      "wall_time_s": 0.129,
+      "start": [
+        2.55,
+        1.05
+      ],
+      "goal": [
+        6.65,
+        4.05
+      ],
+      "start_goal_distance_m": 5.08,
+      "component_cells": 2917,
+      "index": 2,
+      "map_seed": 2027
+    },
+    {
+      "status": "success",
+      "failure_reason": null,
+      "success": true,
+      "steps": 108,
+      "replans": 1,
+      "collisions": 0,
+      "traveled_length_m": 4.161,
+      "global_path_length_m": 4.287,
+      "min_clearance_path_m": 0.5,
+      "min_clearance_traveled_m": 0.5,
+      "final_distance_m": 0.145,
+      "dwell_steps": 3,
+      "stuck_trace": [],
+      "wall_time_s": 0.032,
+      "start": [
+        3.25,
+        0.65
+      ],
+      "goal": [
+        5.45,
+        3.85
+      ],
+      "start_goal_distance_m": 3.883,
+      "component_cells": 2583,
+      "index": 3,
+      "map_seed": 2028
+    },
+    {
+      "status": "success",
+      "failure_reason": null,
+      "success": true,
+      "steps": 108,
+      "replans": 1,
+      "collisions": 0,
+      "traveled_length_m": 3.505,
+      "global_path_length_m": 3.621,
+      "min_clearance_path_m": 0.5,
+      "min_clearance_traveled_m": 0.4,
+      "final_distance_m": 0.142,
+      "dwell_steps": 0,
+      "stuck_trace": [],
+      "wall_time_s": 0.034,
+      "start": [
+        2.15,
+        5.75
+      ],
+      "goal": [
+        4.75,
+        7.35
+      ],
+      "start_goal_distance_m": 3.053,
+      "component_cells": 2965,
+      "index": 4,
+      "map_seed": 2029
+    },
+    {
+      "status": "success",
+      "failure_reason": null,
+      "success": true,
+      "steps": 177,
+      "replans": 1,
+      "collisions": 0,
+      "traveled_length_m": 5.506,
+      "global_path_length_m": 5.696,
+      "min_clearance_path_m": 0.5,
+      "min_clearance_traveled_m": 0.5,
+      "final_distance_m": 0.134,
+      "dwell_steps": 0,
+      "stuck_trace": [],
+      "wall_time_s": 0.061,
+      "start": [
+        5.45,
+        6.85
+      ],
+      "goal": [
+        3.55,
+        1.75
+      ],
+      "start_goal_distance_m": 5.442,
+      "component_cells": 1815,
+      "index": 5,
+      "map_seed": 2030
+    },
+    {
+      "status": "success",
+      "failure_reason": null,
+      "success": true,
+      "steps": 299,
+      "replans": 1,
+      "collisions": 0,
+      "traveled_length_m": 9.311,
+      "global_path_length_m": 8.087,
+      "min_clearance_path_m": 0.5,
+      "min_clearance_traveled_m": 0.3,
+      "final_distance_m": 0.132,
+      "dwell_steps": 13,
+      "stuck_trace": [],
+      "wall_time_s": 0.065,
+      "start": [
+        1.45,
+        3.05
+      ],
+      "goal": [
+        7.35,
+        6.35
+      ],
+      "start_goal_distance_m": 6.76,
+      "component_cells": 2959,
+      "index": 6,
+      "map_seed": 2031
+    },
+    {
+      "status": "success",
+      "failure_reason": null,
+      "success": true,
+      "steps": 100,
+      "replans": 1,
+      "collisions": 0,
+      "traveled_length_m": 2.987,
+      "global_path_length_m": 3.207,
+      "min_clearance_path_m": 0.5,
+      "min_clearance_traveled_m": 0.4,
+      "final_distance_m": 0.147,
+      "dwell_steps": 0,
+      "stuck_trace": [],
+      "wall_time_s": 0.045,
+      "start": [
+        6.45,
+        5.65
+      ],
+      "goal": [
+        3.45,
+        5.95
+      ],
+      "start_goal_distance_m": 3.015,
+      "component_cells": 2363,
+      "index": 7,
+      "map_seed": 2032
+    },
+    {
+      "status": "success",
+      "failure_reason": null,
+      "success": true,
+      "steps": 274,
+      "replans": 3,
+      "collisions": 0,
+      "traveled_length_m": 11.811,
+      "global_path_length_m": 4.011,
+      "min_clearance_path_m": 0.5,
+      "min_clearance_traveled_m": 0.5,
+      "final_distance_m": 0.149,
+      "dwell_steps": 9,
+      "stuck_trace": [],
+      "wall_time_s": 0.083,
+      "start": [
+        6.15,
+        2.55
+      ],
+      "goal": [
+        4.25,
+        5.15
+      ],
+      "start_goal_distance_m": 3.22,
+      "component_cells": 2490,
+      "index": 8,
+      "map_seed": 2033
+    },
+    {
+      "status": "success",
+      "failure_reason": null,
+      "success": true,
+      "steps": 239,
+      "replans": 1,
+      "collisions": 0,
+      "traveled_length_m": 6.085,
+      "global_path_length_m": 6.367,
+      "min_clearance_path_m": 0.5,
+      "min_clearance_traveled_m": 0.5,
+      "final_distance_m": 0.132,
+      "dwell_steps": 0,
+      "stuck_trace": [],
+      "wall_time_s": 0.133,
+      "start": [
+        0.65,
+        7.25
+      ],
+      "goal": [
+        5.35,
+        5.85
+      ],
+      "start_goal_distance_m": 4.904,
+      "component_cells": 2592,
+      "index": 9,
+      "map_seed": 2034
+    },
+    {
+      "status": "failure",
+      "failure_reason": "collision",
+      "success": false,
+      "steps": 67,
+      "replans": 1,
+      "collisions": 3,
+      "traveled_length_m": 2.459,
+      "global_path_length_m": 4.804,
+      "min_clearance_path_m": 0.5,
+      "min_clearance_traveled_m": 0.0,
+      "final_distance_m": 1.94,
+      "dwell_steps": 0,
+      "stuck_trace": [
+        [
+          0.536,
+          -0.395
+        ],
+        [
+          0.542,
+          -0.302
+        ],
+        [
+          0.545,
+          -0.232
+        ],
+        [
+          0.547,
+          -0.178
+        ],
+        [
+          0.548,
+          -0.136
+        ],
+        [
+          0.549,
+          -0.105
+        ],
+        [
+          0.549,
+          -0.08
+        ],
+        [
+          0.55,
+          -0.062
+        ],
+        [
+          0.55,
+          -0.047
+        ],
+        [
+          0.55,
+          -0.037
+        ],
+        [
+          0.55,
+          -0.028
+        ],
+        [
+          0.55,
+          -0.022
+        ]
+      ],
+      "wall_time_s": 0.02,
+      "start": [
+        5.75,
+        4.85
+      ],
+      "goal": [
+        1.65,
+        5.95
+      ],
+      "start_goal_distance_m": 4.245,
+      "component_cells": 2789,
+      "index": 10,
+      "map_seed": 2035
+    },
+    {
+      "status": "success",
+      "failure_reason": null,
+      "success": true,
+      "steps": 257,
+      "replans": 6,
+      "collisions": 0,
+      "traveled_length_m": 10.601,
+      "global_path_length_m": 4.887,
+      "min_clearance_path_m": 0.5,
+      "min_clearance_traveled_m": 0.1,
+      "final_distance_m": 0.144,
+      "dwell_steps": 15,
+      "stuck_trace": [],
+      "wall_time_s": 0.102,
+      "start": [
+        1.25,
+        2.05
+      ],
+      "goal": [
+        3.55,
+        5.75
+      ],
+      "start_goal_distance_m": 4.357,
+      "component_cells": 2381,
+      "index": 11,
+      "map_seed": 2036
+    },
+    {
+      "status": "success",
+      "failure_reason": null,
+      "success": true,
+      "steps": 128,
+      "replans": 1,
+      "collisions": 0,
+      "traveled_length_m": 4.06,
+      "global_path_length_m": 4.414,
+      "min_clearance_path_m": 0.5,
+      "min_clearance_traveled_m": 0.2,
+      "final_distance_m": 0.145,
+      "dwell_steps": 0,
+      "stuck_trace": [],
+      "wall_time_s": 0.035,
+      "start": [
+        5.75,
+        1.15
+      ],
+      "goal": [
+        6.15,
+        5.15
+      ],
+      "start_goal_distance_m": 4.02,
+      "component_cells": 3307,
+      "index": 12,
+      "map_seed": 2037
+    },
+    {
+      "status": "success",
+      "failure_reason": null,
+      "success": true,
+      "steps": 176,
+      "replans": 1,
+      "collisions": 0,
+      "traveled_length_m": 6.418,
+      "global_path_length_m": 6.627,
+      "min_clearance_path_m": 0.5,
+      "min_clearance_traveled_m": 0.5,
+      "final_distance_m": 0.147,
+      "dwell_steps": 2,
+      "stuck_trace": [],
+      "wall_time_s": 0.066,
+      "start": [
+        5.75,
+        5.75
+      ],
+      "goal": [
+        1.15,
+        1.15
+      ],
+      "start_goal_distance_m": 6.505,
+      "component_cells": 2943,
+      "index": 13,
+      "map_seed": 2038
+    },
+    {
+      "status": "success",
+      "failure_reason": null,
+      "success": true,
+      "steps": 176,
+      "replans": 1,
+      "collisions": 0,
+      "traveled_length_m": 6.352,
+      "global_path_length_m": 6.499,
+      "min_clearance_path_m": 0.5,
+      "min_clearance_traveled_m": 0.3,
+      "final_distance_m": 0.139,
+      "dwell_steps": 0,
+      "stuck_trace": [],
+      "wall_time_s": 0.052,
+      "start": [
+        6.85,
+        7.45
+      ],
+      "goal": [
+        3.95,
+        2.05
+      ],
+      "start_goal_distance_m": 6.129,
+      "component_cells": 2982,
+      "index": 14,
+      "map_seed": 2039
+    },
+    {
+      "status": "success",
+      "failure_reason": null,
+      "success": true,
+      "steps": 233,
+      "replans": 1,
+      "collisions": 0,
+      "traveled_length_m": 6.01,
+      "global_path_length_m": 6.27,
+      "min_clearance_path_m": 0.5,
+      "min_clearance_traveled_m": 0.5,
+      "final_distance_m": 0.139,
+      "dwell_steps": 0,
+      "stuck_trace": [],
+      "wall_time_s": 0.148,
+      "start": [
+        6.55,
+        3.05
+      ],
+      "goal": [
+        1.75,
+        5.55
+      ],
+      "start_goal_distance_m": 5.412,
+      "component_cells": 2791,
+      "index": 15,
+      "map_seed": 2040
+    },
+    {
+      "status": "success",
+      "failure_reason": null,
+      "success": true,
+      "steps": 290,
+      "replans": 1,
+      "collisions": 0,
+      "traveled_length_m": 10.385,
+      "global_path_length_m": 5.229,
+      "min_clearance_path_m": 0.5,
+      "min_clearance_traveled_m": 0.5,
+      "final_distance_m": 0.141,
+      "dwell_steps": 12,
+      "stuck_trace": [],
+      "wall_time_s": 0.081,
+      "start": [
+        3.25,
+        6.75
+      ],
+      "goal": [
+        5.65,
+        3.15
+      ],
+      "start_goal_distance_m": 4.327,
+      "component_cells": 1682,
+      "index": 16,
+      "map_seed": 2041
+    },
+    {
+      "status": "success",
+      "failure_reason": null,
+      "success": true,
+      "steps": 201,
+      "replans": 1,
+      "collisions": 0,
+      "traveled_length_m": 5.124,
+      "global_path_length_m": 5.504,
+      "min_clearance_path_m": 0.5,
+      "min_clearance_traveled_m": 0.5,
+      "final_distance_m": 0.143,
+      "dwell_steps": 0,
+      "stuck_trace": [],
+      "wall_time_s": 0.127,
+      "start": [
+        5.55,
+        6.95
+      ],
+      "goal": [
+        0.75,
+        5.65
+      ],
+      "start_goal_distance_m": 4.973,
+      "component_cells": 2555,
+      "index": 17,
+      "map_seed": 2042
+    },
+    {
+      "status": "success",
+      "failure_reason": null,
+      "success": true,
+      "steps": 178,
+      "replans": 1,
+      "collisions": 0,
+      "traveled_length_m": 5.023,
+      "global_path_length_m": 5.218,
+      "min_clearance_path_m": 0.5,
+      "min_clearance_traveled_m": 0.5,
+      "final_distance_m": 0.149,
+      "dwell_steps": 1,
+      "stuck_trace": [],
+      "wall_time_s": 0.094,
+      "start": [
+        3.15,
+        5.85
+      ],
+      "goal": [
+        7.25,
+        4.55
+      ],
+      "start_goal_distance_m": 4.301,
+      "component_cells": 2548,
+      "index": 18,
+      "map_seed": 2043
+    },
+    {
+      "status": "success",
+      "failure_reason": null,
+      "success": true,
+      "steps": 182,
+      "replans": 1,
+      "collisions": 0,
+      "traveled_length_m": 5.289,
+      "global_path_length_m": 5.601,
+      "min_clearance_path_m": 0.5,
+      "min_clearance_traveled_m": 0.5,
+      "final_distance_m": 0.143,
+      "dwell_steps": 0,
+      "stuck_trace": [],
+      "wall_time_s": 0.097,
+      "start": [
+        1.85,
+        5.15
+      ],
+      "goal": [
+        5.95,
+        1.95
+      ],
+      "start_goal_distance_m": 5.201,
+      "component_cells": 2619,
+      "index": 19,
+      "map_seed": 2044
+    },
+    {
+      "status": "success",
+      "failure_reason": null,
+      "success": true,
+      "steps": 164,
+      "replans": 1,
+      "collisions": 0,
+      "traveled_length_m": 5.623,
+      "global_path_length_m": 5.774,
+      "min_clearance_path_m": 0.7,
+      "min_clearance_traveled_m": 0.7,
+      "final_distance_m": 0.139,
+      "dwell_steps": 0,
+      "stuck_trace": [],
+      "wall_time_s": 0.057,
+      "start": [
+        6.15,
+        1.35
+      ],
+      "goal": [
+        5.25,
+        6.85
+      ],
+      "start_goal_distance_m": 5.573,
+      "component_cells": 2819,
+      "index": 20,
+      "map_seed": 2045
+    },
+    {
+      "status": "success",
+      "failure_reason": null,
+      "success": true,
+      "steps": 179,
+      "replans": 1,
+      "collisions": 0,
+      "traveled_length_m": 5.867,
+      "global_path_length_m": 5.987,
+      "min_clearance_path_m": 0.5,
+      "min_clearance_traveled_m": 0.6,
+      "final_distance_m": 0.146,
+      "dwell_steps": 0,
+      "stuck_trace": [],
+      "wall_time_s": 0.069,
+      "start": [
+        2.25,
+        0.65
+      ],
+      "goal": [
+        5.75,
+        4.15
+      ],
+      "start_goal_distance_m": 4.95,
+      "component_cells": 2908,
+      "index": 21,
+      "map_seed": 2046
+    },
+    {
+      "status": "failure",
+      "failure_reason": "timeout",
+      "success": false,
+      "steps": 1500,
+      "replans": 3,
+      "collisions": 0,
+      "traveled_length_m": 45.835,
+      "global_path_length_m": 6.911,
+      "min_clearance_path_m": 0.5,
+      "min_clearance_traveled_m": 0.6,
+      "final_distance_m": 4.509,
+      "dwell_steps": 47,
+      "stuck_trace": [
+        [
+          0.4,
+          1.5
+        ],
+        [
+          0.45,
+          1.5
+        ],
+        [
+          0.5,
+          1.5
+        ],
+        [
+          0.5,
+          1.5
+        ],
+        [
+          0.5,
+          1.5
+        ],
+        [
+          0.55,
+          1.5
+        ],
+        [
+          0.5,
+          1.4
+        ],
+        [
+          0.5,
+          1.4
+        ],
+        [
+          0.45,
+          1.3
+        ],
+        [
+          0.4,
+          1.2
+        ],
+        [
+          0.4,
+          1.1
+        ],
+        [
+          0.4,
+          1.1
+        ]
+      ],
+      "wall_time_s": 0.35,
+      "start": [
+        2.15,
+        1.35
+      ],
+      "goal": [
+        7.25,
+        2.85
+      ],
+      "start_goal_distance_m": 5.316,
+      "component_cells": 2516,
+      "index": 22,
+      "map_seed": 2047
+    },
+    {
+      "status": "success",
+      "failure_reason": null,
+      "success": true,
+      "steps": 186,
+      "replans": 1,
+      "collisions": 0,
+      "traveled_length_m": 4.655,
+      "global_path_length_m": 4.853,
+      "min_clearance_path_m": 0.5,
+      "min_clearance_traveled_m": 0.5,
+      "final_distance_m": 0.142,
+      "dwell_steps": 0,
+      "stuck_trace": [],
+      "wall_time_s": 0.114,
+      "start": [
+        4.55,
+        1.45
+      ],
+      "goal": [
+        2.25,
+        5.35
+      ],
+      "start_goal_distance_m": 4.528,
+      "component_cells": 2959,
+      "index": 23,
+      "map_seed": 2048
+    },
+    {
+      "status": "success",
+      "failure_reason": null,
+      "success": true,
+      "steps": 97,
+      "replans": 1,
+      "collisions": 0,
+      "traveled_length_m": 3.4,
+      "global_path_length_m": 3.649,
+      "min_clearance_path_m": 0.5,
+      "min_clearance_traveled_m": 0.5,
+      "final_distance_m": 0.146,
+      "dwell_steps": 9,
+      "stuck_trace": [],
+      "wall_time_s": 0.029,
+      "start": [
+        5.85,
+        3.05
+      ],
+      "goal": [
+        3.65,
+        5.65
+      ],
+      "start_goal_distance_m": 3.406,
+      "component_cells": 1804,
+      "index": 24,
+      "map_seed": 2049
+    },
+    {
+      "status": "success",
+      "failure_reason": null,
+      "success": true,
+      "steps": 118,
+      "replans": 1,
+      "collisions": 0,
+      "traveled_length_m": 3.351,
+      "global_path_length_m": 3.573,
+      "min_clearance_path_m": 0.5,
+      "min_clearance_traveled_m": 0.5,
+      "final_distance_m": 0.133,
+      "dwell_steps": 0,
+      "stuck_trace": [],
+      "wall_time_s": 0.046,
+      "start": [
+        5.55,
+        3.95
+      ],
+      "goal": [
+        6.15,
+        7.35
+      ],
+      "start_goal_distance_m": 3.453,
+      "component_cells": 2280,
+      "index": 25,
+      "map_seed": 2050
+    },
+    {
+      "status": "success",
+      "failure_reason": null,
+      "success": true,
+      "steps": 256,
+      "replans": 3,
+      "collisions": 0,
+      "traveled_length_m": 8.959,
+      "global_path_length_m": 5.187,
+      "min_clearance_path_m": 0.6,
+      "min_clearance_traveled_m": 0.2,
+      "final_distance_m": 0.142,
+      "dwell_steps": 22,
+      "stuck_trace": [],
+      "wall_time_s": 0.176,
+      "start": [
+        6.65,
+        7.15
+      ],
+      "goal": [
+        3.75,
+        3.75
+      ],
+      "start_goal_distance_m": 4.469,
+      "component_cells": 2585,
+      "index": 26,
+      "map_seed": 2051
+    },
+    {
+      "status": "success",
+      "failure_reason": null,
+      "success": true,
+      "steps": 119,
+      "replans": 1,
+      "collisions": 0,
+      "traveled_length_m": 3.626,
+      "global_path_length_m": 4.049,
+      "min_clearance_path_m": 0.5,
+      "min_clearance_traveled_m": 0.3,
+      "final_distance_m": 0.141,
+      "dwell_steps": 10,
+      "stuck_trace": [],
+      "wall_time_s": 0.083,
+      "start": [
+        6.25,
+        3.65
+      ],
+      "goal": [
+        4.65,
+        6.45
+      ],
+      "start_goal_distance_m": 3.225,
+      "component_cells": 3000,
+      "index": 27,
+      "map_seed": 2052
+    },
+    {
+      "status": "success",
+      "failure_reason": null,
+      "success": true,
+      "steps": 154,
+      "replans": 3,
+      "collisions": 0,
+      "traveled_length_m": 5.966,
+      "global_path_length_m": 4.85,
+      "min_clearance_path_m": 0.5,
+      "min_clearance_traveled_m": 0.1,
+      "final_distance_m": 0.14,
+      "dwell_steps": 23,
+      "stuck_trace": [],
+      "wall_time_s": 0.162,
+      "start": [
+        1.35,
+        0.95
+      ],
+      "goal": [
+        3.15,
+        4.25
+      ],
+      "start_goal_distance_m": 3.759,
+      "component_cells": 2494,
+      "index": 28,
+      "map_seed": 2053
+    },
+    {
+      "status": "success",
+      "failure_reason": null,
+      "success": true,
+      "steps": 226,
+      "replans": 1,
+      "collisions": 0,
+      "traveled_length_m": 6.065,
+      "global_path_length_m": 6.336,
+      "min_clearance_path_m": 0.5,
+      "min_clearance_traveled_m": 0.4,
+      "final_distance_m": 0.149,
+      "dwell_steps": 12,
+      "stuck_trace": [],
+      "wall_time_s": 0.467,
+      "start": [
+        6.05,
+        0.75
+      ],
+      "goal": [
+        2.45,
+        4.95
+      ],
+      "start_goal_distance_m": 5.532,
+      "component_cells": 2634,
+      "index": 29,
+      "map_seed": 2054
+    },
+    {
+      "status": "success",
+      "failure_reason": null,
+      "success": true,
+      "steps": 163,
+      "replans": 1,
+      "collisions": 0,
+      "traveled_length_m": 5.005,
+      "global_path_length_m": 5.253,
+      "min_clearance_path_m": 0.5,
+      "min_clearance_traveled_m": 0.5,
+      "final_distance_m": 0.142,
+      "dwell_steps": 4,
+      "stuck_trace": [],
+      "wall_time_s": 0.315,
+      "start": [
+        2.05,
+        2.35
+      ],
+      "goal": [
+        4.95,
+        6.05
+      ],
+      "start_goal_distance_m": 4.701,
+      "component_cells": 2703,
+      "index": 30,
+      "map_seed": 2055
+    },
+    {
+      "status": "success",
+      "failure_reason": null,
+      "success": true,
+      "steps": 124,
+      "replans": 1,
+      "collisions": 0,
+      "traveled_length_m": 3.79,
+      "global_path_length_m": 3.992,
+      "min_clearance_path_m": 0.6,
+      "min_clearance_traveled_m": 0.6,
+      "final_distance_m": 0.148,
+      "dwell_steps": 0,
+      "stuck_trace": [],
+      "wall_time_s": 0.14,
+      "start": [
+        2.35,
+        4.75
+      ],
+      "goal": [
+        5.55,
+        6.85
+      ],
+      "start_goal_distance_m": 3.828,
+      "component_cells": 2241,
+      "index": 31,
+      "map_seed": 2056
+    },
+    {
+      "status": "success",
+      "failure_reason": null,
+      "success": true,
+      "steps": 131,
+      "replans": 1,
+      "collisions": 0,
+      "traveled_length_m": 4.301,
+      "global_path_length_m": 4.463,
+      "min_clearance_path_m": 0.6,
+      "min_clearance_traveled_m": 0.6,
+      "final_distance_m": 0.132,
+      "dwell_steps": 0,
+      "stuck_trace": [],
+      "wall_time_s": 0.144,
+      "start": [
+        7.35,
+        5.55
+      ],
+      "goal": [
+        4.45,
+        2.25
+      ],
+      "start_goal_distance_m": 4.393,
+      "component_cells": 2892,
+      "index": 32,
+      "map_seed": 2057
+    },
+    {
+      "status": "success",
+      "failure_reason": null,
+      "success": true,
+      "steps": 218,
+      "replans": 1,
+      "collisions": 0,
+      "traveled_length_m": 7.386,
+      "global_path_length_m": 7.5,
+      "min_clearance_path_m": 0.6,
+      "min_clearance_traveled_m": 0.6,
+      "final_distance_m": 0.146,
+      "dwell_steps": 0,
+      "stuck_trace": [],
+      "wall_time_s": 0.267,
+      "start": [
+        5.05,
+        5.35
+      ],
+      "goal": [
+        0.65,
+        0.65
+      ],
+      "start_goal_distance_m": 6.438,
+      "component_cells": 2359,
+      "index": 33,
+      "map_seed": 2058
+    },
+    {
+      "status": "success",
+      "failure_reason": null,
+      "success": true,
+      "steps": 221,
+      "replans": 1,
+      "collisions": 0,
+      "traveled_length_m": 6.28,
+      "global_path_length_m": 6.55,
+      "min_clearance_path_m": 0.5,
+      "min_clearance_traveled_m": 0.5,
+      "final_distance_m": 0.138,
+      "dwell_steps": 4,
+      "stuck_trace": [],
+      "wall_time_s": 0.456,
+      "start": [
+        1.05,
+        1.45
+      ],
+      "goal": [
+        6.05,
+        4.45
+      ],
+      "start_goal_distance_m": 5.831,
+      "component_cells": 2830,
+      "index": 34,
+      "map_seed": 2059
+    },
+    {
+      "status": "success",
+      "failure_reason": null,
+      "success": true,
+      "steps": 175,
+      "replans": 1,
+      "collisions": 0,
+      "traveled_length_m": 5.136,
+      "global_path_length_m": 5.487,
+      "min_clearance_path_m": 0.5,
+      "min_clearance_traveled_m": 0.5,
+      "final_distance_m": 0.132,
+      "dwell_steps": 10,
+      "stuck_trace": [],
+      "wall_time_s": 0.257,
+      "start": [
+        6.55,
+        1.65
+      ],
+      "goal": [
+        1.85,
+        3.55
+      ],
+      "start_goal_distance_m": 5.07,
+      "component_cells": 2406,
+      "index": 35,
+      "map_seed": 2060
+    },
+    {
+      "status": "success",
+      "failure_reason": null,
+      "success": true,
+      "steps": 204,
+      "replans": 4,
+      "collisions": 0,
+      "traveled_length_m": 8.528,
+      "global_path_length_m": 5.72,
+      "min_clearance_path_m": 0.5,
+      "min_clearance_traveled_m": 0.4,
+      "final_distance_m": 0.142,
+      "dwell_steps": 2,
+      "stuck_trace": [],
+      "wall_time_s": 0.181,
+      "start": [
+        1.55,
+        2.85
+      ],
+      "goal": [
+        6.35,
+        5.45
+      ],
+      "start_goal_distance_m": 5.459,
+      "component_cells": 2766,
+      "index": 36,
+      "map_seed": 2061
+    },
+    {
+      "status": "success",
+      "failure_reason": null,
+      "success": true,
+      "steps": 207,
+      "replans": 5,
+      "collisions": 0,
+      "traveled_length_m": 8.006,
+      "global_path_length_m": 4.967,
+      "min_clearance_path_m": 0.6,
+      "min_clearance_traveled_m": 0.5,
+      "final_distance_m": 0.147,
+      "dwell_steps": 11,
+      "stuck_trace": [],
+      "wall_time_s": 0.182,
+      "start": [
+        3.95,
+        3.35
+      ],
+      "goal": [
+        7.25,
+        6.95
+      ],
+      "start_goal_distance_m": 4.884,
+      "component_cells": 2954,
+      "index": 37,
+      "map_seed": 2062
+    },
+    {
+      "status": "success",
+      "failure_reason": null,
+      "success": true,
+      "steps": 119,
+      "replans": 1,
+      "collisions": 0,
+      "traveled_length_m": 3.306,
+      "global_path_length_m": 3.457,
+      "min_clearance_path_m": 1.2,
+      "min_clearance_traveled_m": 1.2,
+      "final_distance_m": 0.144,
+      "dwell_steps": 0,
+      "stuck_trace": [],
+      "wall_time_s": 0.158,
+      "start": [
+        3.55,
+        6.75
+      ],
+      "goal": [
+        2.75,
+        3.55
+      ],
+      "start_goal_distance_m": 3.298,
+      "component_cells": 3326,
+      "index": 38,
+      "map_seed": 2063
+    },
+    {
+      "status": "success",
+      "failure_reason": null,
+      "success": true,
+      "steps": 128,
+      "replans": 1,
+      "collisions": 0,
+      "traveled_length_m": 3.706,
+      "global_path_length_m": 3.859,
+      "min_clearance_path_m": 0.6,
+      "min_clearance_traveled_m": 0.7,
+      "final_distance_m": 0.15,
+      "dwell_steps": 0,
+      "stuck_trace": [],
+      "wall_time_s": 0.144,
+      "start": [
+        4.55,
+        3.35
+      ],
+      "goal": [
+        2.75,
+        6.55
+      ],
+      "start_goal_distance_m": 3.672,
+      "component_cells": 2752,
+      "index": 39,
+      "map_seed": 2064
+    },
+    {
+      "status": "success",
+      "failure_reason": null,
+      "success": true,
+      "steps": 114,
+      "replans": 1,
+      "collisions": 0,
+      "traveled_length_m": 3.514,
+      "global_path_length_m": 3.756,
+      "min_clearance_path_m": 0.4,
+      "min_clearance_traveled_m": 0.5,
+      "final_distance_m": 0.134,
+      "dwell_steps": 0,
+      "stuck_trace": [],
+      "wall_time_s": 0.173,
+      "start": [
+        1.45,
+        3.25
+      ],
+      "goal": [
+        0.75,
+        6.55
+      ],
+      "start_goal_distance_m": 3.373,
+      "component_cells": 2609,
+      "index": 40,
+      "map_seed": 2065
+    },
+    {
+      "status": "success",
+      "failure_reason": null,
+      "success": true,
+      "steps": 148,
+      "replans": 1,
+      "collisions": 0,
+      "traveled_length_m": 5.318,
+      "global_path_length_m": 5.494,
+      "min_clearance_path_m": 0.6,
+      "min_clearance_traveled_m": 0.7,
+      "final_distance_m": 0.139,
+      "dwell_steps": 2,
+      "stuck_trace": [],
+      "wall_time_s": 0.16,
+      "start": [
+        4.75,
+        6.85
+      ],
+      "goal": [
+        0.65,
+        3.35
+      ],
+      "start_goal_distance_m": 5.391,
+      "component_cells": 2690,
+      "index": 41,
+      "map_seed": 2066
+    },
+    {
+      "status": "success",
+      "failure_reason": null,
+      "success": true,
+      "steps": 272,
+      "replans": 2,
+      "collisions": 0,
+      "traveled_length_m": 10.541,
+      "global_path_length_m": 8.318,
+      "min_clearance_path_m": 0.5,
+      "min_clearance_traveled_m": 0.1,
+      "final_distance_m": 0.132,
+      "dwell_steps": 4,
+      "stuck_trace": [],
+      "wall_time_s": 0.256,
+      "start": [
+        6.75,
+        5.25
+      ],
+      "goal": [
+        2.85,
+        5.45
+      ],
+      "start_goal_distance_m": 3.905,
+      "component_cells": 2886,
+      "index": 42,
+      "map_seed": 2067
+    },
+    {
+      "status": "success",
+      "failure_reason": null,
+      "success": true,
+      "steps": 196,
+      "replans": 1,
+      "collisions": 0,
+      "traveled_length_m": 5.345,
+      "global_path_length_m": 5.436,
+      "min_clearance_path_m": 0.5,
+      "min_clearance_traveled_m": 0.5,
+      "final_distance_m": 0.141,
+      "dwell_steps": 1,
+      "stuck_trace": [],
+      "wall_time_s": 0.233,
+      "start": [
+        1.95,
+        6.25
+      ],
+      "goal": [
+        0.55,
+        2.55
+      ],
+      "start_goal_distance_m": 3.956,
+      "component_cells": 2618,
+      "index": 43,
+      "map_seed": 2068
+    },
+    {
+      "status": "success",
+      "failure_reason": null,
+      "success": true,
+      "steps": 320,
+      "replans": 15,
+      "collisions": 0,
+      "traveled_length_m": 18.516,
+      "global_path_length_m": 7.85,
+      "min_clearance_path_m": 0.6,
+      "min_clearance_traveled_m": 0.5,
+      "final_distance_m": 0.144,
+      "dwell_steps": 7,
+      "stuck_trace": [],
+      "wall_time_s": 0.415,
+      "start": [
+        3.65,
+        0.75
+      ],
+      "goal": [
+        7.15,
+        7.15
+      ],
+      "start_goal_distance_m": 7.295,
+      "component_cells": 2677,
+      "index": 44,
+      "map_seed": 2069
+    },
+    {
+      "status": "success",
+      "failure_reason": null,
+      "success": true,
+      "steps": 342,
+      "replans": 1,
+      "collisions": 0,
+      "traveled_length_m": 9.414,
+      "global_path_length_m": 9.677,
+      "min_clearance_path_m": 0.5,
+      "min_clearance_traveled_m": 0.4,
+      "final_distance_m": 0.144,
+      "dwell_steps": 6,
+      "stuck_trace": [],
+      "wall_time_s": 1.023,
+      "start": [
+        3.05,
+        6.75
+      ],
+      "goal": [
+        2.65,
+        3.75
+      ],
+      "start_goal_distance_m": 3.027,
+      "component_cells": 2603,
+      "index": 45,
+      "map_seed": 2070
+    },
+    {
+      "status": "success",
+      "failure_reason": null,
+      "success": true,
+      "steps": 151,
+      "replans": 1,
+      "collisions": 0,
+      "traveled_length_m": 4.937,
+      "global_path_length_m": 5.148,
+      "min_clearance_path_m": 0.6,
+      "min_clearance_traveled_m": 0.5,
+      "final_distance_m": 0.137,
+      "dwell_steps": 0,
+      "stuck_trace": [],
+      "wall_time_s": 0.181,
+      "start": [
+        2.05,
+        3.35
+      ],
+      "goal": [
+        6.15,
+        6.15
+      ],
+      "start_goal_distance_m": 4.965,
+      "component_cells": 2580,
+      "index": 46,
+      "map_seed": 2071
+    },
+    {
+      "status": "failure",
+      "failure_reason": "collision",
+      "success": false,
+      "steps": 81,
+      "replans": 1,
+      "collisions": 3,
+      "traveled_length_m": 2.729,
+      "global_path_length_m": 4.497,
+      "min_clearance_path_m": 0.5,
+      "min_clearance_traveled_m": 0.0,
+      "final_distance_m": 1.166,
+      "dwell_steps": 0,
+      "stuck_trace": [
+        [
+          0.548,
+          0.151
+        ],
+        [
+          0.549,
+          0.117
+        ],
+        [
+          0.549,
+          0.091
+        ],
+        [
+          0.55,
+          0.071
+        ],
+        [
+          0.55,
+          0.055
+        ],
+        [
+          0.55,
+          0.043
+        ],
+        [
+          0.55,
+          0.034
+        ],
+        [
+          0.55,
+          0.026
+        ],
+        [
+          0.55,
+          0.021
+        ],
+        [
+          0.55,
+          0.016
+        ],
+        [
+          0.55,
+          0.013
+        ],
+        [
+          0.55,
+          0.01
+        ]
+      ],
+      "wall_time_s": 0.058,
+      "start": [
+        1.45,
+        1.45
+      ],
+      "goal": [
+        0.65,
+        5.05
+      ],
+      "start_goal_distance_m": 3.688,
+      "component_cells": 3018,
+      "index": 47,
+      "map_seed": 2072
+    },
+    {
+      "status": "success",
+      "failure_reason": null,
+      "success": true,
+      "steps": 192,
+      "replans": 1,
+      "collisions": 0,
+      "traveled_length_m": 5.936,
+      "global_path_length_m": 6.157,
+      "min_clearance_path_m": 0.5,
+      "min_clearance_traveled_m": 0.5,
+      "final_distance_m": 0.143,
+      "dwell_steps": 0,
+      "stuck_trace": [],
+      "wall_time_s": 0.233,
+      "start": [
+        3.55,
+        5.85
+      ],
+      "goal": [
+        1.05,
+        0.75
+      ],
+      "start_goal_distance_m": 5.68,
+      "component_cells": 2575,
+      "index": 48,
+      "map_seed": 2073
+    },
+    {
+      "status": "success",
+      "failure_reason": null,
+      "success": true,
+      "steps": 138,
+      "replans": 1,
+      "collisions": 0,
+      "traveled_length_m": 4.131,
+      "global_path_length_m": 4.278,
+      "min_clearance_path_m": 0.5,
+      "min_clearance_traveled_m": 0.5,
+      "final_distance_m": 0.146,
+      "dwell_steps": 0,
+      "stuck_trace": [],
+      "wall_time_s": 0.145,
+      "start": [
+        2.55,
+        3.35
+      ],
+      "goal": [
+        6.05,
+        1.25
+      ],
+      "start_goal_distance_m": 4.082,
+      "component_cells": 1499,
+      "index": 49,
+      "map_seed": 2074
+    },
+    {
+      "status": "success",
+      "failure_reason": null,
+      "success": true,
+      "steps": 119,
+      "replans": 1,
+      "collisions": 0,
+      "traveled_length_m": 3.251,
+      "global_path_length_m": 3.414,
+      "min_clearance_path_m": 0.5,
+      "min_clearance_traveled_m": 0.6,
+      "final_distance_m": 0.133,
+      "dwell_steps": 0,
+      "stuck_trace": [],
+      "wall_time_s": 0.128,
+      "start": [
+        4.15,
+        4.75
+      ],
+      "goal": [
+        7.15,
+        5.95
+      ],
+      "start_goal_distance_m": 3.231,
+      "component_cells": 2066,
+      "index": 50,
+      "map_seed": 2075
+    }
+  ],
+  "failure_labels": {
+    "no_valid_pair": "地图碎片化，找不到「可达且足够远」的起终点",
+    "planning_failed": "A* 在膨胀地图上无解（通道窄于车体）",
+    "timeout": "步数耗尽仍未到达（窄缝/死角里反复倒车-转向）",
+    "collision": "车体参考点进入原始占据栅格"
+  },
+  "caveat": "Random rectangle maps are a stress test, not a substation layout; absolute success rate is only comparable across algorithm versions."
+}

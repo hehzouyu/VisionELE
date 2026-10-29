@@ -1,0 +1,20 @@
+{
+  "data_root": "E:\\创新创业\\Demos\\训练样本\\FBID\\yolo",
+  "split": "train",
+  "crops": 2400,
+  "class_counts": {
+    "normal": 823,
+    "flashover": 1082,
+    "broken": 495
+  },
+  "device": "cuda",
+  "epochs": 300,
+  "batch": 64,
+  "latent": 100,
+  "base_channels": 128,
+  "final_d_loss": 1.4493964298351392,
+  "final_g_loss": 0.7956043892615551,
+  "kept_ratio": 0.5,
+  "screening": "中心距代理（FID 待接 Inception 特征）",
+  "elapsed_s": 552.4
+}

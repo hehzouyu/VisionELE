@@ -1,0 +1,33 @@
+{
+  "meta": {
+    "generated_at": "2026-10-29T18:55:05+08:00",
+    "script": "scripts/benchmark_vision.py",
+    "date_tag": "20261029",
+    "results_root": "E:\\创新创业\\Demos\\results"
+  },
+  "config": {
+    "weights": "../results/runs/real_ca_v8n/weights/best.pt",
+    "imgsz": 640,
+    "n": 50,
+    "warmup": 5,
+    "device": "0",
+    "family": "yolov8"
+  },
+  "latency": {
+    "n": 50,
+    "mean_ms": 13.110328000220761,
+    "p50_ms": 12.450050000552437,
+    "p95_ms": 16.661175001263473,
+    "max_ms": 23.409499999615946,
+    "min_ms": 6.513500000437489
+  },
+  "machine": {
+    "python": "3.13.9",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "numpy": "2.5.4",
+    "torch": "2.9.1+cu126",
+    "cuda": true,
+    "device_name": "NVIDIA GeForce RTX 4090 Laptop GPU"
+  },
+  "artifacts": {}
+}

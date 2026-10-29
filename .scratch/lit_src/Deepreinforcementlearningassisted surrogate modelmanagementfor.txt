@@ -1,0 +1,946 @@
+                                                 Swarm and Evolutionary Computation 92 (2025) 101817
+                                                        Contents lists available at ScienceDirect
+
+                                       Swarm and Evolutionary Computation
+
+                                              journal homepage: www.elsevier.com/locate/swevo
+
+Deep reinforcement learning assisted surrogate model management for
+
+expensive constrained multi-objective optimization
+
+Shuai  Shao,  Ye  Tian       Yajie  Zhang
+
+                          ,
+
+School of Computer Science and Technology, Anhui University, Hefei, 230601, China
+
+ARTICLE INFO                               ABSTRACT
+
+Keywords:                                  Expensive constrained multi-objective optimization problems (ECMOPs) exist in a wide variety of applications
+Surrogate model                            from industrial processes to engineering systems. When solving ECMOPs, with only a limited number of
+Expensive optimization                     function evaluations available, a common approach is to substitute the real function evaluations with more
+Evolutionary computation                   affordable evaluations provided by computationally efficient surrogate models. However, existing surrogate
+Neural networks                            assisted evolutionary algorithms (SAEAs) exhibit poor versatility in handling various ECMOPs, as they only
+Multiple search modes                      use a constant surrogate modeling scheme or switch the modeling schemes with expert knowledge. To address
+                                           the dilemma in surrogate modeling, this paper proposes a deep reinforcement learning assisted evolutionary
+                                           algorithm, which operates on two key issues. First, multiple surrogate models are employed to learn the
+                                           approximate function of an ECMOP using previously evaluated solutions during the evolutionary process.
+                                           Second, a deep reinforcement learning method is employed to learn the optimal surrogate model management
+                                           strategy based on evolutionary experience, selecting the most suitable surrogate modeling scheme for the
+                                           current generation. Experimental evaluations on a large number of expensive problems demonstrate that the
+                                           proposed algorithm has a significant effect compared with state-of-the-art competitors.
+
+1. Introduction                                                                         constraints can be transformed into inequality constraints by relaxation
+
+                                                                                        techniques [6,7], so this paper focuses exclusively on inequality con-
+
+In many industrial processes and engineering systems, there are a                       straints. For a CMOP with inequality constraints, the constraint function
+
+large number of optimization problems involving multiple conflicting                    values  of a candidate solution can be calculated as follows:
+
+objectives simultaneously subject to constraints [1-3]. For example,                                                                                   (2)
+                                                                                         () = max(0, ()) .
+the software product configuration problem [4,5] aims to minimize
+                                                                                        =1
+the number of unselected products, minimize the number of unused
+
+products, minimize the total defects in selected products, and minimize                 When  () = 0,  is a feasible solution; otherwise, it is an infeasible
+                                                                                        solution. For a feasible solution , if there is no other feasible solution
+the total cost. Additionally, budget constraints set by end users should                 that can improve any of the objectives without making at least
+                                                                                        one other objective worse,  is said to be a feasible Pareto optimal
+be met, and the final configuration should be ensured to be feasible in                 solutions. The mapping vectors in the objective space of all feasible
+                                                                                        Pareto optimal solutions constitute the constrained Pareto front (CPF).
+software product lines. Without loss of generality, a constrained multi-                It is worth noting that in the absence of constraints, the Pareto front is
+                                                                                        called as the unconstrained Pareto front (UPF).
+objective optimization problem (CMOP) with inequality and equality
+                                                                                            Mathematical programming methods, such as projected gradient
+constraints can be formulated as follows:                                               descent [8], quadratic programming [9], and nonlinear programming
+                                                                                        [10], can quickly converge to a single quasi-optimal solution, but they
+Minimize () = (1(), ... , ())                                                           can only identify a single solution and cannot handle constraints di-
+                                                                                        rectly. In contrast, constrained multi-objective evolutionary algorithms
+subject to                          ,                                              (1)  (CMOEAs) can find a set of feasible Pareto optimal solutions due to
+                                                                                        their population based stochastic search paradigms [11]. However,
+       ()  0,  = 1, ... , 
+
+        () = 0,  = 1, ... , 
+
+where  = (1, ... , )   is a candidate solution consisting of 
+decision variables,  is the decision space,     R consists of
+ objectives, and () and  () indicate the inequality constraints
+
+and equality constraints, respectively. It should be noted that equality
+
+   Corresponding author.
+      E-mail addresses: freshshao@gmail.com (S. Shao), field910921@gmail.com (Y. Tian), yjzhang17719490727@163.com (Y. Zhang).
+
+https://doi.org/10.1016/j.swevo.2024.101817
+Received 3 September 2024; Received in revised form 3 December 2024; Accepted 4 December 2024
+Available online 16 December 2024
+2210-6502/� 2024 Elsevier B.V. All rights are reserved, including those for text and data mining, AI training, and similar technologies.
+S. Shao et al.                                                                                                                Swarm and Evolutionary Computation 92 (2025) 101817
+
+most existing CMOEAs require a large number of function evaluations              29]. Surrogate models fit the objective and constraint functions based
+to approximate feasible Pareto optimal solutions. This is not applicable         on historically evaluated solutions, thereby reducing the number of
+to real-world CMOPs because the objectives and constraints of these              function evaluations and improving the efficiency of the evolutionary
+CMOPs are often computationally expensive, leading to substantial                algorithm [30,31]. Deep reinforcement learning enhances optimization
+runtime for CMOEAs [12]. A promising approach to deal with expen-                by evaluating the effectiveness of various search strategies and dynami-
+sive constrained multi-objective optimization problems (ECMOPs) is to            cally adjusting the process, making it suitable for complex optimization
+utilize the fitness predicted by surrogate models to replace most expen-         problems [32,33].
+sive function evaluations, thereby assisting evolutionary algorithms to
+obtain satisfactory solutions with limited computational cost. The com-              While learning based optimization methods have achieved suc-
+binations of surrogate models and evolutionary algorithms are often              cess in various optimization problems [34,35], their applications in
+known as surrogate assisted evolutionary algorithms (SAEAs) [12,13].             evolutionary expensive constrained optimization still have limitations.
+                                                                                 To be specific, existing evolutionary algorithms for solving ECMOPs
+    While SAEAs have achieved significant performance improvement                employ surrogate models to learn from historically evaluated solutions
+in expensive large-scale multi-objective optimization [14,15], expen-            and approximate the objective and constraint functions, significantly
+sive many-objective optimization [16], and expensive multi-modal op-             reducing the need for original function evaluations [22,23]. However,
+timization [17], there is little work focused on expensive constrained           the management strategies for surrogate modeling usually rely on
+multi-objective optimization. The main reason is that in ECMOPs,                 human design, limiting their adaptability and efficiency in optimiza-
+the number of constraints is often much larger than the number of                tion problems with complex constraints. To address this issue, this
+objectives [18,19], which makes surrogate modeling of these con-                 paper proposes a deep reinforcement learning assisted evolutionary
+straints more difficult. Although expensive constraint functions can be          algorithm. On the one hand, multiple surrogate models are used to
+approximated directly using surrogate models, increasing the number              learn and approximate an ECMOP by utilizing previously evaluated
+of constraint and objective surrogates will increase the cumulative              solutions. On the other hand, the proposed algorithm introduces deep
+approximation error [12,20]. When the approximation error is too                 reinforcement learning techniques to dynamically adjust and optimize
+large, fitting the constraint functions through surrogate models often           the surrogate model management strategy, ensuring adaptive matching
+hinders the algorithm's convergence. In addition, since the  function            to the current evolutionary states. The main contributions of this work
+can intuitively reflect the satisfaction of the solution to the constraints,     can be summarized as follows:
+some SAEAs handle ECMOPs by fitting  function using surrogate
+models [21,22]. However, when the population is in sophisticated                      1. A deep reinforcement learning assisted surrogate model manage-
+function landscapes, the  landscape, which aggregates numerous ex-                        ment strategy is suggested, which uses the experience generated
+pensive constraints, is often too complex to be accurately approximated                   during evolution to establish a mapping model, i.e., a deep
+by a single surrogate model.                                                              reinforcement learning agent, between the evolutionary states
+                                                                                          of the current population and the three candidate surrogate
+    Based on the above analysis, using a single surrogate modeling                        modeling schemes. For candidate surrogate modeling schemes,
+scheme to fit both objectives and constraints is challenging for driv-                    the first surrogate modeling scheme only considers the objec-
+ing population convergence. However, without the help of constraint                       tives to achieve efficient convergence. The latter two surrogate
+surrogates, unconstrained SAEAs cannot converge to feasible regions.                      modeling schemes handle constraints by surrogate modeling for
+To address this issue, KTS [23] designs a heuristic metric to switch                      constraints in different ways, thereby maintaining good popu-
+between two search modes based on the correlation between objec-                          lation diversity within the feasible region. Different from the
+tive optimization and constraint satisfaction. In the first search mode,                  existing surrogate modeling schemes tailed for ECMOPs, the
+constraints are completely ignored to drive effective population conver-                  proposed approach can recommend the best surrogate modeling
+gence. In the second search mode, surrogate models are used to model                      scheme according to the evolutionary states of the population at
+both constraints and objectives simultaneously, enhancing the popula-                     each generation.
+tion's ability to handle constraints. More intuitively, K-MGSAEA [22]
+and EIC-MSSAEA [24] achieve rapid convergence in the early stages                     2. A surrogate assisted evolutionary algorithm is proposed based
+of the algorithm by fitting only the objective functions using surro-                     on the proposed deep reinforcement learning assisted surrogate
+gate models. In the later stages, they gradually consider constraints                     model management strategy, abbreviated as DRL-SAEA. In the
+in surrogate modeling to drive the population closer to the feasible                      proposed algorithm, the deep reinforcement learning agent uses
+Pareto optimal set. However, these SAEAs determine surrogate mod-                         recent evolutionary information to direct the selection of surro-
+eling schemes based on human experience, which undermines the                             gate modeling schemes. Since three different surrogate modeling
+generality of evolutionary algorithms. To be more specific, adopting                      schemes are adopted as candidate actions, the proposed algo-
+a multi-stage approach to surrogate modeling can ensure rapid con-                        rithm is less likely to fall into local optima by using the first
+vergence of the algorithm; however, it is challenging to determine                        surrogate modeling scheme and can deal with constraints effec-
+the appropriate timing for stage transitions, making it difficult for the                 tively by using the latter two surrogate modeling schemes, thus
+algorithm to balance between objectives and constraints. On the other                     achieving a better balance between objective optimization and
+hand, using manually designed metrics to switch between constrained                       constraint satisfaction.
+and unconstrained surrogate models struggles to deal with a variety of
+optimization problems with different functional landscapes and feasible               3. To evaluate the performance of the proposed DRL-SAEA, em-
+regions.                                                                                  pirical evaluations have been conducted on challenging test
+                                                                                          problems with different challenges like isolated feasible regions,
+    To reduce reliance on expert knowledge and manual design, some                        discontinuous feasible regions, and multiple local feasible re-
+learning based evolutionary algorithms have been proposed [25-27].                        gions. Compared with several state-of-the-art SAEAs, the experi-
+These algorithms use data or experiences generated during the evo-                        mental results verify that the DRL-SAEA is well-suited for solving
+lutionary process to train machine learning models that assist the                        ECMOPs, demonstrating not only faster convergence but also
+evolutionary algorithm in searching for promising solutions. Common                       good generality across different types of EMOPs.
+learning based optimization methods include Bayesian optimization,
+surrogate models, and deep reinforcement learning. Bayesian optimiza-                The rest of this paper is structured as follows. Firstly, in Section 2,
+tion models the prior distribution of the function and then updates              we provide a brief overview of fundamental concepts related to surro-
+the distribution based on observed data to determine the optimal pa-             gate models and existing SAEAs, then raise the motivation of this work.
+rameter settings, making it widely used in black-box optimization [28,           In Section 3, we present a detailed explanation of the proposed DRL-
+                                                                                 SAEA. In Section 4, we present our experimental results and analysis on
+                                                                                 a series of test problems. Finally, we draw our conclusions and discuss
+                                                                                 future work in Section 5.
+
+                                                                              2
+S. Shao et al.                                                                                                     Swarm and Evolutionary Computation 92 (2025) 101817
+
+2. Related works                                                                           the signal variance 2 , are typically estimated by maximizing the log
+                                                                                           marginal likelihood of the observed data:
+
+2.1. Surrogate models                                                                      log (|, ) = - 1 ( - ()) -1( - ())
+                                                                                           2
+                                                                                                                              ,  (5)
+                                                                                           - 1 log || -  log 2
+                                                                                           2                       2
+   Surrogate models are simplified models used to replace computa-
+                                                                                           where  represents the set of hyperparameters of the kernel function.
+tionally expensive original optimization models [36,37]. They approxi-
+
+mate or fit a small number of evaluations from the original optimization                   2.2. Constrained SAEAs
+
+model to quickly predict output results for unevaluated decision vari-
+
+ables. Surrogate models are widely applied in various fields such as                           While a large number of SAEAs have been reported for expensive
+                                                                                           optimization objectives in multi-objective optimization community [14,
+engineering optimization, design space exploration, and parameter tun-                     16,17], there is little work focused on expensive constrained optimiza-
+                                                                                           tion. Based on a review of existing work, we categorize the current
+ing, especially in situations where computational resources are limited                    SAEAs for expensive constraints into three categories.
+
+or the cost of running the original optimization model is expensive.                           The first category includes approaches that use only a single sur-
+                                                                                           rogate modeling scheme throughout the entire evolutionary process.
+In the evolutionary computation community, surrogate models have                           For example, RF-CMOCO [51] employs random forests and radial basis
+                                                                                           function networks as surrogates to approximate the objective functions
+been successfully used to significantly reduce the number of function                      and constraint functions. Additionally, a logistic regression model is
+                                                                                           introduced to correct the surrogate assisted fitness evaluations, and
+evaluations required by evolutionary algorithms [12,38,39], thereby                        stochastic ranking selection is used to further mitigate the impact of
+                                                                                           approximating the constraint functions. In [21], employing radial basis
+greatly accelerating the optimization process.                                             function networks to approximate the  function is suggested as
+                                                                                           it can significantly reduce the number of surrogate models needed.
+   There are many surrogate models available, including the poly-                          In [52], M1-2 constructs a Kriging model for each constraint function,
+                                                                                           while M2-2 constructs a Kriging model for the  function, both
+nomial regression model (PR) [40], the polynomial response surface                         of which are specifically designed for expensive constrained multi-
+                                                                                           objective optimization. M1-2 may become computationally inefficient
+method (RSM) [41], radial basis function (RBF) [42], the Kriging                           as the number of constraints increases. On the other hand, while M2-
+                                                                                           2 attempts to simplify the process by using a Kriging model for the
+model (also known as Gaussian process) [43], the radial basis function                      function, this integration of multiple constraint functions into a
+                                                                                           single model complicates the functional landscape, thereby requiring
+network (RBFN) [44], the support vector regression model (SVR) [45],                       more high-fidelity points [53,54].
+
+and the neural network model (NN) [46]. PR and RSM models are                                  The second category includes approaches that use corresponding
+                                                                                           surrogate modeling schemes according to evolutionary stage. In [55],
+suitable for simple response surfaces with smooth variations, while RBF                    Hussien et al. suggest that using different metamodeling methods at
+                                                                                           various stages of the optimization process is more effective, and thus
+and RBFN models are commonly used for interpolation in complex                             propose a manual switching strategy between metamodeling methods.
+                                                                                           Specifically, the entire optimization process is divided into two stages,
+response surfaces. SVR models are appropriate for handling nonlinear                       where the Kriging model is used to approximate the  function in the
+                                                                                           first stage and each constraint function in the second stage. To achieve
+relationships in high-dimensional input spaces. Kriging models not only                    rapid convergence of the evolutionary algorithm, some SAEAs ignore
+                                                                                           constraints entirely in the early stages. For example, K-MGSAEA [22]
+capture complex nonlinear response surfaces but also quantify the                          employs a two-stage strategy to address CMOPs with expensive ob-
+                                                                                           jectives and constraints. In the first stage, optimization is performed
+uncertainty of predictions. NN models, particularly those used in deep                     on the CMOP without considering the expensive constraints, while in
+                                                                                           the second stage, the original CMOP that requires solving is taken into
+learning, are well-suited for handling large-scale datasets and can serve                  account. The transition between stages is determined by the maximum
+                                                                                           change rate of ideal points observed over previous generations. EIC-
+as surrogate models for complex nonlinear systems.                                         MSSAEA [24] proposes a multi-stage evolutionary algorithm based
+                                                                                           on an integrated filling criterion. In the first stage, constraints are
+   In this work, we use the Kriging model to approximate objective                         completely ignored to facilitate rapid traversal of infeasible regions. In
+                                                                                           the second stage, only one constraint is activated at a time to increase
+and constraint functions based on several considerations [47,48]. On                       the algorithm's diversity. Finally, in the last stage, all constraints are
+                                                                                           activated to enhance overall feasibility.
+the one hand, the Kriging model has the advantage over other surro-
+                                                                                               The third category includes approaches that use corresponding
+gate models of providing both predictions and uncertainty estimates,                       surrogate modeling schemes at each generation by manual metrics.
+                                                                                           In [56], Deb et al. propose an adaptive switching based modeling
+resulting in more precise and reliable modeling. On the other hand,                        approach, where surrogate models for the  function and each
+                                                                                           constraint function are initially developed, and an adaptive switching
+Kriging model can capture complex nonlinear relationships by globally                      based metamodeling methodology is introduced that automatically
+                                                                                           selects the most suitable surrogate model during the course of an
+fitting the entire input space and can effectively make predictions even                   optimization run. To reduce the negative impact caused by approx-
+                                                                                           imation errors of constraint surrogate models, KTS [23] proposes a
+with limited sample data. The fundamental idea behind the Kriging                          Kriging assisted evolutionary algorithm with two search modes to
+                                                                                           adaptively decrease the frequency of surrogate models for constraints.
+model is to treat the unknown function  () as a realization of a
+
+Gaussian process [49,50], which is a collection of random variables,
+
+any finite number of which have a joint Gaussian distribution. Given
+
+a  set  of  training  data    =  {(  ,      )}      ,  where    represents  the  input
+                                                =1
+
+and  the corresponding output, the Kriging model assumes that the
+
+function  () follows a Gaussian process defined by a mean function
+
+() and a covariance function (, ). The covariance function, or
+
+kernel, (, ) is crucial in Kriging, as it encodes the assumptions
+
+about the smoothness and continuity of the function. A commonly used
+
+covariance function is the squared exponential kernel, which is defined
+
+as: (   2 )
+                          1  ( -  )
+(, ) = 2 exp -                                  ,                                (3)
+                      2 =1 2
+
+where 2 is the signal variance that controls the overall variance of the
+function, and  is the length scale parameter for the -th dimension,
+determining how quickly the function varies along that dimension.
+
+    To make predictions at a new input point , the Kriging model
+provides both the predicted mean  and the associated variance 2,
+calculated as:
+
+ = () +  -1( - ()) , (4)
+2 = (, ) -  -1
+
+where  is the covariance vector between the new input  and the
+training data, and  is the covariance matrix of the training data. The
+
+parameters of the covariance function, such as the length scales  and
+
+                                                                                        3
+S. Shao et al.                                                                                               Swarm and Evolutionary Computation 92 (2025) 101817
+
+To be specific, KTS designs an adaptive switching strategy that an-            Algorithm 1: Main procedure of DRL-SAEA
+alyzes the correlation between the goal optimization direction and
+the constraint satisfaction direction to determine whether to build                Input:   (maximum number of evaluations),  (number of
+a constraint proxy model to assist the current evolutionary search.
+ASA-MOEA/D [57] proposes an adaptive surrogate assisted MOEA/D                          samplings),  (the number of generation),  (target
+framework that adaptively implements three specific search strategies
+based on the optimization states of subproblems, enabling targeted                      network update frequency),  (discount factor)
+search for different subproblems.
+                                                                                   Output:  (final solutions in archive A)
+2.3. Motivation of this work
+                                                                               1 Initialize the online network with random weights ;
+    Among the above three categories of SAEAs tailored for ECMOPs,
+the first category uses a single modeling scheme to handle constraints,        2 Initialize the target network with weights - = ;
+which makes it difficult to achieve a good balance between optimiza-
+tion and constraints [23,37]. Specifically, when algorithms approxi-           3   ; //Experience memory pool
+mate constraint functions with considerable errors, it can result in
+misguided searches and poor convergence performance. The second                4   Get 11 - 1 initial inputs by Latin hypercube sampling;
+category of SAEAs often initially focus only on the objectives, com-
+pletely ignoring the constraints to achieve fast convergence. However,         5   Evaluate the solutions consisting of  by expensive
+determining the timing for transitioning remains a challenge [22,58].
+The third category of SAEAs selects the best surrogate modeling ap-                function evaluations;
+proach using manual indicators. These SAEAs rely on human expertise
+to design indicators for determining surrogate models, resulting in            6   ;
+significant subjectivity and making it difficult for evolutionary algo-
+rithms to perform well across a range of ECMOPs with varying levels            7    | |; //Number of consumed evaluations
+of difficulty simultaneously [20,57].
+                                                                               8 while      do
+    To achieve adaptive management of surrogate model construction,            9 Extract the characteristics of the current population as state
+we propose an evolutionary algorithm that integrates a deep rein-
+forcement learning assisted surrogate model management strategy. The               ;
+proposed algorithm establishes a mapping model between the states
+of the current population and the surrogate modeling schemes us-               10 Select action  using -greedy policy based on (, ; );
+ing the deep reinforcement learning agent, which can automatically
+recommend surrogate modeling schemes based on the evolutionary                 11 switch  do
+experience. Using the surrogate modeling scheme recommended by the
+deep neural network, different search patterns can be performed. In            12       case 1 do
+contrast to existing SAEAs for solving ECMOPs, the proposed algorithm
+can recommend the best surrogate modeling schemes based on the evo-            13           Train Kriging models for objective functions for
+lutionary information of the population, enabling faster approximation
+of feasible Pareto optimal solutions while reducing the probability of                         constructing cheap MOP;
+falling into local optima, thus achieving better generalization perfor-
+mance. The details of the proposed algorithm will be elaborated in the         14       case 2 do
+next section.
+                                                                               15           Train Kriging models for objective functions and
+3. The proposed algorithm
+                                                                                               constraint violation function for constructing cheap
+3.1. Procedure of DRL-SAEA
+                                                                                               CMOP;
+    The procedure of the proposed evolutionary algorithm based deep
+reinforcement learning assisted surrogate model management (DRL-               16       case 3 do
+SAEA) is illustrated in Fig. 1, where two main components contribute to
+the general framework of the MOEA. The first component is surrogate            17           Train Kriging models for objective functions and
+assisted evolution, which reduces the need for original function evalu-
+ations by fitting the objective or constraint functions using surrogate                        constraint functions for constructing cheap CMOP;
+models, thereby accelerating the optimization process. The second
+component is surrogate model management, which trains a reinforce-             18 Run Kriging assisted SPEA2  generations;
+ment learning agent using experience generated by surrogate assisted
+evolution and automatically recommends surrogate modeling schemes              19 Select  solutions for real function evaluations;
+based on the current solutions states. This enables the surrogate assisted
+evolution module to perform more efficient searches. The surrogate as-         20 Update population  and archive ;
+sisted evolution module and surrogate model management module col-
+laboratively search for feasible Pareto optimal solutions, dynamically         21      + ;
+balancing optimization and constraints to enhance efficiency.
+                                                                               22 Extract reward  and next state +1;
+    Algorithm 1 presents the pseudocode of DRL-SAEA, which begins
+by initializing two neural networks: an online network with random             23 Store transition (, , , +1) in replay memory pool ;
+weights  and a target network, which initially copies the online
+network's weights - = . Additionally, an experience memory pool                24 Sample a mini-batch of transitions ( ,  ,  , +1) from ;
+
+                                                                                      //Action selection by online network
+
+                                                                               25 Set  = arg max (+1, ; );
+
+                                                                                   //Q-value evaluation by target network
+
+                                                                               26  Set      =    +      (    +1  ,      ;    -  );
+                                                                                                                      
+                                                                                                                                    (  )2
+                                                                               27 Perform a gradient descent step on  - ( ,  ; ) with
+
+                                                                                   respect to ;
+
+                                                                               28 Periodically update target network: -  ;
+
+                                                                               29 return ;
+
+                                                                                is created to store experiences during the optimization process. The
+                                                                               proposed algorithm then generates initial input samples  using Latin
+                                                                               hypercube sampling, which are evaluated using expensive function
+                                                                               evaluations to create the initial population  . The number of consumed
+                                                                               function evaluations   is set to the size of this initial population.
+                                                                               During each iteration, the algorithm extracts the characteristics of
+                                                                               the current population as state  and selects an action  using an
+                                                                               -greedy policy based on the online network's Q-values (, ; ).
+                                                                               Depending on the action , one of the following surrogate modeling
+                                                                               schemes is trained: for objective functions alone, for both objective
+                                                                               functions and a constraint violation function, or for both objective
+                                                                               functions and constraint functions. These models are used to construct
+                                                                               a cheaper optimization problem, which is then solved using a Kriging
+                                                                               assisted SPEA2 over  generations. Subsequently,  best solutions
+                                                                               are selected for real function evaluations, and the total number of
+                                                                               evaluations   is updated accordingly. The algorithm gets the reward
+                                                                                and the next state +1, and stores the transition (, , , +1) in
+                                                                               the experience memory . A mini-batch of transitions is then sampled
+
+                                                                            4
+S. Shao et al.                                                                                 Swarm and Evolutionary Computation 92 (2025) 101817
+
+Fig. 1. General procedure of the proposed DRL-SAEA includes two core components: 1. surrogate model management (recommend the surrogate modeling schemes), 2. surrogate
+assisted evolution (search for potential optimal solutions), which collaboratively search for feasible Pareto optimal solutions, dynamically balancing optimization and constraints
+to enhance efficiency for expensive constrained multi-objective optimization.
+
+from  for training. The algorithm uses the online network to select             The third surrogate modeling scheme involves using Kriging models
+the best action  for corresponding states and computes the target Q-
+value using the target network. A gradient descent step is performed to         to model each objective function and each constraint function that
+minimize the difference between the predicted Q-value and the target
+Q-value. Periodically, the target network's weights - are updated to            is not fully satisfied. The satisfaction of each constraint function is
+match the online network's weights . Finally,  is returned as the final
+population when the termination condition is met.                               determined using the following formula:
+                                                                                {              }
+    In the next several subsections, we will provide details on the three
+surrogate modeling schemes, as well as the surrogate modeling man-               = max max {0, ()} ,  = 1, 2, ... ,  ,   (6)
+agement strategy, including the design of population states, rewards,              =1,...,| |
+and neural network updates.
+                                                                                where () denotes the th expensive constraint function,  is the total
+3.2. Surrogate modeling schemes                                                 number of expensive constraints, and | | represents the population size.
+                                                                                If  is greater than zero, the th constraint function is classified as
+    The first surrogate modeling scheme involves using Kriging models           not fully satisfied; otherwise, it is considered fully satisfied. Then, the
+to model only the objective functions while completely ignoring the             violations of the constraint functions that are not fully satisfied are
+constraints. After training  Kriging models for  objectives, DRL-               combined into an additional objective, and the Kriging assisted SPEA2
+SAEA runs a Kriging assisted SPEA2, which consists of three steps.              is run.
+First, the fitness of each solution in the population  is calculated, and
+parent pairs are selected through binary tournament selection. Second,              The three surrogate modeling schemes each offer distinct advan-
+reproduction operators are used to generate the offspring population.           tages and disadvantages. The first scheme, which models only the
+Third, a set of solutions with better fitness values is selected from the       objective functions with Kriging models, is simple and efficient to
+combined parent and offspring populations. Then, the top  solutions             achieve fast convergence but neglects constraints, potentially resulting
+with the lowest fitness values are selected from the current population         in infeasible solutions. The second scheme employs Kriging models to
+and evaluated using the expensive objective functions. Subsequently,            simultaneously model both the objectives and constraint violations,
+DRL-SAEA updates the population  and archive  with these newly                  using the CDP to ensure the feasibility of solutions. While this ap-
+evaluated solutions.                                                            proach prioritizes the satisfaction of constraints, it can impede the
+                                                                                algorithm's convergence. The third scheme models each objective and
+    The second surrogate modeling scheme uses Kriging models to                 constraint function separately and combines constraint violations into
+model both the objective functions and the constraint violation func-           an additional objective, allowing for simultaneous consideration of
+tion. Similar to the first surrogate modeling scheme, Kriging assisted          both objectives and constraints. However, the numerous constraint
+SPEA2 is also run; however, unlike the first surrogate modeling scheme,         functions can introduce fitting errors that may mislead the algorithm in
+the dominance relationships between solution sets are determined us-            searching for feasible Pareto optimal solutions. Therefore, relying solely
+ing the constraint domination principle (CDP). To be specific, in CDP,          on one surrogate modeling scheme can limit performance. In the next
+solutions are compared first by their feasibility. If one solution is           subsection, we will provide a detailed explanation of how to use the
+feasible and another is not, the feasible solution is considered superior       proposed surrogate model management strategy to automatically select
+and dominates the infeasible one. When both solutions are feasible,             the most suitable surrogate modeling scheme during the evolutionary
+the comparison shifts to their objective function values. In this case,         process.
+standard multi-objective dominance rules apply: one solution is said
+to dominate another if it performs no worse in all objectives and               3.3. Surrogate model management
+performs strictly better in at least one. If both solutions are infeasible,
+the principle dictates that the solution with the smaller total constraint          To achieve adaptive management of surrogate modeling, we employ
+violation is superior.                                                          deep reinforcement learning [59,60] to establish a mapping between
+                                                                                the population states and the candidate surrogate modeling schemes.
+                                                                                Deep reinforcement learning is a machine learning method that enables
+                                                                                agents to learn optimal behavior strategies through interactions with
+                                                                                their environment. It allows for learning from experience and adapting
+                                                                                to complex environments while focusing on maximizing future returns
+
+                                                                             5
+S. Shao et al.                                                                                                                Swarm and Evolutionary Computation 92 (2025) 101817
+
+rather than just current rewards. It is worth noting that various deep               Based on the previously defined actions, states, and rewards, an
+                                                                                 experience memory pool  is created, where each record consists of
+reinforcement learning algorithms can be employed to establish map-              (, , , +1), with +1 representing the states of the population after
+                                                                                 the action  is performed. The reinforcement learning agent training
+ping models. In this paper, we use DDQN [61] to learn the mapping                process involves extracting the reward  and the next state +1 after
+                                                                                 each action. The transition (, , , +1) is stored in the replay memory
+relationship between the population states and the candidate surro-              . A mini-batch of transitions ( ,  ,  , +1) is then sampled from 
+                                                                                 for training. In this paper, sixteen record is randomly sampled from
+gate modeling schemes due to its more stable performance and high                the experience memory pool  as the training sample. The action 
+                                                                                 is selected by the online network as the one that maximizes the Q-
+efficiency. First, we define the states of the population based on four          value for the next state +1. The target network evaluates the Q-value,
+                                                                                 and the target  is calculated as  =  + (+1,  ; -). A gradient
+key features: convergence (), diversity (), feasibility ( ), and                 descent step using adaptive moment estimation [66,67] is performed to
+                                                                                 minimize the difference between the target  and the current Q-value
+evolutionary stage (). The first feature  measures how close                     ( ,  ; ). Periodically, the target network is updated by copying the
+                                                                                 weights from the online network. It is worth noting that the experience
+the population's average objective values are to the feasible Pareto             accumulated during the evolutionary process is stored in the form of
+                                                                                 a replay memory pool , which serves as a memory pool contain-
+optimal solutions. For each objective function (), the convergence               ing past states, actions, rewards, and subsequent states. The memory
+                                                                                 pool serves as the core data source for training. By revisiting and
+is calculated as follows:                                                        learning from stored experience in the memory pool, the proposed sur-
+                                                                                 rogate model management strategy can better understand the long-term
+ =    ()            ,                        (7)                                 consequences of its actions, which enables it to recommend efficient
+                                                                                 surrogate modeling schemes for the surrogate assisted evolutionary
+    =1                                                                           module. It is worth noting that while the proposed surrogate modeling
+                                                                                 management strategy enables adaptive matching between population
+where () represents the value of the th objective function,  is                  states and candidate surrogate modeling schemes, elements such as
+                                                                                 state, reward, and action still require manual definition. It is anticipated
+the population size, and  is the number of objective functions. Lower            that utilizing more powerful network models [68] to achieve a higher
+                                                                                 degree of automation in future, thereby enhancing the versatility of
+values in  indicate better performance in approximating the Pareto               the algorithm. Furthermore, since the proposed surrogate modeling
+                                                                                 management strategy is not confined to solving ECMOPs, designing
+optimal solutions, while higher values suggest that the optimization             states and surrogate modeling schemes for unconstrained EMOPs is
+                                                                                 anticipated to broaden the algorithm's applicability.
+of the corresponding objective function is less effective. The second
+                                                                                 4. Empirical studies
+feature assesses how spread out the solutions are across each objective
+                                                                                     In this section, a series of experiments are performed to validate the
+function. It is calculated using:                                                performance of the proposed DRL-SAEA to solve ECMOPs. In the fol-
+                                                                                 lowing, we provide a detailed description of the experimental setting,
+ =       (()        -  )2     ,              (8)                                 including the compared algorithms, the test problems, and perfor-
+                                                                                 mance metrics. Then, we present a detailed analysis of the comparative
+    =1                                                                           experiment and the ablation experiment.
+                
+where  =  () is the average value of the th objective                            4.1. Settings of algorithms and problems
+function. A higher  indicates a wider spread of solutions and thus
+                                                                                     Seven representative MOEAs (i.e., Multi-objective EGO [69], M1-
+better diversity, while a lower value signifies that the solutions are clus-     2 [52], M2-2 [52], HeE-MOEA [70], K-MGSAEA [22], KTS [23], and
+                                                                                 DRLOS [71]) are selected as baselines, where Multi-objective EGO,
+tered together, suggesting poor diversity. The third feature is measured         M1-2, M2-2, K-MGSAEA and KTS are customized for solving ECMOPs,
+                                                                                 HeE-MOEA uses ensembles as surrogates and infill criteria for model
+by the average  value of the population, indicating how well the                 management, DRLOS is an operator selection framework assisted by
+                                                                                 deep reinforcement learning for solving CMOPs. According to our
+solutions satisfy the constraints. It is defined as:                             classification of existing constrained SAEAs, the selected compared
+                                                                                 algorithms cover all categories. For example, M1-2 and M2-2 belong
+                                                                                 to the first category, K-MGSAEA belongs to the second category, and
+  =   () , (9)                                                                   KTS is categorized under the third category. All the algorithms are run
+                                                                                 for a maximum of 500 function evaluations on benchmark problems. All
+                                                                                 compared algorithms adopt the recommended parameter values in their
+where  () denotes the constraint violation of solution . A value                 original literature. For Multi-objective EGO, the portion of samples
+of   = 0 means all solutions are feasible, whereas a higher value                for Kriging construction is set to 0.7, and the number of reference
+suggests that some solutions violate constraints. The fourth feature             directions is set to 21. For K-MGSAEA, the parameter calculating the
+represents the proportion of evaluations used relative to the maximum            change rate of ideal points is set to 20, and the parameter determining
+allowed evaluations, providing insight into the progress of the opti-            the evolving stages is set to 0.001. For KTS, the threshold value  and
+mization process. Combining these features, the state set is defined              are set to 0.6 and 0.2, respectively, and the number of elite solutions
+as:                                                                              is set to 20. For the proposed DRL-SAEA, the target network update
+
+ = {   = (, ,  , )} ,                        (10)
+
+which integrates convergence, diversity, feasibility, and evolutionary
+
+stage, offering a detailed view of the population's performance and con-
+
+straints handling. Such a representation helps in guiding the reinforce-
+
+ment learning agent to select surrogate modeling schemes effectively.
+
+In deep reinforcement learning, the reward mechanism serves as
+
+a core component that guides the optimization of an agent's strategy
+
+through feedback on its actions [62,63]. The reward signal provides
+
+an immediate evaluation of the utility of each action within the envi-
+
+ronment, enabling the agent to learn optimal strategies by maximizing
+
+cumulative rewards, thereby effectively achieving task objectives. The
+
+design of an appropriate reward function is crucial for the agent's
+
+learning process and the effectiveness of the final strategy. In this
+
+paper, rewards are defined based on the improvement in convergence,
+
+diversity and feasibility of the population compared to the previous
+
+generation. To assess performance comprehensively, we use the hyper-
+
+volume (HV) [64] and  [65]. The reward for selecting a surrogate
+
+modeling scheme is calculated as the relative improvement in HV and
+
+ , expressed by:
+
+ =    HV( ) - HV( ) CV( ) - CV( )         ,  (11)
+                           +
+                HV( )              CV( )
+
+where   and  denote the populations before and after executing the
+action at the th iteration, respectively. This reward formulation reflects
+how effectively the chosen surrogate modeling scheme enhances both
+convergence, diversity and feasibility in the population.
+
+                                                                              6
+S. Shao et al.                                                                                                                     Swarm and Evolutionary Computation 92 (2025) 101817
+
+Table 1
+IGD values obtained by Multi-objective EGO, M1-2, M2-2, HeE-MOEA, K-MGSAEA, KTS, DRLOS, and the proposed DRL-SAEA on the CF benchmark suite, MW benchmark suite,
+and DAS-CMOP benchmark suite. Best result in each row is highlighted.
+
+Problem         Multi-objective EGO    M1-2                   M2-2                   HeE-MOEA               K-MGSAEA               KTS                    DRLOS                  DRL-SAEA
+
+CF1             2.3998e-1 (3.67e-2) -  1.9235e-1 (6.94e-2) -  1.8149e-1 (6.53e-2) -  2.1577e-1 (3.35e-2) -  1.5217e-1 (4.11e-2)    2.4415e-1 (6.18e-2) -  2.2325e-1 (2.75e-2) -  1.4240e-1  (2.68e-2)
+CF2             5.9166e-1 (1.60e-1) -  9.2934e-2 (2.76e-2)    9.2758e-2 (3.58e-2)    4.8284e-1 (1.41e-1) -  1.4960e-1 (1.90e-1)    1.8012e-1 (1.84e-1)    5.8807e-1 (1.17e-1) -  9.2747e-2  (3.29e-2)
+CF3             5.4476e+0 (9.89e-1) -  1.4248e+0 (1.43e+0)    1.2165e+0 (2.39e-1)    4.5821e+0 (8.06e-1) -  1.2042e+0 (2.35e-1)    1.3092e+0 (1.56e-1) +  5.1312e+0 (9.54e-1) -  1.4081e+0  (1.40e+0)
+CF4             1.6431e+0 (4.57e-1) -  5.0098e-1 (9.87e-1)    1.7598e+0 (1.72e+0) -  1.8332e+0 (6.07e-1) -  2.0785e-1 (9.06e-2) +  1.4414e+0 (1.51e+0) -  2.3630e+0 (6.26e-1) -  2.7620e-1  (1.30e-1)
+CF5             6.9309e+0 (9.44e-1) -  9.5968e-1 (4.93e-1) -  1.3401e+0 (1.50e+0) -  5.6008e+0 (8.57e-1) -  1.0469e+0 (4.56e-1) -  4.1931e+0 (4.21e+0) -  8.2943e+0 (1.78e+0) -  7.0942e-1  (3.17e-1)
+CF6             1.7645e+0 (7.14e-1) -  1.1715e-1 (2.67e-2) -  2.5982e-1 (7.66e-1) -  8.0803e-1 (2.84e-1) -  1.5256e-1 (5.35e-2) -  2.6232e-1 (1.74e-1) -  2.3151e+0 (6.76e-1) -  1.0259e-1  (3.28e-2)
+CF7             8.1544e+0 (1.58e+0) -  1.8292e+0 (3.23e+0) -  1.7222e+0 (2.51e+0) -  7.6962e+0 (1.15e+0) -  1.1799e+0 (9.88e-1) -  5.6213e+0 (5.02e+0) -  9.6761e+0 (1.60e+0) -  7.0889e-1  (3.24e-1)
+CF8             9.0143e-1 (3.39e-1)    6.2918e-1 (1.72e-1) +  6.4220e-1 (2.03e-1) +  5.1595e+0 (6.03e+0) -  1.2846e+0 (2.81e-1) -  1.2047e+0 (1.96e+0)    1.4843e+1 (8.32e+0) -  1.0169e+0  (3.89e-1)
+CF9             9.8255e-1 (4.63e-1) -  4.8289e-1 (1.38e-1)    5.1583e-1 (2.05e-1)    8.8501e-1 (2.81e-1) -  4.9662e-1 (1.70e-1)    4.5343e-1 (6.11e-1) +  1.6030e+0 (5.18e-1) -  5.0659e-1  (1.19e-1)
+CF10            1.3310e+1 (9.94e+0)                                                                         1.0596e+1 (6.30e+0)    9.4736e+0 (8.16e+0)    1.2271e+1 (0.00e+0)    5.4710e+0  (9.57e-1)
+                                               NaN (NaN)              NaN (NaN)              NaN (NaN)
+
+MW1             6.8652e-1 (1.31e-1)    5.2820e-1 (0.00e+0)            NaN (NaN)              NaN (NaN)      4.2352e-1 (2.65e-1)    4.1197e-1 (3.12e-1)            NaN (NaN)      4.4467e-1  (2.66e-1)
+MW2             4.2255e-1 (1.82e-1) -  3.1376e-1 (2.86e-1)    2.5683e-1 (2.50e-1)            NaN (NaN)      3.6215e-1 (3.48e-1)    3.2226e-1 (2.73e-1)            NaN (NaN)      2.1827e-1  (2.51e-1)
+MW3             4.9789e-1 (0.00e+0)    3.5935e-2 (1.10e-2)    3.5745e-2 (8.67e-3)    4.3620e-1 (2.04e-1) -  5.5510e-2 (1.15e-2) -  3.8050e-2 (9.49e-3)    6.0779e-1 (2.33e-1) -  3.5681e-2  (9.38e-3)
+MW4                                    3.9792e-1 (2.68e-1)    2.8818e-1 (1.31e-1) +          NaN (NaN)      3.5770e-1 (2.28e-1)                                   NaN (NaN)      4.9410e-1  (2.73e-1)
+MW5                     NaN (NaN)      7.6399e-1 (1.63e-1) -  7.9864e-1 (1.07e-1) -          NaN (NaN)      5.1981e-1 (1.88e-1)            NaN (NaN)              NaN (NaN)      4.8865e-1  (2.72e-1)
+MW6                     NaN (NaN)      6.2366e-1 (3.25e-1)    6.9681e-1 (3.10e-1)            NaN (NaN)      9.0676e-1 (3.13e-1) -  8.1422e-1 (2.34e-1) -          NaN (NaN)      5.5197e-1  (3.82e-1)
+MW7             9.0528e-1 (3.20e-1) -  7.6656e-2 (7.94e-2)    6.1789e-2 (1.87e-2)    2.9655e-1 (1.52e-1) -  7.2418e-2 (2.66e-2) -  9.3913e-1 (3.04e-1) -  8.5425e-1 (0.00e+0)    5.7916e-2  (1.38e-2)
+MW8             5.9085e-1 (0.00e+0)    5.2376e-1 (2.78e-1) -  4.1212e-1 (2.30e-1)    1.1188e+0 (0.00e+0)    4.7399e-1 (2.23e-1) -  8.2081e-2 (2.60e-2) -  8.5552e-1 (0.00e+0)    3.4479e-1  (1.02e-1)
+MW9             7.6867e-1 (2.24e-1) -  6.9994e-1 (1.81e-1) -  5.8674e-1 (2.85e-1) -          NaN (NaN)      5.7962e-1 (2.92e-1) -  5.6490e-1 (2.05e-1) -          NaN (NaN)      4.1855e-1  (2.60e-1)
+MW10                    NaN (NaN)      4.1888e-1 (1.91e-1)    6.0446e-1 (9.32e-2) -          NaN (NaN)      3.4874e-1 (1.86e-1)    6.8093e-1 (1.85e-1) -          NaN (NaN)      4.2815e-1  (1.73e-1)
+MW11                    NaN (NaN)      4.2023e-1 (3.03e-1) -  3.2875e-1 (2.54e-1) -  2.3474e-1 (1.11e-1) -  1.7406e-1 (1.64e-1) -                         9.4504e-1 (4.77e-2) -  9.3901e-2  (2.40e-2)
+MW12            7.9395e-1 (0.00e+0)    7.8763e-1 (2.12e-1) -  7.7172e-1 (2.70e-1) -          NaN (NaN)      6.2662e-1 (3.49e-1)            NaN (NaN)              NaN (NaN)      4.4304e-1  (3.13e-1)
+MW13                    NaN (NaN)      1.5516e+0 (1.06e+0) -  1.2172e+0 (7.85e-1)    4.5637e+0 (1.55e+0) -  1.4442e+0 (9.10e-1)    4.8492e-1 (2.98e-1) -  4.9955e+0 (2.10e+0) -  1.0570e+0  (6.70e-1)
+MW14            5.0286e+0 (2.07e+0) -  9.4224e-1 (3.78e-1)    9.0515e-1 (4.80e-1)    2.4021e+0 (5.15e-1) -  1.1727e+0 (5.37e-1)    6.4769e-1 (3.32e-1)    2.9652e+0 (4.78e-1) -  1.0185e+0  (5.39e-1)
+                2.3216e+0 (6.10e-1) -                                                                                              2.2449e+0 (1.30e+0) -
+                                                                                                                                   6.2663e-1 (4.66e-1) +
+
+DAS-CMOP1       4.7386e-1 (1.08e-1) -  5.8937e-1 (1.81e-1) -  5.4081e-1 (2.16e-1) -  5.1411e-1 (1.40e-1) -  6.1334e-1 (1.56e-1) -  6.5286e-1 (1.37e-1) -  4.9007e-1 (1.25e-1) -  1.9755e-1  (1.30e-1)
+DAS-CMOP2       1.6114e-1 (3.38e-2) -  2.1975e-1 (4.84e-2) -  2.2138e-1 (6.08e-2) -  1.5842e-1 (4.21e-2) -  2.2578e-1 (5.90e-2) -  2.3599e-1 (5.24e-2) -  1.4034e-1 (3.42e-2) -  1.1108e-1  (4.13e-2)
+DAS-CMOP3       3.2299e-1 (5.39e-2) -  4.0535e-1 (1.59e-1) -  4.1289e-1 (1.56e-1) -  2.9703e-1 (5.95e-2) -  3.9835e-1 (1.55e-1) -  5.1062e-1 (1.70e-1) -  3.1613e-1 (9.41e-2) -  2.3245e-1  (5.98e-2)
+DAS-CMOP4                              5.5996e-1 (1.90e-1) -  5.1813e-1 (2.07e-1) -                         5.7644e-1 (2.05e-1) -  5.9151e-1 (2.40e-1) -                         3.3695e-1  (2.02e-1)
+DAS-CMOP5               NaN (NaN)      6.8211e-1 (3.43e-1) -  6.2385e-1 (2.65e-1) -          NaN (NaN)      4.7041e-1 (2.76e-1)    3.7433e-1 (2.77e-1)            NaN (NaN)      3.8437e-1  (2.75e-1)
+DAS-CMOP6               NaN (NaN)      8.3978e-1 (2.30e-1) -  8.0596e-1 (1.76e-1) -          NaN (NaN)      5.2116e-1 (2.72e-1)    4.9737e-1 (2.87e-1)            NaN (NaN)      4.1740e-1  (2.36e-1)
+DAS-CMOP7               NaN (NaN)      4.8617e-1 (2.42e-1) -  4.7556e-1 (2.28e-1) -          NaN (NaN)      4.5840e-1 (2.70e-1) -  4.9698e-1 (2.65e-1) -          NaN (NaN)      3.2287e-1  (1.81e-1)
+DAS-CMOP8               NaN (NaN)      4.3798e-1 (1.74e-1) -  4.2945e-1 (2.02e-1) -          NaN (NaN)      4.9201e-1 (1.78e-1) -  6.0348e-1 (2.74e-1) -          NaN (NaN)      3.2684e-1  (2.03e-1)
+DAS-CMOP9               NaN (NaN)      5.3823e-1 (1.15e-1) -  4.8360e-1 (1.06e-1) -          NaN (NaN)      6.3516e-1 (1.36e-1) -  6.9034e-1 (9.44e-2) -          NaN (NaN)      2.4807e-1  (4.95e-2)
+                4.3423e-1 (7.77e-2) -                                                4.5392e-1 (9.81e-2) -                                                4.2005e-1 (6.57e-2) -
+
++ -             0/17/6                 1/19/12                2/19/10                0/18/1                 1/17/15                3/19/9                 0/17/3
+
+frequency is set to 8, the discount factor is set to 0.99, and the number
+of samplings is set to 5.
+
+    In this paper, a total of 33 CMOPs taken from four widely used
+benchmark test suites are adopted as the optimization problems, which
+are CF1-CF10 [72], MW1-MW14 [73], and DAS-CMOP1-DAS-CMOP9
+[74]. These problems are utilized to evaluate the performance of evo-
+lutionary algorithms, with the assumption that both the objective and
+constraint functions are computationally expensive. These optimization
+problems are characterized by complex fitness landscapes, which pose
+significant challenges for existing algorithms to identify the feasible
+Pareto optimal solutions within a constrained computational budget.
+The number of objectives in CF8-CF10, MW4, MW8, MW14, and DAS-
+CMOP7-DAS-CMOP9 is 3, the number of objectives in the other CMOPs
+is 2, and the number of decision variables in all the optimization
+problems is set to 10.
+
+4.2. Performance metrics
+
+    For all constrained optimization problems, the quality of the feasible
+solutions obtained is evaluated using the inverted generational distance
+(IGD) metric [75]. This process involves sampling 10,000 reference
+points from each Pareto front [76] to compute the IGD value. Statistical
+analysis is conducted using the Wilcoxon rank sum test [77], with
+a significance level of 0.05, to compare each algorithm against the
+proposed DRL-SAEA across 30 independent runs for each test instance.
+In the results, `+' indicates that an algorithm performs significantly
+better than DRL-SAEA, `-' denotes a significantly worse performance,
+and `=' suggests no significant difference in performance compared to
+DRL-SAEA.
+
+4.3. Experimental results
+
+    The optimization results of the proposed DRL-SAEA and eight com-                           Fig. 2. Convergence profiles of mean IGD values obtained by Multi-objective EGO,
+parative algorithms on the CMOPs are summarized in Table 1. It is                              M1-2, M2-2, HeE-MOEA, K-MGSAEA, KTS, DRLOS and the proposed DRL-SAEA on
+evident that DRL-SAEA outperforms the other algorithms in most prob-                           DAS-CMOP1-3.
+lem instances. Specifically, out of 33 test instances, DRL-SAEA achieves
+the best results in 24. Statistical testing further reveals that DRL-SAEA
+significantly exceeds the performance of Multi-objective EGO, M1-2,
+M2-2, HeE-MOEA, K-MGSAEA, KTS, and DRLOS in 17, 19, 19, 18, 17,
+19, and 17 test instances, respectively. In order to directly illustrate
+
+                                                                                     7
+S. Shao et al.                                                                  Swarm and Evolutionary Computation 92 (2025) 101817
+
+Fig. 3. Populations with the median IGD obtained by Multi-objective EGO, M1-2, M2-2, HeE-MOEA, K-MGSAEA, KTS, DRLOS, and the proposed DRL-SAEA on MW11.
+
+Fig. 4. Populations with the median IGD obtained by Multi-objective EGO, M1-2, M2-2, HeE-MOEA, K-MGSAEA, KTS, DRLOS, and the proposed DRL-SAEA on DAS-CMOP1.
+
+the advantages of DRL-SAEA, Fig. 2 depicts the convergence profiles             region. The Pareto front of MW11 is characterized by three distinct
+of IGD values obtained by them on DAS-CMOP1, DAS-CMOP2, and                     feasible regions, and it is evident that most of the compared algorithms
+DAS-CMOP3. It is worth noting that for these problems, the population           are limited to exploring only two of these regions. In contrast, the
+should be able to traverse infeasible regions, reach isolated feasible          proposed DRL-SAEA successfully identifies all feasible regions while
+regions, and eventually diffuse along the feasible boundary. While some         maintaining excellent diversity and distribution. Although the feasible
+SAEAs, such as KTS and K-MGSAEA, have designed strategies to balance            region of DAS-CMOP1 is continuous, it is similarly observed that most
+constraint and optimization, their convergence speed on these problems          algorithms converge to local feasible regions, failing to attain the
+is slow due to the lack of consideration of the dynamic relationship            global optimal solutions, while DRL-SAEA effectively escapes from local
+between population states and surrogate modeling schemes. In contrast,          optima.
+it can be clearly seen that the proposed DRL-SAEA converges faster than
+all the compared algorithms; in particular, the populations obtained by         4.4. Ablation studies
+DRL-SAEA with just 250 function evaluations are competitive to the
+populations obtained by all the compared algorithms. Thus, DRL-SAEA                 To further validate the effectiveness of the proposed surrogate
+demonstrates superior performance compared to existing constrained              model management method, DRL-SAEA is compared with variants that
+SAEAs. However, for some relatively simple ECMOPs, such as CF3, CF4,            each employ a single surrogate modeling scheme, thus eliminating the
+CF8, and CF9, DRL-SAEA also needs to learn the complex mapping                  influence of other strategic differences. Table 2 presents the comparison
+between the population states and the candidate surrogate modeling              results of DRL-SAEA and its three variants, DRL-SAEA1, DRL-SAEA2,
+scheme. It does not efficiently utilize function evaluations, leading to        and DRL-SAEA3, which utilize the first, second, and third surrogate
+suboptimal performance on these problems.                                       modeling schemes, respectively. It is evident that DRL-SAEA consis-
+                                                                                tently exhibits superior overall performance and remains competitive
+    Additionally, Figs. 3 and 4 illustrate the populations with the me-         across different variants and various ECMOPs. Fig. 5 illustrates the
+dian IGD achieved by the eight MOEAs on MW11 and DAS-CMOP1,                     populations with the median IGD achieved by DRL-SAEA1, DRL-SAEA2,
+respectively. For clarity in visualization, only the solution sets near the     DRL-SAEA3 and DRL-SAEA on DAS-CMOP4. It can be observed that
+Pareto front are presented, as some solutions obtained by the com-
+parative algorithms are located significantly distant from the feasible
+
+                                                                             8
+S. Shao et al.                                                                 Swarm and Evolutionary Computation 92 (2025) 101817
+
+                Fig. 5. Populations with the median IGD obtained by DRL-SAEA1, DRL-SAEA2, DRL-SAEA3, and DRL-SAEA on DAS-CMOP4.
+
+Table 2                                                                        for Pareto optimal solutions, it consumes the least time among all
+IGD values obtained by DRL-SAEA and its three variants on the CF benchmark     algorithms but exhibits the poor performance. In conclusion, DRL-SAEA
+suite, MW benchmark suite, and DAS-CMOP benchmark suite. Best result in        achieves satisfactory results within an acceptable computational cost.
+each row is highlighted.
+                                                                               5. Conclusions
+Problem         DRL-SAEA1 DRL-SAEA2 DRL-SAEA3 DRL-SAEA
+                                                                                   In this paper, we have proposed a deep reinforcement learning as-
+CF1             1.1553e-1  1.8974e-1  1.5794e-1  1.4240e-1                     sisted evolutionary algorithm for expensive constrained multi-objective
+CF2             9.5347e-2  1.1990e-1  1.0496e-1  9.2747e-2                     optimization. By leveraging deep neural networks to model the rela-
+CF3             1.3015e+0  1.0913e+0  1.1648e+0  1.4081e+0                     tionship between population states and the expected cumulative re-
+CF4             2.2441e-1  7.5333e-1  2.3565e-1  2.7620e-1                     wards of surrogate modeling schemes, the proposed algorithm can
+CF5             1.2369e+0  1.2005e+0  9.2027e-1  7.0942e-1                     suggest promising surrogate modeling schemes to achieve better gener-
+CF6             2.0781e-1  1.2382e-1  1.7169e-1  1.0259e-1                     alization performance. The selected surrogate modeling scheme directs
+CF7             1.8925e+0  1.7656e+0  1.0527e+0  7.0889e-1                     the proposed algorithm in the effective search for feasible Pareto op-
+CF8             1.1271e+0  8.5564e-1  1.5867e+0  1.0169e+0                     timal solutions, thus achieving a better balance between optimization
+CF9             4.8625e-1  6.0856e-1  7.3333e-1  5.0659e-1                     and constraints. The experimental results have demonstrated the supe-
+CF10            8.9325e+0             1.4149e+1  5.4710e+0                     riority of the proposed algorithm over several state-of-the-art SAEAs.
+                               NaN
+                                                                                   This work demonstrates the promising potential of deep reinforce-
+MW1             4.4458e-1  4.3336e-1  5.2568e-1  4.4467e-1                     ment learning in assisting evolutionary algorithms to solve ECMOPs.
+MW2             2.3580e-1  3.1436e-1  2.3402e-1  2.1827e-1                     Although the proposed method uses a discrete action space aimed at
+MW3             6.0478e-2  5.1930e-2  3.1183e-2  3.5681e-2                     selecting predefined surrogate modeling schemes, it is reasonable to
+MW4                        4.4046e-1  7.7299e-1  4.9410e-1                     consider using multi-agent reinforcement learning [78,79] to addition-
+MW5                 NaN    7.7233e-1  5.1235e-1  4.8865e-1                     ally incorporate a continuous action space for adaptively adjusting
+MW6             7.8242e-1  6.2623e-1  7.1508e-1  5.5197e-1                     the parameters involved in the evolutionary algorithm. Furthermore,
+MW7             8.7524e-1  7.5985e-2  5.3052e-2  5.7916e-2                     in future research, our goal is to further extend the proposed sur-
+MW8             7.1018e-2  4.8746e-1  5.0842e-1  3.4479e-1                     rogate model management strategy to address large-scale expensive
+MW9             6.5101e-1  6.8166e-1  5.3725e-1  4.1855e-1                     optimization [80,81], thereby enhancing the algorithm's applicability
+MW10            4.2021e-1  5.2580e-1  3.9429e-1  4.2815e-1                     in real-world scenarios.
+MW11            4.6056e-1  3.0224e-1  9.9530e-2  9.3901e-2
+MW12            1.6277e-1  6.8641e-1  3.1961e-1  4.4304e-1                     CRediT authorship contribution statement
+MW13            5.3844e-1  1.3167e+0  1.5519e+0  1.0570e+0
+MW14            1.4291e+0  9.5728e-1  1.0855e+0  1.0185e+0                         Shuai Shao: Writing - original draft, Software, Methodology. Ye
+                1.0343e+0                                                      Tian: Supervision, Project administration, Funding acquisition. Yajie
+                                                                               Zhang: Writing - review & editing, Validation, Investigation.
+DAS-CMOP1       6.6782e-1  5.4117e-1  1.1476e-1  1.9755e-1
+DAS-CMOP2       2.2724e-1  2.0831e-1  6.9586e-2  1.1108e-1                     Declaration of competing interest
+DAS-CMOP3       5.6635e-1  4.1437e-1  2.5055e-1  2.3245e-1
+DAS-CMOP4       4.0224e-1  6.4980e-1  5.0928e-1  3.3695e-1                         The authors declare that they have no known competing finan-
+DAS-CMOP5       3.5866e-1  6.0648e-1  3.4003e-1  3.8437e-1                     cial interests or personal relationships that could have appeared to
+DAS-CMOP6       4.9317e-1  6.6136e-1  5.3493e-1  4.1740e-1                     influence the work reported in this paper.
+DAS-CMOP7       5.2739e-1  4.3340e-1  3.5092e-1  3.2287e-1
+DAS-CMOP8       3.9978e-1  4.9971e-1  3.5152e-1  3.2684e-1                     Acknowledgments
+DAS-CMOP9       6.4321e-1  4.8659e-1  2.1001e-1  2.4807e-1
+                                                                                   This work was supported in part by the National Natural Science
+most of the solution sets obtained by DRL-SAEA1 fall outside the feasi-        Foundation of China (No. 62136008, No. 62276001, No. U21A20512),
+ble regions. This is because DRL-SAEA1 only uses the surrogate model           in part by the Anhui Provincial Natural Science Foundation (No.
+to fit the objective functions while completely ignoring the constraints.      2308085J03, No. 2208085MF174), and in part by the Excellent Youth
+Although the solution sets obtained by DRL-SAEA2 and DRL-SAEA3                 Foundation of Anhui Provincial Colleges (No. 2022AH030013), Na-
+fall entirely within the feasible region, they are only local optima.          tional Natural Science Foundation of China (No. 62403002), State
+By comparison, DRL-SAEA, through the proposed deep reinforcement               Key Laboratory of Pathogenesis, Prevention and Treatment of High
+learning assisted surrogate model management strategy, achieves su-            Incidence Diseases in Central Asia Fund (No. SKL-HIDCA-2024-AH1).
+perior results, offering a better balance between the objectives and
+constraints.
+
+4.5. Computational efficiency of DRL-SAEA
+
+    Finally, the computational efficiency of the proposed DRL-SAEA is
+compared with the baseline algorithms on the CF benchmark suite, MW
+benchmark suite, and DAS-CMOP benchmark suite. Table 3 presents
+the runtime results, and it is evident that the proposed DRL-SAEA
+is competitive with M1-2, M2-2, K-MGSAEA, and HeE-MOEA, while
+being more efficient than Multi-objective EGO and KTS. Additionally,
+since DRLOS does not employ surrogate models to assist in the search
+
+                                                                            9
+S. Shao et al.                                                                                                   Swarm and Evolutionary Computation 92 (2025) 101817
+
+                Table 3
+                Runtimes (in second) of Multi-objective EGO, M1-2, M2-2, HeE-MOEA, K-MGSAEA, KTS,
+                DRLOS, and the proposed DRL-SAEA on the CF benchmark suite, MW benchmark suite, and
+                DAS-CMOP benchmark suite. Best result in each row is highlighted.
+
+                Problem                   Multi-objective EGO                                  M1-2     M2-2     HeE-MOEA
+
+                     CF benchmark suite   3.04e+2                                              5.10e+1  4.73e+1  3.03e+1
+                    MW benchmark suite    3.78e+2                                              8.22e+1  6.53e+1  3.75e+1
+                DAS-CMOP benchmark suite  3.99e+2                                              1.38e+2  3.96e+1  4.26e+1
+
+                Problem                   K-MGSAEA                                             KTS      DRLOS DRL-SAEA
+
+                     CF benchmark suite   6.13e+1                                              1.30e+2  3.12e-1  9.18e+1
+                    MW benchmark suite    8.39e+1                                              1.93e+2  2.85e-1  4.49e+1
+                DAS-CMOP benchmark suite  9.42e+1                                              3.21e+2  3.01e-1  6.20e+1
+
+Data availability                                                                              [19] J. Dong, W. Gong, F. Ming, L. Wang, A two-stage evolutionary algorithm based
+                                                                                                       on three indicators for constrained multi-objective optimization, Expert Syst.
+    Data will be made available on request.                                                            Appl. 195 (2022) 116499.
+
+References                                                                                     [20] J. Liang, X. Ban, K. Yu, B. Qu, K. Qiao, C. Yue, K. Chen, K.C. Tan, A survey on
+                                                                                                       evolutionary constrained multiobjective optimization, IEEE Trans. Evol. Comput.
+  [1] F. Ming, W. Gong, Y. Jin, Even search in a promising region for constrained                      27 (2) (2022) 201-221.
+         multi-objective optimization, IEEE/CAA J. Autom. Sin. 11 (2) (2024) 474-486.
+                                                                                               [21] R.G. Regis, Multi-objective constrained black-box optimization using radial basis
+  [2] X. Chu, F. Ming, W. Gong, Competitive multitasking for computational resource                    function surrogates, J. Comput. Sci. 16 (2016) 140-155.
+         allocation in evolutionary constrained multi-objective optimization, IEEE Trans.
+         Evol. Comput. (2024).                                                                 [22] Y. Zhang, H. Jiang, Y. Tian, H. Ma, X. Zhang, Multigranularity surrogate model-
+                                                                                                       ing for evolutionary multiobjective optimization with expensive constraints, IEEE
+  [3] C. Wang, Z. Liu, J. Qiu, L. Zhang, Adaptive constraint handling technique                        Trans. Neural Netw. Learn. Syst. (2023).
+         selection for constrained multi-objective optimization, Swarm Evol. Comput. 86
+         (2024) 101488.                                                                        [23] Z. Song, H. Wang, B. Xue, M. Zhang, Y. Jin, Balancing objective optimization
+                                                                                                       and constraint satisfaction in expensive constrained evolutionary multi-objective
+  [4] Y. Xiang, X. Yang, Y. Zhou, H. Huang, Enhancing decomposition-based algo-                        optimization, IEEE Trans. Evol. Comput. (2023).
+         rithms by estimation of distribution for constrained optimal software product
+         selection, IEEE Trans. Evol. Comput. 24 (2) (2019) 245-259.                           [24] H. Wu, Q. Chen, J. Chen, Y. Jin, J. Ding, X. Zhang, T. Chai, A multi-stage
+                                                                                                       expensive constrained multi-objective optimization algorithm based on ensemble
+  [5] T. Chen, M. Li, The weights can be harmful: Pareto search versus weighted                        infill criterion, IEEE Trans. Evol. Comput. (2024).
+         search in multi-objective search-based software engineering, ACM Trans. Softw.
+         Eng. Methodol. 32 (1) (2023) 1-40.                                                    [25] E.-G. Talbi, Machine learning into metaheuristics: A survey and taxonomy, ACM
+                                                                                                       Comput. Surv. 54 (6) (2021) 1-32.
+  [6] Y. Tian, T. Zhang, J. Xiao, X. Zhang, Y. Jin, A coevolutionary framework for
+         constrained multiobjective optimization problems, IEEE Trans. Evol. Comput. 25        [26] B. Li, G. Wu, Y. He, M. Fan, W. Pedrycz, An overview and experimental
+         (1) (2020) 102-116.                                                                           study of learning-based optimization algorithms for the vehicle routing problem,
+                                                                                                       IEEE/CAA J. Autom. Sin. 9 (7) (2022) 1115-1138.
+  [7] A.K. Low, F. Mekki-Berrada, A. Gupta, A. Ostudin, J. Xie, E. Vissol-Gaudin, Y.-F.
+         Lim, Q. Li, Y.S. Ong, S.A. Khan, et al., Evolution-guided Bayesian optimization       [27] K. Xue, J. Xu, L. Yuan, M. Li, C. Qian, Z. Zhang, Y. Yu, Multi-agent dynamic
+         for constrained multi-objective optimization in self-driving labs, NPJ Comput.                algorithm configuration, in: Advances in Neural Information Processing Systems,
+         Mater. 10 (1) (2024) 104.                                                                     2022, pp. 20147-20161.
+
+  [8] W. Lu, Q. Xiao, H. Jia, Y. Jin, Y. Mu, J. Zhu, C. Shen, R. Teodorescu, J.M.              [28] X. Wang, Y. Jin, S. Schmitt, M. Olhofer, Recent advances in Bayesian
+         Guerrero, A projected gradient descent-based distributed optimal control method               optimization, ACM Comput. Surv. 55 (13s) (2023) 1-36.
+         of medium-voltage DC distribution system considering line loss, IEEE Trans.
+         Power Syst. (2024).                                                                   [29] Z. Wang, G.E. Dahl, K. Swersky, C. Lee, Z. Nado, J. Gilmer, J. Snoek, Z.
+                                                                                                       Ghahramani, Pre-trained Gaussian processes for Bayesian optimization, J. Mach.
+  [9] Z. Sabir, M.A.Z. Raja, H.A. Wahab, M. Shoaib, J.G. Aguilar, Integrated neuro-                    Learn. Res. 25 (212) (2024) 1-83.
+         evolution heuristic with sequential quadratic programming for second-order
+         prediction differential models, Numer. Methods Partial Differential Equations 40      [30] Y. Jin, Surrogate-assisted evolutionary computation: Recent advances and future
+         (1) (2024) e22692.                                                                            challenges, Swarm Evol. Comput. 1 (2) (2011) 61-70.
+
+[10] D. Molina-P�rez, E. Mezura-Montes, E.A. Portilla-Flores, E. Vega-Alvarado,                [31] H. Wang, Y. Jin, J. Doherty, Committee-based active learning for surrogate-
+         B. Calva-Ya�ez, A differential evolution algorithm for solving mixed-integer                  assisted particle swarm optimization of expensive problems, IEEE Trans. Cybern.
+         nonlinear programming problems, Swarm Evol. Comput. 84 (2024) 101427.                         47 (9) (2017) 2664-2677.
+
+[11] C.A. Coello Coello, Constraint-handling techniques used with evolutionary algo-           [32] Y. Tian, X. Li, H. Ma, X. Zhang, K.C. Tan, Y. Jin, Deep reinforcement learning
+         rithms, in: Proceedings of the Genetic and Evolutionary Computation Conference                based adaptive operator selection for evolutionary multi-objective optimization,
+         Companion, 2024, pp. 1261-1283.                                                               IEEE Trans. Emerg. Top. Comput. Intell. (2022).
+
+[12] J.-Y. Li, Z.-H. Zhan, J. Zhang, Evolutionary computation for expensive                    [33] Z. Hu, W. Gong, W. Pedrycz, Y. Li, Deep reinforcement learning assisted co-
+         optimization: A survey, Mach. Intell. Res. 19 (1) (2022) 3-23.                                evolutionary differential evolution for constrained optimization, Swarm Evol.
+                                                                                                       Comput. (2023) 101387.
+[13] Z.-H. Zhan, L. Shi, K.C. Tan, J. Zhang, A survey on evolutionary computation
+         for complex continuous optimization, Artif. Intell. Rev. 55 (1) (2022) 59-110.        [34] S. Yin, Z. Xiang, Adaptive operator selection with dueling deep Q-network for
+                                                                                                       evolutionary multi-objective optimization, Neurocomputing 581 (2024) 127491.
+[14] L. Si, X. Zhang, Y. Tian, S. Yang, L. Zhang, Y. Jin, Linear subspace surrogate
+         modeling for large-scale expensive single/multi-objective optimization, IEEE          [35] W. Demeke, B. Ryu, S. Ryu, Machine learning-based optimization of segmented
+         Trans. Evol. Comput. (2023).                                                                  thermoelectric power generators using temperature-dependent performance
+                                                                                                       properties, Appl. Energy 355 (2024) 122216.
+[15] H. Gu, H. Wang, C. He, B. Yuan, Y. Jin, Large-scale multiobjective evolutionary
+         algorithm guided by low-dimensional surrogates of scalarization functions, Evol.      [36] R.G. Regis, A survey of surrogate approaches for expensive constrained black-box
+         Comput. (2024) 1-25.                                                                          optimization, in: Optimization of Complex Systems: Theory, Models, Algorithms
+                                                                                                       and Applications, Springer, 2020, pp. 37-47.
+[16] S. Qin, C. Sun, Q. Liu, Y. Jin, A performance indicator-based infill criterion for
+         expensive multi-/many-objective optimization, IEEE Trans. Evol. Comput. 27 (4)        [37] C. He, Y. Zhang, D. Gong, X. Ji, A review of surrogate-assisted evolutionary
+         (2023) 1085-1099.                                                                             algorithms for expensive optimization problems, Expert Syst. Appl. 217 (2023)
+                                                                                                       119495.
+[17] R. Chen, K. Li, Multioutput surrogate assisted evolutionary algorithm for ex-
+         pensive multi-modal optimization problems, in: Proceedings of the 2023 IEEE           [38] J. Stork, M. Friese, M. Zaefferer, T. Bartz-Beielstein, A. Fischbach, B. Breiderhoff,
+         International Conference on Systems, Man, and Cybernetics, IEEE, 2023, pp.                    B. Naujoks, T. Tusar, Open Issues in Surrogate-Assisted Optimization, Springer,
+         5176-5181.                                                                                    2020, pp. 225-244, chapter High-Performance Simulation-Based Optimization.
+
+[18] Z.-Z. Liu, B.-C. Wang, K. Tang, Handling constrained multiobjective optimization          [39] S. Shao, Y. Tian, L. Zhang, K.C. Tan, X. Zhang, An evolutionary algorithm
+         problems via bidirectional coevolution, IEEE Trans. Cybern. 52 (10) (2021)                    for solving large-scale robust multi-objective optimization problems, IEEE Trans.
+         10163-10176.                                                                                  Evol. Comput. (2024).
+
+                                                                                               [40] U. Srilakshmi, J. Manikandan, T. Velagapudi, G. Abhinav, T. Kumaret, et al.,
+                                                                                                       A new approach to computationally-successful linear and polynomial regression
+                                                                                                       analytics of large data in medicine, J. Comput. Allied Intell. (JCAI) 2 (02) (2024)
+                                                                                                       35-48.
+
+                                                                                               [41] Y. Zhang, W. Dong, L.A. Vandewalle, R. Xu, G.P. Smith, H. Wang, Neural network
+                                                                                                       approach to response surface development for reaction model optimization and
+                                                                                                       uncertainty minimization, Combust. Flame 251 (2023) 112679.
+
+                                                                                           10
+S. Shao et al.                                                                                                                              Swarm and Evolutionary Computation 92 (2025) 101817
+
+[42] F. Li, Z. Shang, Y. Liu, H. Shen, Y. Jin, Inverse distance weighting and radial basis      [62] K. Arulkumaran, M.P. Deisenroth, M. Brundage, A.A. Bharath, Deep rein-
+         function based surrogate model for high-dimensional expensive multi-objective                  forcement learning: A brief survey, IEEE Signal Process. Mag. 34 (6) (2017)
+         optimization, Appl. Soft Comput. 152 (2024) 111194.                                            26-38.
+
+[43] X. Wu, Q. Lin, W. Lin, Y. Ye, Q. Zhu, V.C. Leung, A Kriging model-based                    [63] S. Shao, Y. Tian, X. Zhang, Deep reinforcement learning assisted automated
+         evolutionary algorithm with support vector machine for dynamic multimodal                      guiding vector selection for large-scale sparse multi-objective optimization,
+         optimization, Eng. Appl. Artif. Intell. 122 (2023) 106039.                                     Swarm Evol. Comput. 88 (2024) 101606.
+
+[44] F. Hern�ndez-Luquin, H.J. Escalante, Multi-branch deep radial basis function               [64] E. Zitzler, L. Thiele, Multiobjective evolutionary algorithms: a comparative case
+         networks for facial emotion recognition, Neural Comput. Appl. 35 (25) (2023)                   study and the strength Pareto approach, IEEE Trans. Evol. Comput. 3 (4) (1999)
+         18131-18145.                                                                                   257-271.
+
+[45] C. Hu, C. Zhang, D. Lei, T. Wu, X. Liu, L. Zhu, Achieving privacy-preserving               [65] K. Qiao, J. Liang, K. Yu, X. Ban, C. Yue, B. Qu, P.N. Suganthan, Constraints
+         and verifiable support vector machine training in the cloud, IEEE Trans. Inf.                  separation based evolutionary multitasking for constrained multi-objective
+         Forensics Secur. 18 (2023) 3476-3491.                                                          optimization problems, IEEE/CAA J. Autom. Sin. 11 (8) (2024) 1819-1835.
+
+[46] N. Nourian, M. El-Badry, M. Jamshidi, Design optimization of truss structures              [66] R. Zaheer, H. Shaziya, A study of the optimization algorithms in deep learning,
+         using a graph neural network-based surrogate model, Algorithms 16 (8) (2023)                   in: 2019 Third International Conference on Inventive Systems and Control, ICISC,
+         380.                                                                                           IEEE, 2019, pp. 536-539.
+
+[47] H. Zhang, G. Wang, J. Zhang, Y. Gao, W. Hua, Y. Wang, An improved                          [67] I.K.M. Jais, A.R. Ismail, S.Q. Nisa, Adam optimization algorithm for wide and
+         Kriging surrogate model method with high robustness for electrical machine                     deep neural network, Knowl. Eng. Data Sci. 2 (1) (2019) 41-46.
+         optimization, IEEE Trans. Ind. Appl. (2024).
+                                                                                                [68] K. Han, A. Xiao, E. Wu, J. Guo, C. Xu, Y. Wang, Transformer in transformer,
+[48] W. Wang, H.-L. Liu, K.C. Tan, A surrogate-assisted differential evolution algo-                    Adv. Neural Inf. Process. Syst. 34 (2021) 15908-15919.
+         rithm for high-dimensional expensive optimization problems, IEEE Trans. Cybern.
+         53 (4) (2022) 2685-2697.                                                               [69] R. Hussein, K. Deb, A generative kriging surrogate model for constrained and
+                                                                                                        unconstrained multi-objective optimization, in: Proceedings of the 2016 Genetic
+[49] A. Pietrenko-Dabrowska, S. Koziel, et al., Cost-efficient bi-layer modeling of                     and Evolutionary Computation Conference, 2016, pp. 573-580.
+         antenna input characteristics using gradient kriging surrogates, IEEE Access 8
+         (2020) 140831-140839.                                                                  [70] D. Guo, Y. Jin, J. Ding, T. Chai, Heterogeneous ensemble-based infill criterion
+                                                                                                        for evolutionary multiobjective optimization of expensive problems, IEEE Trans.
+[50] S. Koziel, A. Pietrenko-Dabrowska, Rapid optimization of compact microwave                         Cybern. 49 (3) (2018) 1012-1025.
+         passives using kriging surrogates and iterative correction, IEEE Access 8 (2020)
+         53587-53594.                                                                           [71] F. Ming, W. Gong, L. Wang, Y. Jin, Constrained multi-objective optimization with
+                                                                                                        deep reinforcement learning assisted operator selection, 2024, arXiv preprint
+[51] H. Wang, Y. Jin, A random forest-assisted evolutionary algorithm for data-driven                   arXiv:2402.12381.
+         constrained multiobjective combinatorial optimization of trauma systems, IEEE
+         Trans. Cybern. 50 (2) (2018) 536-549.                                                  [72] Q. Zhang, A. Zhou, S. Zhao, P.N. Suganthan, W. Liu, S. Tiwari, et al., Mul-
+                                                                                                        tiobjective Optimization Test Instances for the CEC 2009 Special Session and
+[52] K. Deb, R. Hussein, P.C. Roy, G. Toscano-Pulido, A taxonomy for metamodeling                       Competition, Technical report, Vol. 264, 2008, pp. 1-30.
+         frameworks for evolutionary multiobjective optimization, IEEE Trans. Evol.
+         Comput. 23 (1) (2019) 104-116.                                                         [73] Z. Ma, Y. Wang, Evolutionary constrained multiobjective optimization: Test suite
+                                                                                                        construction and performance comparisons, IEEE Trans. Evol. Comput. 23 (6)
+[53] X. Song, L. Lv, W. Sun, J. Zhang, A radial basis function-based multi-fidelity                     (2019) 972-986.
+         surrogate model: exploring correlation between high-fidelity and low-fidelity
+         models, Struct. Multidiscip. Optim. 60 (2019) 965-981.                                 [74] Z. Fan, W. Li, X. Cai, H. Li, C. Wei, Q. Zhang, K. Deb, E. Goodman, Difficulty
+                                                                                                        adjustable and scalable constrained multiobjective test problem toolkit, Evol.
+[54] J. Tao, G. Sun, Application of deep learning based multi-fidelity surrogate model                  Comput. 28 (3) (2020) 339-378.
+         to robust aerodynamic design optimization, Aerosp. Sci. Technol. 92 (2019)
+         722-737.                                                                               [75] P.A. Bosman, D. Thierens, The balance between proximity and diversity in
+                                                                                                        multiobjective evolutionary algorithms, IEEE Trans. Evol. Comput. 7 (2) (2003)
+[55] R. Hussein, P.C. Roy, K. Deb, Switching between metamodeling frameworks                            174-188.
+         for efficient multi-objective optimization, in: Proceedings of the 2018 IEEE
+         Symposium Series on Computational Intelligence, IEEE, 2018, pp. 1188-1195.             [76] Y. Tian, X. Xiang, X. Zhang, R. Cheng, Y. Jin, Sampling reference points
+                                                                                                        on the Pareto fronts of benchmark multi-objective optimization problems, in:
+[56] K. Deb, P.C. Roy, R. Hussein, Surrogate modeling approaches for multiobjective                     Proceedings of the 2018 IEEE Congress on Evolutionary Computation, IEEE,
+         optimization: methods, taxonomy, and results, Math. Comput. Appl. 26 (1)                       2018, pp. 1-6.
+         (2020) 5.
+                                                                                                [77] J. Derrac, S. Garc�a, D. Molina, F. Herrera, A practical tutorial on the use of
+[57] Z. Yang, H. Qiu, L. Gao, L. Chen, J. Liu, Surrogate-assisted MOEA/D for expensive                  nonparametric statistical tests as a methodology for comparing evolutionary and
+         constrained multi-objective optimization, Inform. Sci. 639 (2023) 119016.                      swarm intelligence algorithms, Swarm Evol. Comput. 1 (1) (2011) 3-18.
+
+[58] F. Ming, W. Gong, H. Zhen, S. Li, L. Wang, Z. Liao, A simple two-stage evo-                [78] Z. Ning, L. Xie, A survey on multi-agent reinforcement learning and its
+         lutionary algorithm for constrained multi-objective optimization, Knowl.-Based                 application, J. Autom. Intell. (2024).
+         Syst. 228 (2021) 107263.
+                                                                                                [79] Y. Huang, C. Zhou, K. Cui, X. Lu, A multi-agent reinforcement learning frame-
+[59] L. Lipeng, L. Xu, J. Liu, H. Zhao, T. Jiang, T. Zheng, Prioritized experience                      work for optimizing financial trading strategies based on timesnet, Expert Syst.
+         replay-based DDQN for unmanned vehicle path planning, 2024, arXiv preprint                     Appl. 237 (2024) 121502.
+         arXiv:2406.17286.
+                                                                                                [80] M. Sun, C. Sun, X. Li, G. Zhang, F. Akhtar, Large-scale expensive optimization
+[60] D. Shi, H. Xu, S. Wang, J. Hu, L. Chen, C. Yin, Deep reinforcement learning based                  with a switching strategy, Complex Syst. Model. Simul. 2 (3) (2022) 253-263.
+         adaptive energy management for plug-in hybrid electric vehicle with double deep
+         Q-network, Energy 305 (2024) 132402.                                                   [81] H. Gu, H. Wang, Y. Jin, Surrogate-assisted differential evolution with adaptive
+                                                                                                        multisubspace search for large-scale expensive optimization, IEEE Trans. Evol.
+[61] H. Van Hasselt, A. Guez, D. Silver, Deep reinforcement learning with double                        Comput. 27 (6) (2022) 1765-1779.
+         q-learning, in: Proceedings of the AAAI Conference on Artificial Intelligence,
+         2016.
+
+                                                                                            11
+

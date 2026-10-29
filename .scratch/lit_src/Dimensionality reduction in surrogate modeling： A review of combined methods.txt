@@ -1,0 +1,1626 @@
+Data Science and Engineering (2022) 7:402-427
+https://doi.org/10.1007/s41019-022-00193-5
+
+ REVIEW/SURVEY PAPERS
+
+Dimensionality Reduction in Surrogate Modeling: A Review
+of Combined Methods
+
+Chun Kit Jeffery Hou1 � Kamran Behdinan1
+
+Received: 2 March 2022 / Revised: 21 July 2022 / Accepted: 9 August 2022 / Published online: 21 August 2022
+� The Author(s) 2022
+
+Abstract
+Surrogate modeling has been popularized as an alternative to full-scale models in complex engineering processes such as
+manufacturing and computer-assisted engineering. The modeling demand exponentially increases with complexity and
+number of system parameters, which consequently requires higher-dimensional engineering solving techniques. This is
+known as the curse of dimensionality. Surrogate models are commonly used to replace costly computational simulations and
+modeling of complex geometries. However, an ongoing challenge is to reduce execution and memory consumption of high-
+complexity processes, which often exhibit nonlinear phenomena. Dimensionality reduction algorithms have been employed
+for feature extraction, selection, and elimination for simplifying surrogate models of high-dimensional problems. By applying
+dimensionality reduction to surrogate models, less computation is required to generate surrogate model parts while retain-
+ing sufficient representation accuracy of the full process. This paper aims to review the current literature on dimensionality
+reduction integrated with surrogate modeling methods. A review of the current state-of-the-art dimensionality reduction and
+surrogate modeling methods is introduced with a discussion of their mathematical implications, applications, and limitations.
+Finally, current studies that combine the two topics are discussed and avenues of further research are presented.
+
+Keywords Dimensionality reduction � Surrogate modeling � Machine learning � High dimensionality � Neural networks
+
+1Introduction                                                  structure while sacrificing minimal accuracy and informa-
+                                                               tion. DR can be achieved through feature elimination, feature
+Data mining has become a rapidly growing field in recent       selection, or feature extraction. Feature elimination involves
+years. At the same time, data generation has seen a surge in   reducing the input dimension space by eliminating features
+volume, leading to a growth in size, complexity, and data      of the dataset that are deemed unimportant. Although this
+dimensionality. High-dimensional data exists where the         simplifies the computations afterwards, no information is
+number of data features is on the order of the number of       gained by dropping those features. Feature selection involves
+samples or observations [1]. These datasets can be computa-    using statistics to determine and rank features based on their
+tionally expensive to learn and generating mapping functions   information contribution to the overall dataset. These meth-
+between input and output can be a cumbersome task. Thus,       ods can be categorized as filter and wrapper methods and
+reducing the number of features, or the problem dimen-         have been explored in detail in [2]. It is important to note
+sionality, can greatly simplify the learning and training of   that there is no universal method for ranking data features as
+regression and classification models for extracting patterns   different tests will yield different contribution scores. Global
+in the data. Dimensionality reduction (DR) techniques seek     sensitivity analysis methods [3], which identify the `most
+to reduce the data dimensionality and identify intrinsic data  important' inputs in unstructured datasets and ignore the
+                                                               others, have emerged as a novel feature selection method for
+* Chun Kit Jeffery Hou                                         machine learning (ML) prediction models [4]. Finally, fea-
+     chunkit.hou@mie.utoronto.ca                               ture extraction methods, like principal component analysis
+                                                               (PCA), create new independent features that are combina-
+     Kamran Behdinan                                           tions of the original dataset features.
+     behdinan@mie.utoronto.ca
+                                                                  In this paper, dimensionality reduction methods are clas-
+1 Department of Mechanical and Industrial Engineering,         sified as linear and non-linear methods. Linear DR methods
+     University of Toronto, Toronto, ON, Canada
+
+V1ol:.3 (1234567890)
+Dimensionality Reduction in Surrogate Modeling: A Review of Combined Methods  403
+
+transform data to a lower-dimension feature space through        other model structures [8]. Typically, the models are
+linear kernelization and combinations of original variables.     trained with a set of in and output data and validated to
+The linear techniques presented in this paper predominantly      emulate the full-scale simulations at much less computa-
+perform dimensionality reduction through linear algebra.         tional cost [9]. Surrogate models can be categorized as
+Non-linear DR methods are applied when the initial data          interpolating and non-interpolating methods. Interpolating
+space contains nonlinear relationships and structure. These      method such as Kriging rely on sufficient data around the
+include kernel PCA (kPCA), manifold learning methods,            points to be predicted. However, non-interpolation meth-
+and autoencoders. Typically, non-linear DR techniques gen-       ods generate predictions without the need for data within
+erate a lower-dimensional representation of the data while       the range of predicted values. For instance, neural net-
+preserving distance between data points. Furthermore, these      works (NNs) and support vector machines (SVMs) find the
+methods can subsequently be supervised or unsupervised           input-output mapping by minimizing error functions. Each
+schemes. Unsupervised DR methods, such as PCA, only              category of non-interpolation methods composes of data-
+consider the input feature matrix for pattern identification,    driven, multi-fidelity, and projection-based methods with
+while supervised methods such as partial least squares (PLS)     corresponding linear and nonlinear prediction schemes.
+and linear discriminant analysis (LDA) consider both fea-        Due to the variety of engineering problems that surrogate
+tures and the responses. The overall goal of DR methods is       models can be applied, selecting the appropriate model to
+to enhance the accuracy and efficiency of data mining by         implement typically depends on the available dataset size
+reducing the dataset and increasing data quality.                and the number of parameters.
+
+   Surrogate models, or metamodels, approximate high-               The organization of this review paper is shown in
+fidelity models using statistical methods without compro-        Fig. 1. A comprehensive review of the current literature on
+mising on model accuracy or representation. These models         dimensionality reduction and surrogate modeling methods
+can be used as analytical tools for model simplification [5],    is presented. As well as summarizing their mathematical
+uncertainty quantification, or reducing ill-conditioning of      interpretations and limitations, we investigate the current
+optimization problems through incorporation of gradient          state-of-the-art applications of each and the potential for
+information [6]. In the context of surrogate optimization        improving computational efficiency in fields where they
+models, local surrogates are updated within an iterative         have not been applied. We further investigate existing
+framework, while global surrogates are fitted only once          research efforts that combine dimensionality reduction
+with the training set [7]. The benefit of reduced runtimes       with surrogate modeling (DRSM) and the contributions
+and computational efficiency allows surrogates to be             and needs for further research in this growing field of ML
+designed for real-time decision support environments and         application.
+investigation of structural model uncertainty by simulating
+
+Fig.1Overview of Dimensionality Reduction in Surrogate Modeling
+
+                                                                              1 3
+404                                                                      C. K. J. Hou, K. Behdinan
+
+2Linear Dimensionality Reduction                                matrix is multiplied with the loading matrix, which recon-
+                                                                structs the input features to n x r dimensions, as shown by
+Dimensionality reduction aims to transform data in high-        (4).
+dimensional space into low-dimensional representations
+through feature extraction, elimination, or selection. In this  X = PLT  (4)
+section, we discuss several DR methods which utilize linear
+algebra relations to reduce the size of input data and associ-     Figure 2 shows the variance captured by each principal
+ated applications of each method in the literature.             component. The curve indicates the cumulative variance that
+                                                                is captured with each additional principal component, while
+2.1Unsupervised Linear Methods                                  the bars show the contributed variance by each principal
+                                                                component.
+Unsupervised Linear dimensionality reduction techniques
+(PCA, KPCA, Factor Analysis) are employed at the pre-              PCA has been applied to a variety of engineering simu-
+processing stage for surrogate modeling. These methods are      lation problems to reduce complexity, ease computations,
+trained using unlabeled data and only consider input features   and extract key information for simplified reconstruction of
+for discovering lower-dimensional representations.              datasets with quantitative variables. For instance, [10] uti-
+                                                                lized principal component analysis for feature extraction in
+2.1.1Principal Component Analysis                               nonlinear FEA U-structure. 24 input parameters were con-
+                                                                verted to 11 principal components, which captured 98.5%
+Principal Component Analysis (PCA) is the most popular          of the total variance.
+unsupervised learning method for linear dimensionality
+reduction.                                                         PCA has also drastically improved FEA procedures for
+                                                                biomechanics. Grassi et al. [11] developed a PCA-based
+   The method considers n input samples with k features,        statistical finite element modeling method for recon-
+excluding the output labels, and normalizes the dataset for     structing bone shape and density. Due to the shortage of
+comparable values across features. The covariance matrix,       available computed tomography-based FE models, bone
+R, is computed for the input data and singular value decom-     shape and density indexation through PCA were used to
+position is used to produce a diagonal matrix of principal      reproduce a lower-order model for obtaining biomechani-
+component eigenvalues, , and associated eigenvectors, A,        cal properties of bones. The statistical model was based
+as shown in (1).                                                on collected femoral CT datasets and the shape pre-pro-
+                                                                cessing was based on isotopological meshes. After scaling
+R = A AT                           (1)                          the meshes, PCA was applied to both the bone shape and
+                                                                mineral density (BMD) properties. The number of com-
+                                                                ponents maintained for shape reconstruction was based on
+                                                                the database mean reconstruction error compared to the
+
+   The elements of the covariance matrix indicate the
+correlation of each component with corresponding input
+variables. The eigenvalues are correlated with the level of
+variance captured by the associated principal component's
+eigenvector. The resulting principal components are linear
+expressions of the initial input data and are independent of
+one another. Taking advantage of the diagonal properties of
+the eigenvector matrix, R can be rewritten in terms of the
+principal component loading matrix, L, with dimensionality
+r x k, where r<k, as shown in (2).
+
+R = LLT                            (2)
+
+   The principal components can be determined by multiply-
+ing the input data matrix by the loading matrix, as shown
+in (3).
+
+P = XL                             (3)
+
+   The number of retained r components is selected based on     Fig.2Variance v.s. Principal Components. Cumulative variance line
+captured variance of the full data. The principal component     and contributed variance by each subsequent principal component as
+                                                                bars
+
+1 3
+Dimensionality Reduction in Surrogate Modeling: A Review of Combined Methods  405
+
+CT data's resolution, while a relative error threshold was    the matrix of extract factors is rotated using orthogonal or
+used for BMD components. Upon validating with leave-          oblique rotations for improving interpretability of results.
+one-out tests, the proposed PCA-based statistical model
+reconstructed both the bone shape and mineral density         2.1.3Mixed Data Type Methods
+properties within the tolerated error thresholds. However,
+coupling between shape and mineral density variations         Real datasets often contain mixed-type variables such as
+was not considered in the linear statistical model, which     continuous, binary, and categorical sets. Since linear PCA
+highlights the need for non-linear methods to solve high      minimizes the squared loss function to determine principal
+complexity FEA. Pellicer-Valero et al. [12] employed ML       components, the method may not be appropriate for data
+techniques for simulating the biomechanical behavior of       that is discontinuous [17]. PCA methods for mixed data
+the human liver under applied load. Liver images were         types have been implemented in several R packages such
+processed in MATLAB and the loads were applied in             as PCAmixdata [18], FactoMineR [19, 20], and ade4 [21].
+increments to aid with convergence under large deforma-       FactoMineR uses an extended method of the FA method
+tions and eliminate viscoelastic effects. PCA was applied     (FAMD) based on findings by [22, 23]. Pag�s [24] further
+to the vector of liver geometry inputs and a feedforward      developed the FAMD method for survey analysis, ecology,
+NN and random forest regressor were compared with lit-        and time series problems. The FAMD method works as PCA
+erature methods for developing the non-linear mapping.        for quantitative variables and uses multiple correspondence
+While the proposed algorithm successfully predicted           analysis (MCA) for categorical and qualitative variables.
+liver geometry under arbitrary loads, the approximation       Overall, the factors are determined based on maximizing
+can be further improved by using convolutional layers in      the sum of correlations in qualitative and quantitative vari-
+the image segmentation task prior to training the neural      ables and selecting them based on highest squared correla-
+network.                                                      tion coefficients.
+
+2.1.2Factor Analysis                                          2.2Supervised Linear Methods
+
+Alternatively, factor analysis (FA) is an unsupervised        Linear Discriminant Analysis (LDA), Partial Least Squares
+dimensionality reduction technique for determining the        (PLS), and active subspace methods are supervised, linear
+relationships within a set of random variables observed or    alternatives to PCA. As previously mentioned, these meth-
+measured for each datapoint of a group [13]. The method       ods are trained using labelled input and output data. In the
+aims to identify the number of factors and the underlying     context of reducing dimensionality for surrogate models,
+structure of a set of variables for dimensionality reduc-     supervised methods produce more suitable topology repre-
+tion [14, 15]. Factors, or latent variables, are presumed to  sentations of input-output maps compared to unsupervised
+exist in the observed dataset and cannot be measured or       methods [25].
+observed directly. FA can be interpreted as an extension of
+PCA, as both methods share similar assumptions regarding      2.2.1Linear Discriminant Analysis
+normal distributed variables and bivariate distribution of
+variable pairs [16]. While PCA decomposes the correlation     Linear discriminant analysis (LDA), derived as an exten-
+matrix of continuous variables into principal components      sion from the general form of the Fisher's discriminant
+expressed as linear functions of the original set of feature  analysis, is a feature selection method which performs the
+variables, FA decomposes a correlation matrix adjusted for    dimensionality reduction through maximizing class-sepa-
+unique factors in the diagonal. Furthermore, PCA assumes      ration distance and minimizing distance within class data
+the total variance is equivalent to common variance, while    (the features). The underlying assumptions of LDA include
+FA assumes unique variance also contributes to the total      normally distributed data behavior and homogeneous vari-
+variance. The FA variables are expressed as linear com-       ance among variables. While PCA works better for smaller
+binations of common and unique factors. Unique factors        datasets, LDA is superior for multi-class classification prob-
+are explained as unreliability due to measurement error       lems and dimensionality reduction for classification in later
+and data variation and are unique for each variable, while    steps. LDA performs best for Gaussian classes with identical
+common factors are shared among different variables. FA       covariance and normally distributed datasets, as a solution
+reduces the number of variables through factor extrac-        that minimizes the expected error. The method can perform
+tion and factor rotation. In factor extraction, the type of   well so long as the data is close to normality behavior.
+model and number of factors to extract is selected. Then,
+                                                                 In the LDA procedure, the mean vectors, m, of each data
+                                                              class are computed first. The within-class SW and between-
+                                                              class SB scatter matrices are computed through (5) and (6),
+
+                                                                              1 3
+406                                                                                          C. K. J. Hou, K. Behdinan
+
+where m is the overall mean, n is the number of classes, and   have minimal effect on the response and general calculations
+mi and Ni denote the sample mean and sizes, respectively.      are slower than traditional multivariate methods [29].
+
+      c T                                                      2.2.3Active Subspace Methods
+SB = Ni mi - m mi - m         (5)
+
+      i=1
+
+      c n T                                                    Active subspace methods have also been used for detecting
+SW =           x - mi x - mi                                   directions of strongest variability in a function to construct
+                              (6)                              a low-dimensional subspace of the function's uncertain
+      i=1 xDi                                                  inputs [30], 31]. This is analogous to PCA, except gradient
+                                                               information is considered in the eigendecomposition. The
+   Next, eigendecomposition is performed to obtain the lin-    effective variability in the model's output due to uncertain
+ear discriminants through (7), where  and v are the eigen-     inputs is captured in the directions of the active subspace.
+value and eigenvector matrices.                                Given a set of N uncertain data points with model inputs X
+                                                               and outputs f, the output gradients with respect to the input
+S-1 W SBv = v                 (7)                              parameters are used to construct the active subspace direc-
+                                                               tions matrix, denoted by C, given by (10).
+   Finally, the number of linear discriminants for transform-
+ing the dataset into the lower-dimensional feature space fol-                     T
+lows a similar procedure to the latter steps of Fig. 2.        C =   f  f (d )
+                                                                                             (10)
+                                                               
+
+2.2.2Partial Least Squares                                        Here, denotes the canonical variables mapped to a given
+                                                               mathematical model in the domain  and  represents the
+The Partial Least Squares (PLS) method is a dimensionality     probability density function. C is a symmetric and positive
+reduction method commonly used in multivariate calibration     definite matrix, which can be expressed as a spectral decom-
+and classification problems [26, 27]. Unlike PCA which cal-    position of eigenvalue  and orthonormal eigenvector W
+culates hyperplanes for maximum variance in the predictors/    matrices, as shown in (11). The input vector is transformed
+input data, PLS projects the input and response/output vari-   into the active space by (12) and the approximated regres-
+ables to a new feature space based on maximum covariances      sion surface G(y) is computed in this reduced space by (13).
+and finds a regression mapping function relating them. PLS
+regression reduces the dimensionality by fitting multiple      C = WWT                       (11)
+response variables into a single model. This is analogous to
+a multilayer perceptron, where the hidden layer nodes can be   y = WTX                       (12)
+determined by the number of retained PLS components after
+applying the reduction [28]. Furthermore, the multivariate     G(y) = f (Wy) = f             (13)
+consideration does not assume fixed predictors. Thus, errors
+associated with each predictor can be considered, which           Overall, active subspace methods are accurate for classes
+makes PLS robust in measuring uncertainty. Equations (8)       of functions with decay in the eigenvalues of C and change
+and (9) define the underlying PLS model.                       predominantly in low-dimensional input subspaces. How-
+                                                               ever, the gradient information must be available for active
+X = ACT + E                   (8)                              subspaces and must be approximated, otherwise, these meth-
+                                                               ods perform poorly [32].
+Y = BDT + F                   (9)
+                                                                  While linear dimensionality methods have successfully
+   Here, X and Y are the non-reduced predictors and            reduced complexity in classification problems and uncer-
+responses, respectively. A and B are the projections of X      tainty analysis, these methods are limited to datasets that
+and Y, C and D are the respective orthogonal loading matri-    are linearly separable. In the case of inseparable data, non-
+ces, and E and F are error terms. In the PLS algorithm, the    linear techniques must be considered such as Kernel PCA
+covariance of A and B is maximized when projecting X and       and autoencoders.
+Y into the new feature space.
+                                                               3Nonlinear Dimensionality Reduction
+   PLS is applied to datasets with multicollinear predictors,
+and in problems with limited training data and high dimen-     In this section, nonlinear dimensionality reduction meth-
+sionality such as bioinformatics and neuroscience. However,    ods are presented with a fundamental description of the
+PLS tends to perform poorly when screening factors that        mathematical interpretations and limitations of each. Many
+
+1 3
+Dimensionality Reduction in Surrogate Modeling: A Review of Combined Methods                                      407
+
+non-linear dimensionality reduction methods have been           transformation [40-42]. For instance, [40] proposed a quad-
+developed as extensions of linear methods, such as kPCA         ratic, error-based algorithm for updating weights in the PLS
+and non-linear PLS. Furthermore, methods based on layered       method to incorporate nonlinearities. To relax the assump-
+manifolds and artificial neural networks (ANNs) have been       tion of a linear relationship between latent components and
+developed for understanding non-linear behavior in datasets     the response, the authors introduced additional loops for
+and generating lower-dimensional mappings between input         iterating between latent components and the response in the
+and output. Only unsupervised methods are presented in the      algorithm.
+following section, as these are commonly integrated with
+surrogate modeling methods in the literature. Supervised        3.3Multidimensional Scaling
+non-linear dimensionality reduction methods have been
+developed in [33], [34], but will not be discussed in detail.   Multidimensional scaling (MDS) methods are multivariate
+                                                                data analysis techniques used for translating high-dimen-
+3.1Kernel Principal Component Analysis                          sional objects into low-dimensional representations of
+                                                                mapped points. The mapping is established such that the
+Kernel PCA (kPCA) is a classical approach for nonlinear         distances between objects are preserved as well as possi-
+dimensionality reduction. The method projects the linearly      ble since there are some dissimilarities between the spaces.
+inseparable data into a higher dimensional Hilbert space        Classical MDS takes an input matrix of dissimilarities
+k xi, xj through a kernel function , as shown by (14),          between items and outputs and seeks lower-dimensional
+where PCA method is performed afterwards.                       representation by minimizing the difference of similarities
+                                                                in input and embedded spaces [43] shown in (15). Here, x
+k xi, xj = xi xj  T                         (14)                denotes the data in the higher dimension and y denotes the
+                                                                embedded data.
+   The kPCA method is more commonly used for classifica-
+tion problems, such as face recognition, and is more compu-     c=            n n                T2
+tationally expensive to perform than linear PCA. Gonzalez
+et al. [35] combined kPCA with the Proper Generalized                                         T
+Decomposition method for acquiring parametric solutions                                xi xj - yi yj              (15)
+of liver geometry. kPCA was used to extract information on
+hidden parameters such as shape and microstructure behav-                     i=1 j=1
+ior. Wang [36] investigated the use of combining kPCA with
+active shape models (ASM) for facial recognition. They used        The classical MDS method closely resembles that of
+ASMs to represent the deformation patterns of an object's       PCA but differs in the matrix output from the eigende-
+shape and to locate the object in new images. Furthermore,      composition. The number of retained components is deter-
+a Gaussian kernel was determined to be on the order of the      mined based on the m largest eigenvalues corresponding to
+nearest neighbor distance between two data points. This         eigenvectors from singular value decomposition of the cost
+ensured maximum separation in the resulting kPCA feature        function to obtain the Gram matrix. According to [43], the
+space. The combined kPCA-ASM method achieved lower              classical MDS method uses a linear kernel for optimization,
+classification error rates and succeeded in revealing com-      hence it is a linear DR method. However, depending on the
+plicated structures in data that could not be achieved with     interpretation of the input matrix and dissimilarities' rela-
+standard ASMs. The challenge with kPCA remains in the           tion to point distances, MDS algorithms optimize different
+difficult kernel selection task that is problem-dependent.      variations of the Euclidean cost functions. In cases where
+                                                                distances are preserved rather than similarities of points,
+3.2Nonlinear Partial Least Squares Methods                      these cases of MDS become non-linear algorithms which
+                                                                optimize the stress error function c shown in (16) and (17).
+                                                                Here, g(x) denotes the monotonic, non-linear transformation
+                                                                of pairwise distances.
+
+                                                                              n n 2
+                                                                c=                     ||xi - xj|| - ||yi - yj||
+Several nonlinear versions of PLS have been discussed in                                                          (16)
+the literature [37]. The concept of nonlinear PLS modeling                    i=1 j=1
+methods is divided into two representative models. The first
+model applies a nonlinear transformation to the sample data                   n n 2
+and a linear model is constructed as the new representation     c=                     g(x) - ||yi - yj||
+[38, 39]. To overcome the lack of interpretability with these                                                     (17)
+models, the second set of methods assumes nonlinearity in                     i=1 j=1
+the latent variables and the extracted latent vectors remain
+as linear combinations of the original variables rather than a     Specifically, metric MDS iteratively optimizes (16)
+                                                                where dissimilarities are proportional to distances, while
+                                                                nonmetric MDS optimizes (17) in cases containing ordinal
+
+                                                                                                                  1 3
+408                                                                                                                        C. K. J. Hou, K. Behdinan
+
+dissimilarities where the rank order of distances must be         Fig.3Standard Autoencoder Structure
+close to the rank of dissimilarities. In both cases, the dis-
+tance matrix in reduced space is compared against the high-       bottleneck nodes is selected to be less than the input nodes
+dimensional distances and the coordinate positions in the         to avoid overfitting and for mapping input nodes to a smaller
+lower dimensional space are corrected to minimize the stress      dimensional representation. This is known as an under com-
+function. Overall, the MDS methods yield very precise solu-       plete autoencoder. A penalty is applied to network during the
+tions with little computational cost. However, both metric        reconstruction and the model learns the important attributes
+and nonmetric MDS have their respective limitations. Metric       of the input data for decoding.
+MDS may lead to poor results if the interval scale condition
+is not met by the dataset being analyzed and nonmetric MDS           To ensure the latent attributes within a raw dataset are
+may identify local minima as the ideal solution [44].             found, autoencoder models, incorporate regularization to
+                                                                  enhance generalization capabilities depending on the nature
+3.4Autoencoders                                                   of the dataset [56]. Denoising autoencoders resemble the
+                                                                  standard autoencoder, except random Gaussian noise is
+Autoencoders are unsupervised nonlinear dimensionality            introduced to the input dataset. The noise is applied to pre-
+reduction methods with a NN structure whose output has            vent the autoencoder from simply copying the input data to
+the same shape as its input [45]. The architecture of the         the output without learning features. These autoencoders aim
+autoencoder can be convolutional (CNN), recursive (RNN)           to make the decoding layers resistive to small fluctuations of
+[46], or a traditional multilayer perceptron. Several studies     the input and can be stacked to initialize deep architectures
+have applied each NN structure for dimensionality reduction.      [57]. The `denoised' target output is rid of noise datapoints
+Saenz et al. [47] used convolutional autoencoders for dimen-      and has a different shape compared to the noise-filled input
+sionality reduction of climate data models. The autoencoder       [58]. Consequently, the model learns a vector field that maps
+was compared against PCA and showed improved recon-               the input to a lower-dimensional manifold that accurately
+struction of temperature fields based on the original dataset.    describes the noise-free dataset. Denoising autoencoders
+The authors mention the potential for autoencoder-based DR        have been used extensively for improving clustering and sta-
+methods to be applied for creating surrogate climate models       tistic scoring techniques [59], 60], but have also been used
+in future works.                                                  in data processing in engineering design. Shang et al. [61]
+                                                                  designed a convolutional denoising autoencoder for dam-
+   CNNs have been used to restore spatial features during         age detection in bridges. The denoising encoder extracted
+image processing [48] and the neurons are connected to a          features from field measurements that were sensitive to
+small region of the previous layer, sharing their weights.        damage, but not noise. Contractive autoencoders make the
+This allows the system to adaptively learn spatial patterns       encoder layers robust to small fluctuations in the input data.
+in the input images and reduce the number of parameters to        The model corresponds to the Frobenius norm of the Jaco-
+avoid overfitting [49, 50]. Stacked autoencoders have been        bian matrix of encoder layer activation functions. That is,
+used for improving computational efficiency and preserving        the derivatives of the encoder hidden layer activations are
+spatial features in the original input space. Convolutional       minimized with respect to the input data. The loss func-
+autoencoders have been used for extracting feature spatial        tion for contractive autoencoders penalize large derivatives
+features in geological models [51, 52, 53] and reducing data      in encoder layers; error is added when a small change in
+dimensionality for reconstructing images and classification       input leads to large changes in the encoding space. Sparse
+tasks [54].
+
+   Figure 3 shows the typical structure of a standard autoen-
+coder. The encoder compresses the input data into a smaller
+dimensional space while the decoder reconstructs the input
+back into the original space. In particular, the encoder is also
+useful for compressing data for classification and regression
+tasks [55]. The decoding layers typically mirror the shape
+of the encoding layers. The autoencoder is trained through
+backpropagation, where a loss function is minimized. If the
+input dataset values are between 0 and 1, cross-entropy is
+taken as the loss function. In regression tasks, the minimum
+least squares loss function is used for training the ANN.
+Wang et al. [45] found that when the reduced dimension
+size is near the intrinsic dimensionality of the original
+data, prediction accuracy is high. In general, the number of
+
+1 3
+Dimensionality Reduction in Surrogate Modeling: A Review of Combined Methods                   409
+
+autoencoders introduce the bottleneck layer without reduc-      3.5.1Local Linear Embedding
+ing the number of nodes in the hidden layers. Rather than
+applying regularization to the weights of the network, sparse   Local linear embedding (LLE) produces low-dimensional
+autoencoders apply penalties to the activation functions.       embedding of raw data by relating training instances to its
+Only non-zero nodes are activated. Thus the sparse autoen-      closest neighbor without involving local minima. The dis-
+coder selectively activates regions of the network rather than  tances within local neighborhoods are preserved and nonlin-
+every observation. The sparsity constraint is imposed either    ear structures in the dataset are discovered. Given a training
+using L1 regularization or Kullback-Leibler-divergence          set of n-dimensional instances x(i), LLE first finds the k near-
+(KL-divergence). L1 regularization adds the absolute value      est neighbors based on Euclidean distances and expresses
+of the magnitude of penalty term coefficients to the loss       the instances as a weighted linear function. Equation (18)
+function. KL-divergence considers the difference between        indicates the minimum least squares (MLS) cost function to
+two probability distributions. A sparsity parameter denotes     be minimized to determine the weights [65].
+the average activation of one neuron over the sample data
+set. By measuring the average activation of a neuron over       m             m             2
+its sample set, the model activates the neuron for a specific
+subset of observations. Variational autoencoders provide a                    xi - wi, jxj     (18)
+probabilistic method for describing data in a latent space
+[62]. These autoencoders are applied in image processing        i=1           j=1
+and convert input datapoints into a probability distribution
+with weights and biases. Pu et al. [63] designed a variational     Once the weights wi,j have been determined, the training
+autoencoder for deep learning applied to classifying images,    instances are mapped to a lower dimensional vector y(i) with
+labels, and captions. A CNN was used as the encoder to          dimension d such that d < n. Using the calculated weights
+distribute the latent features to be decoded using a deep gen-  from (16), y(i) and its dimensionality can be determined by
+erative deconvolutional network.                                minimizing another cost function as shown by (19).
+
+   Indeed, the autoencoder is a popular non-linear DR           m             m             2
+method for identifying and maintaining the key informa-
+tion of a dataset and generating a lower-dimensional latent                   yi - wi, jyi     (19)
+space representation. However, the data used to train the
+autoencoder must resemble the testing data, otherwise, the      i=1           j=1
+autoencoder will decrease the performance of the classifi-
+cation or regression task on the reduced data afterwards.          LLE offers many advantages as a non-linear dimension-
+Furthermore, autoencoders determine the size of the latent      ality reduction tool [66]. Heureux et al. [67] used LLE to
+dimension based on quantity of information rather than rel-     generate a low-dimensional representation of chemical data
+evance. If the most relevant information of a dataset can       for simplifying quantitative structure-activity relationship
+be represented by a small portion of the input parameters,      methods. Compared to other non-linear dimensionality
+the autoencoder may eliminate a large amount of informa-        reduction algorithms, LLE proved to provide a stable repre-
+tion leading to poor mappings and interpretations. Recent       sentation that captured non-linearities in the data.
+efforts have been made to improve upon the interpretability
+of autoencoder latent data representations [64], but require       In LLE, the local distances of the data in high-dimen-
+further research efforts for data containing high levels of     sional space are preserved and the simple computations are
+non-linearity.                                                  fast and require little computation. However, the k-nearest
+                                                                neighbors search is based on Euclidean distances, which will
+3.5Manifold Learning Methods                                    fail when two points that do not lie in the same locally linear
+                                                                patch are grouped as neighbors. This makes LLE very sensi-
+Manifold learning methods are unsupervised, non-linear          tive to outliers and non-smooth manifolds. Furthermore, the
+dimensionality reduction techniques that project high-          assumption that datapoints lie on the manifold is not valid
+dimensional data onto a 2-D shape, or manifold. The method      for all datasets and must be carefully observed in multi-class
+assumes the raw data lies on low-dimensional manifolds          classification problems. Finally, when the number of neigh-
+embedded within the high-dimensional space. Several mani-       bors k is greater than the input dimensionality, the regulari-
+fold learning methods are present in the literature, such as    zation in error functions becomes rank-deficient and causes
+locally linear embedding (LLE), iso maps, diffusion maps,       problems in the LLE algorithm [68]. Thus, other variations
+and t-SNE.                                                      of LLE have been developed to overcome the identified defi-
+                                                                ciencies. A modified version of LLE (MLLE) applies multi-
+                                                                ple weight vectors in each neighborhood, which overcomes
+                                                                the regularization problem at the cost of additional complex-
+                                                                ity. Wang et al. [69] developed the Maximal Linear Embed-
+                                                                ding (MLE) method which utilized geometric properties of
+                                                                Landmarks-based Global Alignment to create an isometric
+
+                                                                                               1 3
+410                                                                                                                        C. K. J. Hou, K. Behdinan
+
+embedding of the manifold. Compared to the standard LLE           of heterogeneous hyperelastic materials. The macroscopic
+method, MLE was capable of modeling the underlying                loading parameters are connected to a reduced space through
+modes of variability in the manifold and was more compu-          the NN and the multiscale solution's homogenization and
+tationally efficient as the method is non-iterative. Other nota-  localization were achieved.
+ble improvements upon LLE, such as robustness to noise and
+incorporating output for supervised learning, can be found           Although isomaps accurately approximate distances in
+in [70], 71, 72, 73]                                              non-linear manifolds, they are not robust to noise perturba-
+                                                                  tion and have a set of mathematical drawbacks. However,
+3.5.2Isomaps                                                      the similarity matrix may not always be positive definite,
+                                                                  which is required for the projected manifold to be a Euclid-
+Isomaps [74], an extension of MDS, perform low-dimen-             ean space. Choi and Choi [77] developed the kernel iso-
+sionality projection assuming a linear local feature space        map method, which added robustness for non-Euclidean
+formed by the nearest neighbors and that the global non-          dissimilarity matrices. Next, the constructed matrix of geo-
+linear transformation to a lower dimensional space can be         desic distances must not have missing entries, otherwise
+found by connecting the piece-wise local linear spaces.           the eigen-decomposition will fail [68]. Consequently, the
+Unlike LLE and multidimensional scaling methods which             neighborhood graph construction can be difficult, and the
+maintain the Euclidean distances in the original feature          outliers lead isomaps to produce poor results. Several stud-
+space, isomaps preserve the geodesic distances between            ies exist in the literature which extend upon the traditional
+points along a manifold, as shown in Fig. 4. Constructing         isomap methods for improved pattern and image classifica-
+the transformation based on geodesic distances is beneficial      tion [78-80].
+for non-linear manifolds.
+                                                                  3.5.3Diffusion Maps
+   Like LLE, the procedure for constructing an isomap
+begins with constructing a neighborhood graph based on            Diffusion maps [81] achieve non-linear dimensionality
+geodesic distances between nearest neighbors. The shortest        reduction by re-organizing data according to parameters of
+paths of geodesic distances are commonly computed using           its underlying geometry. A time-dependent diffusion pro-
+Dijkstra's algorithm and stored in a similarity matrix. After     cess is created using the measured connectivity of the data
+squaring the distance and double centering the similarity         set and the local geometry reveals geometric structures of
+matrix, the eigendecomposition selects the first K eigenvec-      the data set at different scales. The connectivity between
+tors corresponding to the highest eigenvalues, where K is         two datapoints is determined by the random walk at these
+less than the original dimensionality n. This is analogous        points expressed with a diffusion kernel function. The data is
+to PCA. Xing et al. [75] applied isomaps to reduce the out-       embedded in a lower-dimensional space, where the Euclid-
+put space dimension of spatial/spatio-temporal fields as          ean distance between points in the reduced space is used
+multi-variable functions. Correlation in the output data was      to estimate the diffusion distance in the original domain.
+exploited for the reduction of the permissible output space.      Unlike isomaps which preserve geodesic distances, diffu-
+Bhattacharjee and Matous [76] combined isomaps with               sion maps are robust against noise, as it accumulates over all
+NNs to create a reduced order model for multiscale analysis       possible paths of a time step between points. The basic diffu-
+                                                                  sion process involves four steps. First, a kernel is defined for
+Fig.4Euclidean vs Geodesic Distance on a manifold [162]           creating the kernel matrix. Afterwards, the kernel matrix is
+                                                                  row-normalized to generate a diffusion matrix, from which
+1 3                                                               eigenvectors are then determined. Finally, the input vector
+                                                                  is mapped to a lower-dimension diffusion space using the
+                                                                  dominant eigenvalues and eigenvectors.
+
+                                                                  3.5.4tDistributed Stochastic Neighbor Embedding
+
+                                                                  t-Distributed stochastic neighbor embedding (t-SNE) is a
+                                                                  non-linear dimensionality reduction method that has been
+                                                                  extensively applied to image processing and speech recogni-
+                                                                  tion. The method was developed by [82, 83] for data visu-
+                                                                  alization in lower dimensions. This probabilistic technique
+                                                                  calculates the conditional probability of similar points, under
+                                                                  a Gaussian distribution, in the high-dimensional space. A
+                                                                  student t-distribution, or Cauchy distribution, with one
+Dimensionality Reduction in Surrogate Modeling: A Review of Combined Methods                                411
+
+degree of freedom, is often used to obtain a second set of      ANNs, radial basis functions, and polynomial response sur-
+conditional probabilities of similar datapoints in the low-     face models (PSRMs). These can be separated into inter-
+dimensional space. The Cauchy distribution is chosen            polating and non-interpolating models. Interpolation-based
+because it improves modeling for points that are farther        methods offer higher flexibility, while non-interpolating
+apart in comparison to the Gaussian distribution. To ensure     methods generate results with better interpretability. Due to
+the probabilities in the high dimensional space are reflected   the variety of engineering problems that surrogate models
+as closely as possible in the low dimensional one, the dif-     can be applied, selecting the appropriate model to implement
+ference between them must be minimized. The difference          typically depends on the available dataset size and number
+between these distributions is given by the KL-divergence.      of parameters.
+The algorithm minimizes the sum of KL-divergence of the
+datapoints using a gradient descent method.                     4.1InterpolationBased Methods
+
+   The t-SNE method has extensively been applied to reduc-      Interpolation methods such as radial basis functions and
+ing dimensionality of hyperspectral data and data visualiza-    Kriging calculate predictions based on surrounding data
+tion on lower-dimensional planes [82, 83]. For instance, [84]   points. These methods are very flexible due to the variety of
+used t-SNE for reducing the number of band information in       kernel choices and accurately predict unknown points in the
+hyperspectral imaging data for efficient processing. Non-       vicinity of the data used to train the model.
+linear similarity features between spectra were extracted and
+scaled into a 2D representation, which showed improved          4.1.1Linear Interpolation
+clustering quality compared with PCA. Pouyet [85] also
+used t-SNE for reducing hyperspectral data of paint pig-        Radial Basis Function (RBF) surrogate models generate
+ments for 2D visualization.                                     an interpolation function as a linear combination of basis
+                                                                functions. An interpolation function is developed for each
+   t-SNE preserves the distances between nearby datapoints      training point and the coefficients of RBF are computed in
+and performs well for data lying on non-linear manifolds        the training phase. Equation (18) outlines the RBF predic-
+compared to linear methods such as PCA. However, limi-          tion method, where wp and wr are vectors of polynomial and
+tations exist for the t-SNE algorithm. Due to the heavy         RBF coefficients, respectively, with p(x) and x, xti vector
+tails consisting of a large portion of probability mass in the  mapping functions to the prediction y.
+Cauchy distribution, the t-SNE method cannot be extrapo-
+lated to reducing the data to more than three dimensions        y = p(x)wp +           nt     x, xti wr
+while maintaining the local data structure. Also, due to the
+non-convexity of the t-SNE cost function, the same choice                                                   (20)
+of optimization parameters yields slightly different solu-
+tions each time t-SNE is performed. Thus, t-SNE produces                               i
+a low-dimensional visualization of high-dimensional data
+but can lead to local optima due to the nature of the cost         The inverse-distance weighting method interpolates
+function to be minimized. Hsu and Huang [86] integrated         unknown points based on weight averages of sample data.
+t-SNE with distance hierarchy for dimensionality reduction      Equation (19) shows the inverse-distance weighting predic-
+of mixed datasets. Their proposed method preserved seman-       tion equation. Within the weighting function B x, xti in (20),
+tic similarities between categorical values and proved to be    p denotes the order of the approximation. The order must be
+an improvement from traditional 1-of-k coding schemes for       greater than 1 for continuous derivatives in the estimation.
+handling categorical data.
+                                                                               nt  
+4Surrogate Modeling Methods                                                    B x, xti yti if x  xti
+                                                                y= i                                        (21)
+In engineering design, surrogate models/metamodels are                         yti
+employed for evaluating high-fidelity problems which would                                      if x = xti
+otherwise be too computationally expensive to analyze in its
+given dimensionality. Surrogate models have been imple-         B x, xti = |xi - xj||      |-p              (22)
+mented in Finite Element problems involving a large mul-                            |      |
+titude of design parameters and constraints, such as rotor
+dynamics [87] and aerodynamics optimization.                       The Regularized minimum-energy tensor-product splines
+                                                                (RMT) method interpolates low-dimensional problems, with
+   Several surrogate models have been explored in the lit-      large datasets, by calculating spline coefficients based on
+erature, such as Kriging, support vector machines (SVM),        minimizing the energy function. Similarly, the least-squares
+                                                                approximation method fits a linear model by minimizing the
+                                                                residual sum of squares between predicted responses and
+                                                                labelled responses. The second-order polynomial regression
+
+                                                                                                            1 3
+412                                                                                                                      C. K. J. Hou, K. Behdinan
+
+method utilizes a vector function of polynomial coefficients       However, the semivariogram function is an empirical esti-
+as the weighting function.                                      mate of the variance and may not be positive definite; this is
+                                                                required for the final Kriging step involving matrix inverses.
+4.1.2Kriging                                                    Different semivariogram models are designed to fit differ-
+                                                                ent types of phenomena and can be expressed as bounded
+Kriging, also known as Gaussian process regression (GPR),       and unbounded functions. Empirical semivariograms with
+                                                                an upwards concaving behavior can be modelled with
+is a geostatistical method that generates an estimation         unbounded power functions. Furthermore, this may be an
+                                                                indication of local drift or global trend in the random field,
+surface based on spatial features in the sample data [88].      which must be eliminated to separate the deterministic and
+                                                                stochastic elements of variation. Duarte et al. [93] critically
+Unlike traditional interpolation methods, Kriging predic-       reviewed current methods for separation in the literature.
+
+tions include autocorrelation for measuring the accuracy of        If the semivariogram shows downward concaving behav-
+                                                                ior, bounded models such as spherical, exponential, Gauss-
+the predictions. GPR was first introduced in surrogate mod-     ian, and linear models are employed. For example, the
+                                                                spherical model shown in Fig. 5 is applied for progressive
+eling for uncertainty quantification (UQ). These methods        decrease in spatial autocorrelation with distance between
+                                                                data points.
+have been explored for UQ in groundwater flow applications
+                                                                   As previously mentioned, the semivariogram describes
+[89-91] and QT interval estimation for preventing sudden        the spatial autocorrelation in the dataset points. Semivari-
+                                                                ance is inversely proportional to correlation, thus as the dis-
+cardiac death [92].                                             tance between datapoints increases, the correlation between
+                                                                them decreases.
+The Kriging space is assumed to be stationary with iso-
+                                                                   Figure 6 shows the different aspects of the semivariogram
+tropic data. In addition to performing the spatial predictions  that define the spatial inferences of the random field. The
+                                                                sill is achieved once the semivariogram reaches the model
+through interpolation, this nonparametric Bayesian regres-      range. Theoretically, at zero distance, the semivariogram
+                                                                measures zero semivariance or perfect correlation. However,
+sion method also measures the interpolation accuracy and        measurement errors or spatial variations at distances smaller
+                                                                than the sampling interval may occur, which are represented
+variance. This surrogate modeling method is based on the        by a nugget variance.
+
+regionalized variable theory (RVT) which interpolates data         Upon fitting the data into a semivariogram model, kriging
+                                                                is applied to determine the Gaussian process weights/kernels
+and measures drift aspects of spatial properties under the      based on minimizing the variance of the model.
+
+assumption of stochastic characteristics in the dataset. In        The kriging can be classified into linear and non-linear
+                                                                methods. Geostatistical data can be described as shown in
+simple applications, RVT is defined by Matheron's Intrin-
+
+sic Hypothesis assumption [88], which assumes a constant
+
+local mean and stationary variance between points sepa-
+
+rated by a known distance. However, if a trend is observed
+
+in the random field, these assumptions are invalid, and the
+
+observed drift must be accounted for when applying the
+
+kriging method.
+
+The Kriging method typically requires datasets with a
+
+moderate number of samples and low dimensionality for
+
+constructing reliable semivariograms. Furthermore, Kriging
+
+works well for problem sets where small changes in the input
+
+parameters lead to small changes in output. Predictions are
+
+made based on correlation variation, uncorrelation variation,
+
+and data trends. Fundamentally, the Kriging method pre-
+
+dicts function values based on weighted averages of known
+
+values/data points near the point of interest and covariance
+
+functions of the data field. The covariance function acts as
+
+the kernel/weight of the Gaussian process to be optimized.
+
+First, the Kriging method investigates the spatial vari-
+
+ance of the dataset variables before constructing a function
+
+describing the degree of spatial dependence of the ran-
+
+dom field as a function of distance between points called
+
+an empirical semivariogram. Equation (23) describes the
+
+method for calculating semivariance , where h is the dis-
+
+tance between N points located at z.
+
+     1               2
+= 2N(h) N(h) zi - zj (23)
+
+                                                                Fig.5Spherical Semivariogram Model
+
+1 3
+Dimensionality Reduction in Surrogate Modeling: A Review of Combined Methods  413
+
+Fig.6Aspects of Semivariogram                                 Hermite polynomials. Rivoirard [94] describes disjunctive
+                                                              kriging and nonlinear geostatistics in detail.
+(22), where Z is the variable of interest,  is the determin-
+istic trend and  are the autocorrelated errors.                  Kriging is a powerful geostatistical model for solving
+                                                              mapping relations between input and output. The method
+Z(s) = (s) + (s)               (24)                           can further predict outputs of unknown values based on data-
+                                                              points in the vicinity of the value of interest. While Krig-
+   Simple kriging is the most general form of linear krig-    ing performs well for datasets with low dimensionality and
+ing methods. This method assumes  and  are known              moderate number of observations, its application is limited
+constants and the prediction relies upon the computed         to isotropic datasets and are not useful for higher complexity
+covariance function of the random field. In the absence of    models. Furthermore, Kriging experiences numerical stabil-
+bias, the Kriging weights are determined by (23), where       ity problems when the sample points are too close together
+K is the matrix of covariances computed by the selected       and computation cost grows proportionally with the size of
+semivariogram model, and k is the vector of covariances       the training dataset. Finally, if the number of observations
+between the unsampled data point and surrounding data-        is small, Kriging leads to poor, underfitted spatial repre-
+points. This is analogous to linear regression methods.       sentation and interpolation [95]. Hengl [95] proposed using
+                                                              Kriging regression methods for datasets with more than
+K = k =>  = K-1k               (25)                           50 observations with at least 10 observations per feature.
+                                                              Dimensionality reduction can be implemented to the origi-
+   Ordinary kriging assumes is an unknown constant            nal dataset to reduce the problem size for improved Kriging
+and is well-suited for interpolation when the random field    method-based results. In general, interpolation-based sur-
+remains locally stationary. While the method can be used      rogate models are popular for their flexibility and accuracy
+when a trend is observed, the results cannot be analyzed      of prediction, but these can lead to complex nonconvex for-
+to determine whether any data patterns occur due to auto-     mulations and mathematical instabilities.
+correlation or the identified trend in the random field. The
+universal kriging method assumes an overriding trend in          Gradient-based surrogate models are also popular, as the
+data and models  as a polynomial. The polynomial esti-        consideration of derivative functions improves the predic-
+mation is subtracted from the original dataset to obtain      tion accuracy under the assumption of continuous gradients
+the autocorrelation errors as random values. This method      in the sample data. Lockwood and Anitescu [96] developed
+is suitable for random field variations consisting of drift   a gradient-enhanced universal kriging (GEUK) model for
+and random components and can only be applied to data         uncertainty propagation in nuclear engineering systems
+fields exhibiting a trend. Indicator kriging transforms the   with limited available sampling data. Here, the gradient
+variable of interest, Z(s), into a binary variable I(s) for   information was considered in the covariance matrix com-
+classification problems. The disjunctive kriging method       putations, which consisted of covariances between function
+assumes the random field exhibits a bivariate distribution    observations and their associated derivatives. Compared to
+and assumes an unknown constant  and correlation coef-        gradient-free approaches, the GEUK model required less
+ficients as a function of distance between data points. To    computation and significantly improved prediction accuracy
+apply the bivariate model, the random field Z(s) is trans-    with the advantage of providing statistical prediction error
+formed into a normally distributed field I(s). Unlike ordi-   estimates. Gradient-enhanced kriging surrogate models have
+nary kriging which predicts the random field Z(s), disjunc-   also been used in biomechanics. Ulaganathan et al. [97] also
+tive kriging predicts a function of Z(s) by expanding into    considered gradient information in the correlation matrix.
+                                                              They tested their algorithm for predicting the wall thickness
+                                                              along the length of a simulated artery and found the gradi-
+                                                              ent-enhanced kriging method achieved similar accuracy with
+                                                              60% less training compared to standard ordinary Kriging.
+                                                              Indeed, the inclusion of gradient reduces the amount of com-
+                                                              putation required in Kriging. However, standard gradient-
+                                                              enhanced Kriging methods do not scale well with the dataset
+                                                              size, as the correlation matrix rapidly grows with additional
+                                                              sampling points [98]. The gradient-enhanced KPLS (GEK-
+                                                              PLS) generates approximations around each sampling point
+                                                              using a first-order Taylor series. PLS is applied to differ-
+                                                              ent sampling points several times, where each PLS compo-
+                                                              nent determines the contribution of each variable near the
+                                                              sampling points. The global influence of each variable is
+
+                                                                              1 3
+414                                                                                             C. K. J. Hou, K. Behdinan
+
+computed by taking an average of all PLS hyperparameters          Fig.7Middle line is the hyperplane. The circled points are support
+and the Kriging is performed based on the reduced dimen-          vectors. Errors in classification are evident and contribute to the hinge
+sional data. By reducing the number of hyperparameters and        loss function
+incorporating gradient computations, GEKPLS allows krig-
+ing to be applicable to high-dimensional problems.                outperforms other linear classifiers for small datasets. As
+                                                                  shown in (24) and (25), the -insensitive hinge loss function
+   Gradient-based methods can also be implemented into            [102] is defined as a function of weights/kernels, K(xi, x),
+ANNs. Gradient-enhanced neural network (GENNs) apply              and biases, b, to be adjusted during the training phase. Here,
+gradient information during the training phase for regression     f (x) denotes the SVM prediction and the contributed loss is
+problems. Compared to standard ANNs, which only mini-             determined based on the difference between the prediction
+mize the error function, GENNs also optimize for the pre-         error and threshold . The values i are hyperparameters that
+diction error using partial derivatives. GENNs outperform         control the penalty applied for misclassifications.
+standard ANNs for low amounts of training points, but can
+only be applied to synthetic datasets generated by physics-       N
+based models with continuous responses and defined gra-           f (x) = ( i - i )K xi, x + b
+dients [98]. Bouhlel et al. [99] trained a GENN for airfoil                                     (26)
+design optimization in subsonic and transonic operating con-
+ditions. A modified version of the Sobolev method was used        i=1
+to train the ANN (mSANN), where gradient information
+was gradually introduced into the loss function. The model        Loss = 0 if  > |y - f (x)| (27)
+performance was evaluated based on the L1 and L2-norm of                       |y - f (x)| -  otherwise
+relative error of test and validation datasets in both operating
+conditions. The algorithm performed the optimization in the          The kernel function can be selected to classify data that
+order of seconds, in comparison to CFD-based optimiza-            is not linearly separable. Polynomial or radial basis func-
+tion tools which require hours. Compared to standard ANNs,        tion kernels can be used to project the data into a higher-
+the mSANN method showed 3% improvement based on the               dimensional feature space, as shown in Fig. 8. The linear
+L2-norm of relative error. While gradient-based methods           SVM is performed in this higher-dimensional feature space.
+offer improvements to surrogate model predictions, they           This is similar to the procedure for kernel PCA. Again, the
+require gradient information which is not readily available       difficult problem of kernel parameter selection is prevalent
+in many datasets.                                                 for non-linear SVM.
+
+4.2Noninterpolation Methods                                       4.2.2Artificial Neural Networks
+
+Non-interpolating surrogate models achieve the mapping            Artificial Neural Networks (ANNs) are multi-layer algo-
+between input and output by minimizing the error between          rithms, based on the biological learning process of the
+a predefined function and the dataset. These methods tend to      human brain, that perform high-complexity regression
+produce interpretable low-dimensional representations but         and non-linear classification analyses. ANNs have been
+lack the flexibility of interpretation-based methods when         employed as data-fitting surrogate models for complex
+dealing with highly nonlinear data. Nevertheless, the pre-
+sented methods have been used extensively as surrogates to
+large-scale models in various applications due to the sim-
+plicity achieved through the optimizations.
+
+4.2.1Support Vector Machines
+
+Several material sciences studies have employed support
+vector machines (SVMs) for binary classification tasks
+such as crystal structure identification [100] and material
+type classifications as a preprocessing step for regression
+[101]. Figure 7 shows the basic working principles of SVMs.
+SVMs aim to identify the optimal hyperplane (middle line)
+with maximum distance from key datapoints called sup-
+port vectors (circled points on outside lines). The method
+is based on geometric properties of the input data and
+
+1 3
+Dimensionality Reduction in Surrogate Modeling: A Review of Combined Methods                                      415
+
+Fig.8Non-linear kernel con-
+verts the input space to a higher-
+dimensional feature space for
+linear SVM
+
+system output prediction [103, 104]. Papadopoulos et al.          Fig.9Structure of an Artificial Neural Network
+[103] developed a NN-based surrogate model for carbon
+nanotubes (CNTs) with geometric nonlinearities. An NN-            nodes to be between the number of input and output nodes.
+based equivalent beam element was used for predicting the         Heuristic and systematic methods have been developed for
+nonlinear behavior of CNTs at the nanoscale. The beam             selecting the number or nodes and hidden layers [107].
+end-section displacements were used as inputs to the sur-
+rogate model with predicted output reaction forces. ANNs             The dataset is pre-processed prior to training the neural
+are also commonly used for multi-fidelity models. Zhang           network. Normalizing the input features improves conver-
+[105] developed a multi-fidelity deep NN (MFDNN)                  gence capabilities of the ANN and the dimensionality of the
+surrogate model for aerodynamic shape optimization of             dataset can be reduced to avoid long training times.
+an aircraft. Their proposed MFDNN first evaluated the
+low-fidelity data before approximating the correlation               For a given sample, an input feature vector X is passed
+with high-fidelity data obtained with a finer mesh. In the        into the input layer of the ANN. An activation function 
+optimization framework, the current optimum solution of           transforms the ith input entry, with weights wi,j and biases
+surrogate modeling was added to the high-fidelity data-           bj connected to the jth output node of vector u, as shown
+base to obtain a better solution during local refinement.         in (28). Another transformation is performed on the hid-
+The method was compared with co-kriging and showed                den layer vector values to generate the prediction vector y,
+improvement in identifying discontinuities and nonlin-            described by (29).
+earities during the optimization. Minisci and Vasile [106]
+developed an ANN for correcting aerodynamic forces in             uj = 1      N    w1i,jxi + b1j
+a low-fidelity models. The low-fidelity model generated
+samples globally over the range of design parameters,                                                             (28)
+while the high-fidelity one locally refined the ANN in the
+latter optimization stages.                                                   i=1
+
+   The ANN's popularity stems from its ability to identify
+complex mapping functions between input features and
+outputs. Figure 9 shows the general structure of the ANN
+with one hidden layer. Typical ANNs contain one input and
+output layer with one or more hidden layers. The number of
+nodes in the input N and output layers M is dependent on
+the number of dataset features and labels, respectively. The
+number of hidden layers and number of nodes Q is chosen
+based on the complexity and size of the problem. A smaller
+number of hidden nodes may cause the model to predict out-
+puts with poor accuracy, while too many nodes may lead to
+overfitting the training data, leading to poor generalization of
+new data samples. Several methods and good practices have
+been developed for selecting the number of hidden nodes.
+Generally, the rule-of-thumb is for the number of hidden
+
+                                                                                                                  1 3
+416                                                                                                                       C. K. J. Hou, K. Behdinan
+
+yk = 2  M    w11,kul + b1k                                       dynamical systems. Many empirically-based approaches for
+                                                                 generating trial and test subspaces exist in the literature such
+                            (29)                                 as proper orthogonal decomposition (POD) [112], Krylov
+                                                                 subspace methods [113], and dynamic mode decomposi-
+        l=1                                                      tion [114]. POD has been applied in mechanical engineer-
+                                                                 ing for reduced-order aeroelastic modeling [115] and con-
+   The sigmoid activation function as shown in (30), is com-     vection-diffusion modeling of contaminant concentration
+monly chosen for formulating the loss function to be opti-       [116]. Krylov subspaces are mainly used for approximating
+mized through back-propagation.                                  solutions to high-dimensional linear problems [117]. Sev-
+                                                                 eral authors have investigated the use of these methods for
+(z) =   1                   (30)                                 creating sub-models in electrical engineering [118, 119]
+                                                                 and fluid mechanics [120]. Although Krylov subspace and
+       1+e -z                                                    other projection-based methods are useful for approximating
+                                                                 solutions to high-dimensional problems, they suffer from a
+   For classification tasks, the softmax function, which         phenomenon known as breakdown. This occurs when the
+transforms the hidden layer outputs into normally distrib-       method is unable to approximate the next iteration of the
+uted values between 0 and 1 in the output layer, is commonly     solution due to mathematical complications. These were
+used.                                                            reviewed in detail by [121]. Algorithms have been proposed
+                                                                 for circumventing breakdown in.
+   Finally, the ANN is trained to minimize the cost func-
+tion through an optimization algorithm. Stochastic Gradient      5Dimensionality Reduction in Surrogate
+Descent (SGD) is the most popular optimization method that          Modeling
+computes functional gradients based on the ANN's weights
+and biases. These weights and biases are updated through         Surrogate models suffer from the curse of dimensionality
+the SGD and new outputs are predicted. The training loop         (Verleysen & Francois), where complexity and computa-
+continues for a specified number of epochs, the number of        tional demand scale according to the feature size of the prob-
+times the entire training dataset is explored by the ANN, and    lem. As mentioned before, surrogate models are non-intru-
+the test dataset is used for validating the model's accuracy     sive, computationally inexpensive substitutes that mimic
+with the optimized weights and biases.                           the real model response within parameter bounds. However,
+                                                                 these suffer from large cost in training or computation for
+   Modular neural networks have also been employed as sur-       high-dimensionality problems. Thus, dimensionality reduc-
+rogate models for multi-objective optimization in hydrology      tion methods have been combined with surrogate models for
+applications [108, 109]. Consisting of a series of independ-     extending them to high-dimensional problems [122].
+ent NNs, each module in the surrogate model is assigned
+a specific task and reduces a single large NN into smaller       5.1Principal Component Analysis Surrogate
+components for efficient training and neuron robustness               Modeling
+[110]. Sreekanth and Datta[109] linked a modular NN with
+a multi-objective genetic algorithm for solving a pumping        PCA has been introduced extensively for reducing compu-
+optimization problem. Two stages of training and optimi-         tational cost of designing surrogate models. For instance,
+zation of the combined model were sufficient to obtain           [123] applied PCA for confining and scaling the domain of
+Pareto-optimal solutions to the pumping problem, which           a data-driven surrogate model for predicting responses of a
+was greatly reduced compared to a global surrogate model.        rat-race coupler and transformer. Compared with conven-
+                                                                 tional kriging and RBF models, the proposed PCA-based
+   While NNs have proven to be high-accuracy surrogate           surrogate model method predicted responses with higher
+models of computationally expensive problems, the training       accuracy. Higdon et al. [124] applied PCA for non-proba-
+portion can be time-consuming and costly for high-dimen-         bilistic, dimensionality reduction in Gaussian processes for
+sionality input and output situations. Dimensionality meth-      uncertainty quantification of material properties. PCA has
+ods can be applied to reduce the cost of training by reducing    also improved optimization of surrogate models in calibra-
+node vector size at different levels of the ANN.                 tion [125, aerodynamics [126], 127], and air pollution [128].
+
+4.3ProjectionBased Methods                                          As mentioned before, PCA's applicability is limited to
+                                                                 linearly separable datasets and projections onto a linear sub-
+Projection-based surrogate modeling methods [111] exploit        space. Thus, kPCA has been used extensively for enhancing
+the low-dimensional behavior inherent in many high-
+dimensional dynamic systems. The state of the system is
+approximated by a trial subspace and the high-fidelity model
+is projected onto a test subspace resulting in a square, lower-
+dimensional representation. Projection-based surrogate
+models retain the underlying structure of the model, which
+is important for accurate representation of system state in
+
+1 3
+Dimensionality Reduction in Surrogate Modeling: A Review of Combined Methods  417
+
+surrogate models. For instance, kPCA has been combined             was compared against standard autoencoders and single-
+with PCE in the material science field [129], GPR in high          layer neural networks. The VAEDC-DNN predicted results
+dimensionality reliability analysis [130], and metamodels          with 48% less error on the probability of death and accu-
+for accelerating evolutionary optimization algorithms [131].       rately predicted nonlinearities of image cracks and topogra-
+Bird [132] developed linear and non-linear dimensional-            phy. Laubscher and Rousseau [136] combined multiple fully
+ity reduction-based surrogate models for predicting nodal          connected VAEs with a DNN for compressing CFD data of a
+stresses and coordinates of a compressor blade. They found         simulated turbulent jet diffusion flame. The VAE and DNN
+that the stress space exhibited more nonlinear behavior than       were trained separately. The VAE was trained on the target
+the coordinate space and found that kPCA and LLE resulted          data set, whereas the DNN was trained to predict latent layer
+in the lowest surrogate error in high complex design spaces.       encodings. Compared to a standalone DNN, the VAE-DNN
+While these kPCA-based DRSMs improved computation                  yielded lower MAE and provided accurate predictions of
+times and surrogate errors, there is a lack of research to         2D contours of fluid values in a jet flame combustion setup.
+determine the best general DRSM for a given dataset. The
+authors identify the need to test these algorithms on new             Ullah et al. [137] compared the performance of PCA,
+datasets to determine their usefulness and applicability in        kPCA, autoencoders, and variational autoencoders com-
+other fields.                                                      bined with Kriging and Polynomial Regression. A total of
+                                                                   72 cases were explored, with their performance aggregated
+5.2Partial Least Squares Surrogate Modeling                        across ten benchmark functions. Their experimental set-
+                                                                   up and hyperparameter optimization process are shown in
+PLS has also been used in combination with different sur-          Fig. 10.
+rogate modeling techniques. Straus and Skogestad [133]
+developed extended surrogate model fitting methods by                 The relative mean absolute error function (RMAE) was
+incorporating PLS regression for reducing the number of            used to evaluate the quality of each low dimensionality
+independent variables in an ammonia process case study.            surrogate model (LDSM). The hyperparameters were opti-
+The non-linear surrogate models were fitted to the PLS             mized for both DR and surrogate model together based on
+latent variables. The preprocessing with PLS improved              the aggregated quality of the LDSMs on all benchmark func-
+the surrogate model fit by a factor of two. Ehre et al. [134]      tions. Overall, their study showed that autoencoder-based
+developed a polynomial chaos expansion (PCE) method                LDSMs achieved the best modeling accuracy (lowest RMAE
+based on PLS called PLS-PCE for global sensitivity analy-          values) in 132/720 cases. With regards to global optimal-
+sis in high dimensions. The novel algorithm had comparable         ity, LDSMs based on PCA and kPCA performed better in
+accuracy as Monte-Carlo-based solutions and approxima-             combination with Kriging, while all LDSMS based on poly-
+tions based on low-rank appoximations for two different            nomial regression performed similarly in most cases. While
+numerical problems. The authors provided recommendations           this study provides insight on the performance of different
+for further research into extending their method for general       LDSM methods, further research must be conducted using
+basis adaptation.                                                  real-world data, as the benchmark functions explored were
+                                                                   noiseless, single-objective functions. Further work must be
+5.3Variational Autoencoder Surrogate Modeling                      performed to validate these models' performance for prob-
+                                                                   lems exhibiting large uncertainties.
+Variational autoencoders (VAEs) have been extensively used
+for feature extraction and data reduction in the preprocessing     5.4Dimensionality Reduction for Support Vector
+step for regression and classification tasks. Na et al. [135]
+used a variational autoencoder for reducing data input to               Machines
+a DNN for predicting CFD gas dispersion rates and death
+probability. The proposed algorithm optimized weights              SVM has shown to be robust against the curse of dimension-
+based on minimizing the mean squared error (MSE) and               ality in classification tasks [138]. Yet, several studies explore
+                                                                   the use of DR methods as preprocessing in SVM classifica-
+                                                                   tion, with the intent of improving classification accuracy and
+                                                                   speed. George [139] applied PCA as preprocessing for SVM
+
+Fig.10Hyperparameter training and optimization of DRSM from [137]
+
+                                                                              1 3
+418                                                                                                                      C. K. J. Hou, K. Behdinan
+
+classification for anomaly detection. Their results showed a    LLE, and isomaps with RBF for reduced-order modeling of
+decrease in execution time and increased accuracy for clas-     hypersonics systems. The POD was unable to resolve dis-
+sification. However, their conclusions require further vali-    continuous features without oscillatory behavior, but LLE
+dation using different anomaly datasets with higher number      and isomaps accurately predicted the steady-state response
+of features. Wang and Carreira-Perpinan[140] studied the        and resolved geometric discontinuities. However, this study
+influence of dimensionality reduction in SVM classification.    was limited to simple 2D CFD cases and further research
+They used auxillary coordinates to jointly optimize the clas-   must be done considering shape variations and optimi-
+sification error jointly over an RBF-based DR mapping and       zation of parameters in training LLE and isomaps. More
+a wrapper approach to classification. The final non-linear      recently, authors employed nonlinear manifold methods due
+low-dimensional classifier achieved similar errors as previ-    to their ability to represent nonlinear field features for study-
+ous literature methods but accelerated model training time.     ing shocks [147, 148] and adaptive design of experiments
+Furthermore, their results showed the DR mapping elimi-         [149]. Finally, t-SNE has become a standard for interpret-
+nated variation in the original data space. Bai et al. [141]    ing DNNs, revealing information about the data structure at
+compared different DR methods, such as PCA, LLE, and            local and global scales [150, 151]. Furthermore, the method
+Isomaps, for low-dimensional representation of data prior       generates better visualizations compared to other manifold
+to developing an SVM modeling applied to manufacturing          learning methods [82, 83]. However, research that utilizes
+quality prediction. Based on qualitative and quantitative       the t-SNE method has largely been limited to 2D and 3D
+analysis, each DR method improved prediction accuracy           representations.
+compared to SVM alone. In particular, the Isomap-SVM
+model showed the best regression performance for the multi-     5.6Dimensionality Reduction for Kriging
+parameter manufacturing system.
+                                                                Gaussian process-based (GP) methods, such as Kriging,
+   In terms of applicability, DR-based SVM classification       perform poorly in high-dimensionality problems. Thus,
+methods have obtained state-of-the-art prediction accura-       dimensionality reduction methods have been implemented
+cies in the medical field. Most commonly, LDA has been          for overcoming these issues.
+superior compared to other linear DR methods for SVM
+models in epilepsy prediction [142] and detection of diabe-        Kriging Partial Least Squares (KPLS) [152] performs
+tes disease [143]. Ali [144] extended these works and devel-    the Kriging after reducing the number of hyperparameters
+oped a threefold hybrid algorithm which includes a genetic      through PLS. Consequently, the KPLS method converges
+algorithm optimization component with the LDA-SVM               much faster than standard Kriging methods. An extension
+model. The algorithm was validated on the HCC dataset           of KPLS is the kernel KPLS (KPLSK) method which con-
+and improved prediction accuracy while lowering process-        sists of two steps. First, KPLS is performed to estimate the
+ing time in hyperparameter optimization and training time.      hyperparameters in a reduced space. The hyperparameters
+                                                                are transformed back into the original, higher dimension
+5.5Dimensionality Reduction for Manifold                        space where the estimated parameters are now used as a
+     Learning                                                   starting point for optimizing the standard Kriging interpola-
+                                                                tion procedure.
+Manifold learning methods have been used for constructing
+surrogate models in the data's intrinsic dimensionality for        Constantine et al. [153] integrated the active subspace
+cost-efficient representation of high-dimensional systems.      method with Kriging for constructing a response surface.
+Kalogeris and Papadopoulos [145] used diffusion mapping         The method was tested on an elliptic PDE model with 100
+for constructing locally clustered interpolation schemes        Gaussian random variables and proved to yield a more
+between the parameter space, diffusion map space, and           accurate approximation of the response surface compared
+solution space for linear stochastic uncertainty qualification  to kriging on the full domain. PCA methods have also been
+problems. Two case studies were conducted, and the prob-        applied to reduce computational burdens in Kriging. Steer
+ability density functions were predicted with 80% less time,    et al. [154] developed a PCA-Kriging model for predict-
+while maintaining high accuracy, compared to full computa-      ing FEA residual limb morphologies and prosthetic socket
+tion of the detailed models. Chen et al. [146] developed a      designs. The computation expense was reduced by an order
+manifold Gaussian process method using isomaps for dimen-       of six magnitudes compared to traditional Kriging and pro-
+sionality reduction. The method was applied to extract cou-     duced real-time rendering of pressure and shear distribution
+pling coefficients in fourth and sixth order coupling filters,  of the residual limb, indicating the potential of surrogate
+where few samples of high dimensional data were available.      models for improving clinical settings. However, this study
+The test error of both filters was reduced with the isomap      simplified the dynamic load cases and total surface bearing
+dimensionality reduction. Decker et al. combined POD,           design to three press points. Further studies in this field need
+                                                                to consider complex parametric socket models and variation
+1 3
+Dimensionality Reduction in Surrogate Modeling: A Review of Combined Methods  419
+
+in morphology and loading. Lataniotis et al. [25] proposed     5.7Dimensionality Reduction for ProjectionBased
+the supervised DSRM method, which optimized param-                  Surrogate Models
+eters through combined compression of kPCA with PCE
+and Kriging surrogate models and reduced dimensionality        PCA has been applied with Krylov subspace models for
+through solving a nested optimization problem. An aniso-       computationally efficient and inexpensive modeling of large-
+tropic Gaussian kernel was used in both surrogate models       scale systems. Awais et al. [159] created a hybrid algorithm
+and the DSRM was trained on three benchmark problems           using PCA for dimensionality reduction and the Arnoldi
+and compared against classical approaches of sequentially      algorithm for constructing an oblique Krylov subspace pro-
+tuning the dimensionality reduction and surrogate model        jection. Their hybrid algorithm was validated on random
+parameters separately. The DSRM showed superior perfor-        models with 100 and 200 input parameters. Compared to
+mance based on generalization error, but still suffered from   the standard scheme of using balanced truncation for reduc-
+the curse of dimensionality in the nested optimization of      ing the model size from 200 to 10 dimensions, the hybrid
+objective functions. Gadd et al. [155] developed a surrogate   method reduced computation time by 43% and floating-point
+modeling approach that combined a novel non-linear dimen-      operations per second (FLOPS) by 60%. However, optimiz-
+sionality reduction method, local tangent space alignment      ing the trade-off between reducing instabilities generated by
+(LTSA), with GPR using Markov Chain Monte Carlo for UQ         oblique projection methods and improving computational
+in groundwater flow models. In contrast to other manifold      time remains a challenge. Ubaru et al. [160] proposed a
+learning methods, LTSA is a local method which estimates       method for simultaneously estimating the underlying prin-
+points on the manifold on localized regions rather than iden-  cipal subspace dimensionality of covariance matrices and
+tifying a global basis solution for the reduced space.         applying it to the Krylov subspace method to compute an
+                                                               approximation of the subspace. This method known as Kry-
+   Other GP-based methods such as Bayesian surrogate           lov PCA uses the Lanczos algorithm for identifying the key
+models also require smooth patterns of objective func-         eigenvalues and approximating the principal subspace of
+tions to accurately represent full-scale systems. Lei et al.   the covariance matrix. Since the covariance matrix for PCA
+[156] developed a more flexible and adaptive Bayesian sur-     does not need to be formed with this method, less storage
+rogate modelling method for improving search efficiency        space is required for the overall modeling process, with runt-
+and robustness in two different case studies. By implement-    imes in the order of seconds to complete. While Krylov sub-
+ing Bayesian multivariate adaptive regression splines, the     space DRSMs have been applied successfully for reducing
+authors found that their proposed method required less tri-    computation times of large-scale systems, projection-based
+als and computation when performing material discovery         methods suffer from several convergence issues, which
+compared to the standard GP-based methods. Moriconi et al.     require further investigation to validate their use in other
+[157] utilized the response surface method for reconstruct-    applications.
+ing the parameter space in a lower dimensional represen-
+tation for improving Bayesian optimization of black-box        6Discussion
+functions. Compared to previous Bayesian optimization
+methods, their proposed method reduced computational           Table 1 summarizes the literature on combined dimension-
+complexity with faster computations when a small number        ality reduction-surrogate model (DRSM) methods. In the
+of data points were available. Bayesian optimization has also  accuracy column, only the model structures with the best
+been enhanced using a restricted-projection-pursuit (RPP)      performance are reported. The literature can be visited for
+GP [158]. In their study, the authors used RPP to reduce       further details on training and optimizing the model struc-
+the function dimensionality without restricting the projec-    tures for reducing error and computation. Overall, DR meth-
+tion to an axis-aligned representation. Compared to previ-     ods have benefitted surrogate models by reducing computa-
+ous methods such as additive models and low-dimensional        tion times and improving prediction accuracies.
+assumption models, the proposed method provided a more
+expressive framework for Bayesian optimization.                   PCA-based DRSMs [123], 125, 126, 127, 128, 132 have
+                                                               shown to improve modeling accuracies while reducing the
+   Linear and Kernel-based dimensionality reduction in         number of samples required to complete the training por-
+Kriging and other GP-based surrogate models extend the         tion of the surrogate model. Other researchers have found
+method's applicability to higher dimensions and has proven     that applying kPCA for nonlinear DR captured skewness
+to increase accuracy of the method. However, the discussed     behavior better than linear PCA [129]. Manifold-based DR
+methods are largely dependent on specific types of kernels     methods [145, 146], 147, 148] have mainly been used with
+and require further research to generate kernel-based Krig-    interpolation methods and showed improvement in both
+ing models for general application.
+
+                                                                              1 3
+1 3  Table1Summary of DRSM Literature                                                                                                                                                    420
+
+     Ref                   Year Application/Dataset                DR Method                  Surrogate Model        Comp. time (without DR) or  Accuracy (criteria)
+                                                                                              Kriging                computational complexity
+     Koziel and Pietrenko- 2020 Transformer and rat-race cou- PCA                                                                                Transformer:
+                                                                                                                     Transformer: 2 min          97.9% on 800 samples (RMS)
+     Dabrowska [123]             pler model (RRC)                                                                    RRC: 6 min                  93.9% without DR
+                                                                                                                                                 RRC:
+     Kamali et al. [125] 2007 Calibration of watershed             PCA                        Kriging                -                           99.1% on 800 samples (RMS)
+                                                                                                                                                 92% without DR
+     Li et al. [164]       2021 Predictng SUR and DixonPrice PCA                              Kriging                SUR function:
+     Tao et al. [126]                functions                                                Deep Belief NN         216.5188 s with Kriging     37% less predictions outside
+                                                                                                                     14.1654 s with KPLS           threshold error with 40% less
+                           2019 Aerodynamics optimization PCA                                                        12.8934 s with PCA-Kriging    simulations (Nash-Sutcliffe
+                                                                                                                                                   Criteria [163])
+                                                                                                                     -
+                                                                                                                                                 SUR function RMSE:
+     Ma and Zabaras [129]  2011  Stochastic Analysis of material   kPCA                       PCE                    -                           Kriging: 1.11E4
+     Bird [132]            2020    property variation in hetereo-  PCA, kPCA, Isomap, LLE     RBF                                                KPLS: 7.0E3
+                                   geneous media                                              ANN                    Isomap-RBF: 14 min (hours   PCA-Kriging: 8.8E3
+                                                                                                                       with FEA)
+                                 Stress on turbomachine com-                                                                                     3.11% compared with CFD lift-
+                                   pressor blade                                                                     PCA-IT: 3 min                 drag ratios results
+
+     Straus and Skogestad 2017 Ammonia Process                     PLS                                               -                           1.08% compared with CFD drag
+                                                                                                                                                   coefficient predictions
+     [133]
+                                                                                                                                                 11.4% skewness error with kPCA
+     Ehre et al. [134]     2020 Global sensitivity analysis on     PLS                        PCE                    -                             compared to 100.6% with PCA
+     Na et al. [135]                 truss and plate
+     Ullah et al. [137]                                            VAE with deep convolution  CNN                    1 s (700 s with CFD model)  0.5% MSE on reconstruction
+                           2018 Toxic gas release model              layers
+                                                                                              Kriging                -                           2.47% on Isomap-RBF nodal               C. K. J. Hou, K. Behdinan
+                           2020 Several benchmark functions        PCA, kPCA, Autoencoders,                                                        stresses (double-NRMSE)
+                                                                     VAE
+                                                                                              Polynomial Regression                              0.7% on inverse-transform PCA
+                                                                                                                                                   (PCA-IT)
+     Laubscher and Rous- 2021 Turbulent jet diffusion              VAE                        DNN                    -
+                                                                                                                                                 6 latent variables: (MAE)
+     seau [136]                                                                                                                                  0.025 on Pressure
+                                                                                                                                                 0.02 on Temperature
+                                                                                                                                                 0.4 on extent of reaction
+
+                                                                                                                                                 <0.01 for over 1000 observa-
+                                                                                                                                                   tions of 1� st critical plate stress
+                                                                                                                                                   (mean relative error)
+
+                                                                                                                                                 0.00246 (MSE)
+                                                                                                                                                 47.7% lower than other models
+
+                                                                                                                                                   compared
+
+                                                                                                                                                 PCA-Kriging had best accuracy
+                                                                                                                                                   for optimization
+
+                                                                                                                                                 AE-based surrogates had highest
+                                                                                                                                                   modeling accuracy
+
+                                                                                                                                                 0.3% on species concentrations
+                                                                                                                                                 <7% on temperature and veloc-
+
+                                                                                                                                                   ity field (MAE)
+     Table1(continued)      Year Application/Dataset             DR Method         Surrogate Model           Comp. time (without DR) or       Accuracy (criteria)                Dimensionality Reduction in Surrogate Modeling: A Review of Combined Methods
+     Ref                                                                                                     computational complexity
+                                                                                   SVM                       0.009 s (0.293 s)                93.75% (classification)
+     George [139]           2012  KDD99 benchmarkdataset         PCA               SVM                       -                                Isomap-SVM: 0.03 and 0.023 on
+     Bai et al. [141]       2018  Manufacturing quality predic-  PCA, LLE, Isomap  SVM
+                            2010                                 PCA, LDA, ICA     SVM                       -                                  two test cases (RMSE)
+     Subasi and Gursoy      2011    tion                         LDA                                                                          LDA-SVM: 100% accuracy
+       [142]                2020  EEG signal classification      LDA                                         -                                SVM: 98%
+                            2019                                 Diffusion Map                                                                89.74% (9% higher than GRNN)
+     Calisir and                  Diabetes classification
+       Dogantekin [143]                                                            RBF-SVM                   Optimization time: 1.15 s        90.3% (78% without LDA)
+                                  Hepatocellular carcinoma                         Polynomial interpolation    (41.56 s)
+     Ali et al. [144]               prediction                                                                                                7.62% error in pdf (polynomial
+                                                                                                             50 k runs:                         density function) compared
+     Kalogeris and Papado-        2D Cantilever                                                              876 s (46532 s with full model)    with Monte Carlo
+       poulos [145]               3D wrench model
+                                                                                                                                              0.84% on 4� th order model
+     Chen et al. [146]      2020 Microwave components model Isomap                 Gaussian Process          -                                  (MAPE)
+                                      optimization
+                                                                                                                                              2.02% (DNN)
+     Franz et al. [147]     2015 Steady transonic flows          Isomap            RBF interpolation         O(nm(mlogm+E))                   Order of 0.01 (relative error)
+                                                                                                             E=number of edges
+     Njock et al. [151]     2020 Soil liquefaction prediction    t-SNE             Evolutionary NN           M=number of snapshots            97% on testing
+     Bouhlel et al. [152]             classification             kPLS              Kriging                   N=full-space dimension           94% on training
+     Constantine et al.                                                            Kriging                   -                                0.99% error (1.39% without
+                            2018 Griewank function
+       [153]                                                                                                 20.49 s for 300 samples            kPLS)
+     Steer et al. [154]     2014 Elliptic PDE                    Active subspace                               (94.31 s without kPLS)         0.11 (relative to Monte Carlo)
+     Gadd et al. [155]
+                                                                                                             -
+     Awais et al. [159]
+                            2018  FEA residual limb morpholo-    PCA               Kriging                   1.6 ms (30 min for FEA con-      <3% soft tissue strain
+     Ubaru et al. [160]     2018    gies                         LTSA              Gaussian Process            vergence)                      <4 kPa residuum tip pressure
+                                                                                   Krylov Subspace                                            Similar to results from numerical
+                            2007  2D Darcy's Law with contami-   PCA               Krylov Subspace           O(m^2 N)
+                                    nant mass balance                                                        N=number of design points          simulator
+                                                                                                             m=inducing points
+                                  Richards equation in 3D                                                                                     -
+                                                                                                             43% lower CPU time
+                                  Random models with 100 and                                                 60% lower FLOP time (both        -
+                                    200 parameters
+                                                                                                               compared to BT method)
+                            2019 Signal Detection                PCA
+                                                                                                             Order of seconds (runtime)
+
+1 3                                                                                                                                                                              421
+422                                                                           C. K. J. Hou, K. Behdinan
+
+computation time and prediction error compared to tradi-       DR             Dimensionality reduction
+tional Monte Carlo and NN models.                              ML             Machine learning
+                                                               DRSM           Dimensionality reduction-surrogate model
+   DR methods have improved SVM classification accura-         PCA            Principal component analysis
+cies in manufacturing quality [141] and medical data [143].    kPCA           Kernel PCA
+Kriging DRSMs [152, 153], 154] have mainly been tested         LDA            Linear discriminant analysis
+on benchmark functions and shown improvements compared         FA             Factor analysis
+to standalone surrogate models and Monte Carlo functions.      FAMD           Factor analysis of mixed data
+Projection-based DR methods have also been applied for         MCA            Multiple correspondence analysis
+improving predictions using GP-based surrogate models          PLS            Partial least squares
+[161]. Finally, PCA has been applied to Krylov subspace        KPLS           Kernel PLS
+methods for reducing memory use and time required to           GEKPLS         Gradient-enhanced kernel PLS
+obtain the lower-dimensional model of the data space [159],    ASM            Active subspace methods
+160]. These methods, however, require further research to      ANN            Artificial neural network
+circumvent the convergence issues.                             CNN            Convolutional neural network
+                                                               RNN            Recursive neural network
+   By identifying and retaining the key information in the     GENN           Gradient-enhanced neural network
+data, DRSMs have successfully improved optimization and        mSANN          Modified Sobolev artificial neural network
+calibration methods in engineering fields such as aerody-      MFDNN          Multi-fidelity deep neural network
+namics and finite element analysis. However, DRSMs are a       KL-divergence  Kullback-Leibler-divergence
+new field of research and have mainly been applied to data-    LLE            Local linear embedding
+sets with minor nonlinearities. In fact, surrogate modelling   MLLE           Modified local linear embedding
+methods such as random forest and tree -structured Parzen      MLE            Maximal linear embedding
+estimator have not been explored with dimensionality reduc-    MDS            Multi-dimensional scaling
+tion methods. Several of the reviewed literatures propose the  t-SNE          t-Distributed stochastic neighbor embedding
+need to apply their methods to more complex cases to vali-     SVM            Support vector machine
+date the DRSM methods for general use cases and explore        PSRM           Polynomial response surface models
+ways to overcome the mathematical limitations imposed.         RBF            Radial basis function
+                                                               RMT            Regularized minimum energy tensor product
+7Conclusion                                                    GPR            Gaussian process regression
+                                                               FLOP           Floating-point operations per second
+Machine learning algorithms have largely been applied for      UQ             Uncertainty quantification
+aiding surrogate modeling construction and reducing com-       RVT            Regionalized variable theory
+putational costs of modeling full-scale, high-dimensionality   SGD            Stochastic gradient descent
+problems. In this paper, we discussed the state-of-the-art     PCE            Polynomial chaos expansion
+methods of linear and nonlinear dimensionality reduction       MSE            Mean squared error
+methods and surrogate modeling, as well as the literatures     MAE            Mean absolute error
+that combine them. DR methods have been used to create         MAPE           Mean absolute percentage error
+more cost-efficient surrogates. Traditional surrogate models   GP             Gaussian Process
+perform poorly because of limitted data availability, high     RPP            Restricted-projection pursuit
+dimensionality, and rigid training. The literature shows the
+DR-SR methods have potential for other fields of application   Acknowledgements This work was supported by the Natural Sciences
+beyond their traditional use in quality assurance and uncer-   and Engineering Research Council of Canada (NSERC) under Grant
+tainty quantification. However, DRSM methods are a new         Number RGPIN-217525.
+field of research and require further exploration to validate
+their applicability to datasets with uncertainty and ambigu-   Authors' cCntributions CKJH: Draft and final manuscript preparation,
+ous underlying structures. Indeed, these methods are still     organization of content, creation of figures and tables.Dr. KB Review
+evolving and will continue to be applied to high-dimensional   of draft and final manuscript, provided oversight during the research
+problems in other engineering fields.                          process.
+
+Appendix                                                       Availability of Data and Materials Not applicable as this is a review
+                                                               paper.
+Acronyms
+
+1 3
+Dimensionality Reduction in Surrogate Modeling: A Review of Combined Methods  423
+
+Declarations                                                                  14. Ali M, Ahmed S, Ferzund J, Mehmood A, Rehman A (2017)
+                                                                                   Using PCA and factor analysis for dimensionality reduction of
+Conflict of interest The authors declare that they have no known com-              bio-informatics data. Int J Adv Comput Sci Appl 8(5):415-426
+peting financial interest or personal relationships that could have ap-
+peared to influence the work reported in this paper.                          15. Ray R, Kumar M, Rath S (2016) Fast computing of microarray
+                                                                                   data using resilient distributed dataset of apache spark. Recent
+Open Access This article is licensed under a Creative Commons Attri-               Adv Inform Commun Technol 463:171-182
+bution 4.0 International License, which permits use, sharing, adapta-
+tion, distribution and reproduction in any medium or format, as long          16. Suhr D (2005) Principal component analysis versus exploratory
+as you give appropriate credit to the original author(s) and the source,           factor analysis. SUGI 30. Philadelphia.
+provide a link to the Creative Commons licence, and indicate if changes
+were made. The images or other third party material in this article are       17. Collins M, Dasgupta S, Schapire R (2002) A generalization of
+included in the article's Creative Commons licence, unless indicated               principal component analysis to the exponential family. NIPS.
+otherwise in a credit line to the material. If material is not included in
+the article's Creative Commons licence and your intended use is not           18. Chavent M, Kuentz-Simonet V, Labenne A, Liquet B, Saracco
+permitted by statutory regulation or exceeds the permitted use, you will           J (2017) Multivariate analysis of mixed data: The R package
+need to obtain permission directly from the copyright holder. To view a            PCAmixdata. https://doi.org/10.48550/arXiv.1411.4911
+copy of this licence, visit http://creativecommons.org/licenses/by/4.0/.
+                                                                              19. Husson F, Josse J, Le S, Mazet J (2017) FactoMineR: multivari-
+References                                                                         ate exploratory data analysis and data mining. R package version
+                                                                                   1:38
+  1. Narisetty (2020) Bayesian model selection for high-dimen-
+       sional data. In: Handbook of statistics. Champaign, IL, US,            20. Le S, Josse J, Husson F (2008) FactoMineR: an r package for
+       pp 207-248. https://doi.org/10.1016/bs.host.2019.08.001                     multivariate analysis. J Stat Softw 25(1):1-18
+
+   2. Chandrashekar G, Sahin F (2014) A survey on feature selection           21. Dray S, Dufour A-B (2007) The ade4 package: implementing the
+       methods. Comput Electr Eng 40:16-28                                         duality diagram for ecologists. J Stat Softw 22(4):1-20
+
+   3. Saltelli A, Ratto M, Andres T, Campolongo F, Cariboni J, Gatelli        22. Escofier B (1979) Traitement simultan� de variables quantitatives
+       D, Tarantola S (2008) Global sensitivity analysis: the primer.              et qualitatives en analyse factorielle. Les cahiers de l'analyse des
+       Wiley, Ispra                                                                donn�es 4(2):137-146
+
+   4. Zhang P (2019) A novel feature selection method based on global         23. Saporta G (1990) Simultaneous analysis of qualitative and quan-
+       sensitivity analysis with application in machine learning-based             titative data. Soc Itali di Statist 1:63-72
+       prediction model. Appl Soft Comput 85:105859. https://doi.org/
+       10.1016/j.asoc.2019.105859                                             24. Pag�s J (2002) Analyse factorielle multiple appliqu�e aux
+                                                                                   variables qualitatives et aux donn�es mixtes. Revue Statistique
+   5. Watson T, Doherty J, Christensen S (2013) Parameter and pre-                 Qppliquee 4:5-37
+       dictive outcomes of model simplification. Water Resour Res
+       49:3952-3977                                                           25. Lataniotis C, Marelli S, Sudret B (2018) Extending classical
+                                                                                   surrogate modelling to high dimensions through supervised
+   6. Vuik C, Segal A, Meijerink J (1999) An efficient precondi-                   dimensionality reduction: a data-driven approach. Int J Uncertain
+       tioned cg method for the solution of a class of layered prob-               Quantif. https://doi.org/10.1615/Int.J.UncertaintyQuantification.
+       lems with extreme contrasts in the coefficients. J Comput Phys              2020031935
+       152(1):385-403
+                                                                              26. S, H., & Triggs, B. (2010). Feature sets and dimensionality
+   7. Barton R, Meckesheimer M (2006) Metamodel-based simulation                   reduction for visual object detection. In: British machine vision
+       optimization. Handbook in operations research and management                conference. Aberystwyth.
+       science. Elsevier, Amsterdam, Netherlands, pp 535-574
+                                                                              27. Wold S, Sjostrom M, Eriksson L (2001) PLS-Regression: a basic
+   8. Mattot L, Rabideau A (2008) Calibration of complex subsurface                tool of chemometrics. Chemometr Intell Lab Syst, pp 109-130.
+       reaction models using a surrogate-model approach. Adv Water
+       Resour 31(12):1697-1707                                                28. Hsiao T-CR, Lin C-W, Chiang HK (2003) Partial least-squares
+                                                                                   algorithm for weights initialization of backpropagation network.
+   9. Barton R (1992) Metamodels for simulation input-output rela-                 Neurocomputing 50:237-247. https://doi.org/10.1016/S0925-
+       tions. In: Proceedings of the 24th conference on winter simula-             2312(01)00708-1
+       tion. New York, NY, USA.
+                                                                              29. Hanrahan G, Udeh F, Patil DG (2005) Multivariate calibration
+ 10. Ackermann S, Gaul L, Hambrecht T (2009) Principal compo-                      techniques. California State University, Los Angeles, CA
+       nent analysis for detecting globally important input parameters
+       in finite element analysis.                                            30. Vohra M, Alexanderian A, Guy H, Sankaran M (2019) Active
+                                                                                   subspace-based dimension reduction for chemical kinetics appli-
+ 11. Grassi L, Schileo E, Boichon C, Viceconti M, Taddei F (2014)                  cations with epistemic uncertainty. Combust Flame 204(1):152-
+       Comprehensive evaluation of PCA-based finite element model-                 161. https://doi.org/10.1016/j.combustflame.2019.03.006
+       ling of the human femur. Med Eng Phys 36:1246-1252
+                                                                              31. Zahm O, Constantine P, Prieur C, Marzouk Y (2018) Gradient-
+ 12. Pellicer-Valero O, Ruperez M, Mart�nez-Sanchis S, Martin-                     based dimensionality reduction of multivariate vector-valued
+       Guerrero J (2020) Real-time biomechanical modeling of the                   functions. SIAM J Sci Comput 42(1):A534-A558. https://doi.
+       liver using Machine Learning models trained on Finite Element               org/10.1137/18M1221837
+       Method simulations. Expert Syst Appl 143:113083
+                                                                              32. Fornasier M, Schnass K, Vybiral J (2012) Learning functions
+ 13. Khosla N (2006) Dimensionality reduction using factor analysis.               of few arbitrary linear parameters in high dimensions. Found
+       (Master's Dissertation). Retrieved from https://d oi.o rg/1 0.2 5904/       Comput Math 12(2):229-262
+       1912/3890
+                                                                              33. Raducanu B, Dornaika F (2012) A supervised non-linear dimen-
+                                                                                   sionality reduction approach for manifold learning. Pattern Rec-
+                                                                                   ogn 45(6):2432-2444
+
+                                                                              34. Zheng K, Qian X, An N (2010) Supervised non-linear dimen-
+                                                                                   sionality reduction techniques for classification intrusion detec-
+                                                                                   tion. In: International conference on artificial intelligence and
+                                                                                   computational intelligence. Sanya, China.
+
+                                                                              35. Gonzalez D, Aguado J, Cueto E (2018) kPCA-based parametric
+                                                                                   solutions within the PGD framework. Arch Comput Methods
+                                                                                   Eng 25(1):69-86
+
+                                                                              1 3
+424                                                                                                                              C. K. J. Hou, K. Behdinan
+
+ 36. Wang Q (2014) Kernel principal component analysis and its            60. Vincent P (2011) A Connection between score matching and
+       applications in face recognition and active shape models. Com-          denoising autoencoders. Neural Comput 23:1661-1674
+       puter Vision and Pattern Recognition.
+                                                                          61. Shang Z, Sun L, Xia Y, Zhang W (2020) Vibration-based damage
+ 37. Rosipal R (2011) Nonlinear partial least squares an overview. In:         detection for bridges by deep convolutional denoising autoen-
+       Lodhi H, Yamanishi Y (eds) Chemoinformatics and advanced                coder. Structural Health Monitoring, pp 1-24.
+       machine learning perspectives: complex computational methods
+       and collaborative techniques. IGI Global, pp 169-189. https://     62. Kingma, D., & Welling, M. (2013). Auto-encoding variational
+       doi.org/10.4018/978-1-61520-911-8.ch009                                 bayes.
+
+ 38. Berglund A, Wold S (1997) INLR, implicit non-linear latent vari-     63. Pu Y, Gan Z, Henao R, Yuan X, Chunyuan L, Stevens A, Carin
+       able regression. J Chemom 11(2):141-156                                 L (2016) Variational autoencoder for deep learning of images,
+                                                                               labels, and captions. Adv Neural Inf Process Syst 29:2360-2368
+ 39. Berglund A, Wold S (1999) A serial extention of multiblock
+       PLSq. J Chemom 13:461-471                                          64. Rybakov S, Lotfollahi M, Theis F, Wolf F (2020) Learning inter-
+                                                                               pretable latent autoencoder representations with annotations of
+ 40. Baffi G, Martin E, Morris A (1999) Non-linear projection to               feature sets. bioRxiv 1:91. https://doi.org/10.1101/2020.12.02.
+       latent structures revisited: the quadratic PLS algorithm. Comput        401182
+       Chem Eng 23:395-411
+                                                                          65. Sharma I (2021) A quick introduction to manifold learning.
+ 41. Hoskuldsson A (1992) Quadratic PLS regression. J Chemom                   Retrieved 2021, from https://www.analyticsvidhya.com/blog/
+       6(6):307-334                                                            2021/02/a-quick-introduction-to-manifold-learning/
+
+ 42. Wold S, Kettaneh-Wold N, Skagerberg B (1989) Nonlinear PLS           66. Roweis S, Saul L (2000) Nonlinear dimensionality reduction by
+       modeling. Chemom Intell Lab Syst 7:53-65                                locally linear embedding. Science 290(5500):2323-2326
+
+ 43. Ghojogh B, Ghodsi A, Karray FC (2020) Multidimensional scal-         67. Heureux P, Carreau J, Bengio Y, Delalleau O, Yue S (2004)
+       ing, sammon mapping, and isomap: tutorial and survey. ArXiv.            Locally linear embedding for dimensionality reduction in QSAR.
+                                                                               J Comput Aided Mol Des 18:475-482
+ 44. Arce C, Garling T (1989) Multidimensional scaling. Anuario de
+       Psicologia 43(4):63-80                                             68. Pedregosa F, Varoquaux G, Gramfort A, Michel V, Thirion B,
+                                                                               Grisel O, Blondel M, M�ller A, Nothman J, Louppe G, Pretten-
+ 45. Wang Y, Yao H, Zhao S (2016) Auto-encoder based dimensional-              hofer P, Weiss R, Dubourg V, Vanderplas J, Passos A, Courna-
+       ity reduction. Neurocomputing 184:232-242                               peau D, Brucher M, Perrot M, Duchesnay � (2011) Scikit-learn;
+                                                                               Maching learning in python. J of Mach Learn Res 12:2825-2830
+ 46. Kani J, Elsheikh A (2017) DR-RNN: a deep residual recurrent
+       neural network for model reduction. ArXiv, abs/1709.00939.         69. Wang R, Shan S, Chen X, Chen J, Gao W (2011) Maximal lin-
+                                                                               ear embedding for dimensionality reduction. IEEE Trans Pattern
+ 47. Saenz J, Lubbers N, Urban N (2016) Dimensionality-reduction               Anal Mach Intell 33(9):1776-1792
+       of climate data using deep autoencoders. In: 6th international
+       workshop on climate informatics. Boulder, USA.                     70. Pan Y, Ge S, Maman A (2009) Weighted locally linear embed-
+                                                                               ding for dimension reduction. Pattern Recogn 42(5):798-811
+ 48. O'Shea K, Nash R (2015) An Introduction to convolutional neural
+       networks. Neural and Evolutionary Computing.                       71. de Ridder D, Kouropteva O, Okun O, Pietikainen M, Duin R
+                                                                               (2003) Supervised locally linear embedding. In: Artificial neural
+ 49. LeCun Y, Bengio Y (1995) Convolutional networks for images,               networks and neural information processing. Springer, Berlin,
+       speech, and time-series. In: The handbook of brain theory and           Heidelberg. https://doi.org/10.1007/3-540-44989-2_40
+       neural networks, p 3361.
+                                                                          72. Benwei L, Zhang Y (2011) Supervised locally linear linear
+ 50. Yamashita R, Nishi M, Do R, Togashi K (2018) Convolutional                embedding projection (SLLEP) for machinery fault diagnosis.
+       neural networks: an overview and application in radiology.              Mech Syst Signal Process 25(8):3125-3134
+       Insights Imaging 2018(9):611-629
+                                                                          73. Chang H, Yeung D (2006) Robust locally linear embedding. Pat-
+ 51. Masci J, Meier U, Ciresan D, Schmidhuber J (2011) Stacked                 tern Recogn 39(6):1053-1065
+       convolutional auto-encoders for hierarchical feature extraction.
+       Lecture notes in computer science. Espoo, Finland.                 74. Tenanbaum J, de Silva V, Langford J (2000) A Global Geomet-
+                                                                               ric Framework for Nonlinear Dimensionality Reduction. Science
+ 52. Maggipinto M, Masiero C, Beghi A, Susto G (2018) A convo-                 290(5500):2319-2323. https://d oi.o rg/1 0.1 126/s cienc e.2 90.5 500.
+       lutional autoencoder approach for feature extraction in virtual         2319
+       metrology. Proced Manuf 17:126-133
+                                                                          75. Xing W, Shah A, Nair P (2015) Reduced dimensional Gaussian
+ 53. Jo S, Park C, Ryu D, Ahn S (2020) Adaptive surrogate estima-              process emulators of parameterized partial differential equations
+       tion with spatial features using a deep convolutional autoencoder       based on Isomap. Proc R Soc A 471:20140697. https://doi.org/
+       for CO2 geological sequestration. Appl Art Intell Tech Pet Eng          10.1098/rspa.2014.0697
+       14(2):413
+                                                                          76. Bhattacharjee S, Matous K (2016) A nonlinear manifold-based
+ 54. Krizhevsky A, Sutskever I, Hinton G (2012) Imagenet classifica-           reduced order model for multiscale analysis of heterogeneous
+       tion with deep convolutional neural networks. In: Advances in           hyperelastic materials. J Comput Phys 313:635-653. https://doi.
+       Neural Information Processing Systems. Lake Tahoe, NV, USA,             org/10.1016/j.jcp.2016.01.040
+       pp 1097-1105
+                                                                          77. Choi H, Choi S (2004) Kernel Isomap. Eletron Lett
+ 55. Wang Y (2015) Auto-encoder based dimensionality reduction.                40(25):1612-1613
+       Neurocomputing 184(10):232-242
+                                                                          78. Zhang Z, Chow T, Zhao M (2013) M-Isomap: orthogonal con-
+ 56. Jordan J (2018) Introduction to autoencoders. Retrieved 2021,             strainted marginal isomap for nonlienar dimensionality reduc-
+       from https://www.jeremyjordan.me/autoencoders/                          tion. Trans Cybern 43(1):180-191. https://doi.org/10.1109/
+                                                                               TSMCB.2012.2202901
+ 57. Vincent P, Larochelle H, Bengio Y, Manzagol P (2008) Extract-
+       ing and composing robust features with denoising autoencod-        79. Sun W, Halevy A, Benedetto JJ, Czaja W, Liu C, Hangbin W,
+       ers. In: 25th international conference on Machine Learning. New         Shi B, Li W (2014) UL-Isomap based nonlinear dimensional-
+       York, NY, US.                                                           ity reduction for hyperspectral imagery classification. ISPRS J
+                                                                               Photogram Remote Sens 89:25-36. https://doi.org/10.1016/j.
+ 58. Prakash A (n.d.) Different types of autoencoders. Retrieved April         isprsjprs.2013.12.003
+       2021, from https://iq.opengenus.org/types-of-autoencoder/
+
+ 59. Leyli-Abadi M, Labiod L, Nadif M (2017) Denoising autoen-
+       coder as an effective dimensionality reduction and clustering of
+       text data. Adv Knowl Dis Data Min 10235:801-813
+
+1 3
+Dimensionality Reduction in Surrogate Modeling: A Review of Combined Methods  425
+
+ 80. Yang M (2002) Extended Isomap for classification. Object Rec-                resolution feature selection and support vector machine analysis.
+       ogn Support User Interact Serv Robots 3:615-618. https://doi.              Chem Mater 28:6672-6681. https://doi.org/10.1021/acs.chemm
+       org/10.1109/ICPR.2002.1048014                                              ater.6b02905
+                                                                           101. Zhuo Y, Tehrani AM, Brgoch J (2018) Predicting the band
+ 81. de la Porte J, Herbst B (2008) An introduction to diffusion maps.            gaps of inorganic solids by machine learning. J Phys Chem Lett
+       In: Nineteenth annual symposium of the Cape Town, South                    9(7):1668-1673. https://doi.org/10.1021/acs.jpclett.8b00124
+       Africa                                                              102. Vapnik V (1998) Statistical learning theory. Wiley, New York
+                                                                           103. Papadopoulos V, Soimiris G, Giovanis D, Papadrakakis M (2018)
+ 82. Maaten L, Hinton G (2008) Visualizing data using t-SNE. J Mach               A neural network-based surrogate model for carbon nanotubes
+       Learn Res, 1.                                                              with geometric nonlinearities. Comput Methods Appl Mech Eng
+                                                                                  328:411-430
+ 83. van der Maaten L, Hinton G (2008) Visualizing data using              104. Shahriari M, Pardo D, Moser B (2020) A deep neural network
+       t-SNE. J Mach Learn Res 9:2579-2605                                        as surrogate model for forward simulation of borehole resistivity
+                                                                                  measurements. Proced Manuf 42:235-238
+ 84. Devassy B, George S (2020) Dimensionality reduction and visu-         105. Zhang X, Xie F, Ji T, Zhu Z, Zheng Y (2021) Multi-fidelity deep
+       alisation of hyperspectral ink data using t-SNE. Forens Sci Int            neural network surrogate model for aerodynamic shape optimiza-
+       311:110194                                                                 tion. Comput Methods Appl Mech Eng 373:113485. https://doi.
+                                                                                  org/10.1016/j.cma.2020.113485
+ 85. Pouyet E, Rohani N, Katsaggelos A (2018) Innovative data reduc-       106. Minisci E, Vasile M (2013) Robust design of a re-entry
+       tion and visualization strategy for hyperspectral imaging datasets         unmanned space vehicle by multi-fidelity evolution control.
+       using t-SNE approach. Pure Appl Chem 90(3):493-506                         AIAA J 51(6):1284-1295. https://doi.org/10.2514/1.J051573
+                                                                           107. Haykin S (1999) Neural networks: a comprehensive foundation,
+ 86. Hsu C, Huang W (2016) Integrated dimensionality reduction                    2nd edn. Prentice-Hall, New York
+       technique for mixed-type data involving categorical values.         108. Kourakos G, Mantoglou A (2009) Pumping optimization of
+       Appl Soft Comput 43:199-209. https://doi.org/10.1016/j.asoc.               coastal aquifers based on evolutionary algorithms and sur-
+       2016.02.015                                                                rogate modular neural network models. Adv Water Resour
+                                                                                  32(4):507-521
+ 87. Barbosa MPF, Alves WM (2019) Kriging-based modeling for               109. Sreekanth J, Datta B (2010) Multi-objective management of salt-
+       rotordynamics prediction in rotor-bearing system. In: Cavalca              water intrusion in coastal aquifers usinggenetic programming
+       KL, Weber HI (eds) Mechanical engineering and materials.                   and modular neural network based surrogate models. J Hydrol
+       Springer, Cham, pp 306-321                                                 393:245-256
+                                                                           110. Happel B, Murre J (1994) The design and evolution of modular
+ 88. Matheron G (1963) Traite de geostatistique appliquee. Mem-                   neural network architectures. Neural Networks 7:985-1004
+       oires du Bureau de Recherches Geologiques et Minieres, 14.          111. Benner P, Gugercin S, Willcox K (2015) A survey of projection-
+                                                                                  based model reduction. SIAM Rev 57:483-531. https://doi.org/
+ 89. Bau D, Mayer A (2006) Stochastic management of pump-and-                     10.1137/130932715
+       treat strategies using surrogate functions. Adv Water Resour        112. Chatterjee A (2000) An introduction to the proper orthogonal
+       29(12):1901-1917                                                           decomposition. Curr Sci 78(7):808-817
+                                                                           113. Bai Z (2002) Krylov subpsace techniques for reduced-order
+ 90. Borgonovo E, Castaings W, Tarantola S (2012) Model emula-                    modeling of large-scale dynamical systems. Appl Numer Math
+       tion and moment-independent sensitivity analysis: an appli-                43:9-44
+       cation to environmental modelling. Environ Model Softw              114. Schmid P (2010) Dynamic mode decomposition of numerical
+       34:105-115                                                                 and experimental data. J Fluid Mech 656:5-28
+                                                                           115. Lieu T, Farhat C, Lesoinne M (2006) Reduced-order fluid/struc-
+ 91. Hemker T, Fowler K, Farthing M, von Stryk O (2008) A                         ture modeling of a complete aircraft configuration. Comput
+       mixed-integer simulation-based optimization approach with                  Methods Appl Mech Eng 195(41):5730-5742
+       surrogate functions in water resources management. Optim            116. Lieberman C, Fidkowski K, Willcox K, van Bloemen Waanders
+       Eng 9(4):341-360                                                           B (2012) Hessian-based model reduction: large-scale inversion
+                                                                                  and prediction. Int J Numer Meth Fluids 71:135-150
+ 92. Costabal F, Kristen M, Jiang Y, Perdikaris P, Kuhl E (2019)           117. Simoncini V (2015) Krylov subspaces. The Princeton Compan-
+       Machine learning in drug development: Characterizing the                   ion to Applied Mathematics, pp 113-114.
+       effect of 30 drugs on the QT interval using Gaussian process        118. Freund R (2000) Krylov-subspace methods for reduced-
+       regression, sensitivity analysis, and uncertainty quantification.          order modeling in circuit simulation. J Comput Appl Math
+       Comput Methods Appl Mech Eng 348:313-333                                   123(2):395-421
+                                                                           119. Liu W, Farquharson C, Zhou J, Xiu L (2019) A rational Kry-
+ 93. Duarte FSLG, Rios RA, Hruschka ER, de Mello RF (2019)                        lov subspace method for 3D modeling of grounded electrical
+       Decomposing time series into deterministic and stochastic                  source airborne time-domain electromagnetic data. J Geophys
+       influences: a survey. Digit Signal Process 95:102582. https://             Eng 16(2):451-462
+       doi.org/10.1016/j.dsp.2019.102582                                   120. Lucia D, Beran P (2003) Projection methods for reduced order
+                                                                                  models of compressible flows. J Comput Phys 188(1):252-280
+ 94. Rivoirard J (1994) Introduction to disjunctive kriging and non-       121. Watkins D (2007) Krylov Subspaces. The matrix eigenvalue
+       linear geostatistics. Clarendon Press, Oxford                              problem: GR and krylov subspace methods. SIAM, Washington,
+                                                                                  pp 351-421
+ 95. Hengl T (2007) A practical guide to geostatistical mapping of         122. Vohra M, Nath P, Sankaran M, Lee Y-T (2020) Fast surrogate
+       environmental variables. Office for Official Publications of the           modeling using dimensionality reduction in model inputs and
+       European Communities, Luxembourg
+
+ 96. Lockwood B, Anitescu M (2010) Gradient-enhanced universal
+       kriging for uncertainty propagation. Nucl Sci Eng J Am Nucl
+       Soc 170(2):168-195
+
+ 97. Ulaganathan S, Couckuyt I, Dhaene T, Laermans E (2014) On
+       the use of gradients in kriging surrogate models. In: Proceed-
+       ings of the 2014 Winter Simulation Conference. Ghent
+
+ 98. Bouhlel M, Hwang J, Bartoli N, Lafage R, Morlier J, Martins
+       J (2019) A Python surrogate modelling framework. Adv Eng
+       Softw 135:102662
+
+ 99. Bouhlel M, He S, Martins J (2020) Scalable gradient-enhanced
+       artificial neural networks for airfoil shape design in the sub-
+       sonic and transonic regimes. Struct Multidiscip Optim
+       61:1363-1376
+
+100. Oliynyk A, Adutwum LA, Harynuk JJ, Mar A (2016) Classify-
+       ing crystal structures of binary compounds AB through cluster
+
+                                                                              1 3
+426                                                                                                                                 C. K. J. Hou, K. Behdinan
+
+       field output: application to additive manufacturing. Reliab Eng     139. George A (2012) Anomaly detection based on machine learning.
+       Syst Saf 201:106986                                                        Int J Comput Appl 47(21):5-8
+123. Koziel S, Pietrenko-Dabrowska A (2020) Low-cost data-driven
+       modelling of microwavecomponents using domain confinement           140. Wang W, Carreira-Perpinan M (2014) The role of dimensionality
+       andPCA-based dimensionality reduction. Instit Eng Technol                  reduction in classification. In: Twenty-Eighth AAAI conference
+       14(13):1643-1650                                                           on artificial intelligence. Quebec City.
+124. Higdon D, Gattiker J, Williams B, Rightley M (2008) Computer
+       model calibration using high-dimensional output. J Am Statist       141. Bai Y, Sun Z, Zeng B, Long J, Li L, Oliveira J, Li C (2019) A
+       Assoc 103(482):570-583. https://doi.org/10.1198/0162145070                 comparison of dimension reduction techniques for support vec-
+       00000888                                                                   tor machine modeling of multi-parameter manufacturing quality
+125. Kamali M, Ponnambalam K, Soulis E (2007) Integration of                      prediction. J Intell Manuf 30:2245-2256
+       surrogate optimization and PCA for calibration of hydrologic
+       models, A WATCLASS case study. In: 2007 IEEE international          142. Subasi A, Gursoy M (2010) EEG signal classification using
+       conference on systems, man and cybernetics. Montreal, Canada.              PCA, ICA, LDA, and support vector machines. Expert Syst Appl
+126. Tao J, Sun G, Guo L, Wang X (2020) Application of a PCA-                     37(12):8659-8666. https://doi.org/10.1016/j.eswa.2010.06.065
+       DBN-based surrogate model to robust aerodynamic design opti-
+       mization. Chin J Aeronaut 33(6):1573-1588                           143. Calisir D, Dogantekin E (2011) An automatic diabetes diagnosis
+127. Kapsoulis D, Tsiakas K, Trompoukis XA, Giannakoglou K                        system based on lda-wavelet support vector machine classifier.
+       (2018) A PCA-assisted hybrid algorithm combining EAs and                   Expert Syst Appl 38(7):8311-8315
+       adjoint methods for CFD-based optimization. Appl Soft Com-
+       put 73:520-529                                                      144. Ali L, Wajahat I, Golilarz N, Keshtkar F, Bukhari S (2021)
+128. Olvera HA, Garcia M, Li W-W, Yang H, Amaya MA, Myers                         LDA-GA-SVM: improved hepatocellular carcinoma prediction
+       O, Burchiel SW, Berwick M, Pingitore NE Jr (2012) Principal                through dimensionality reduction and genetically optimized sup-
+       component analysis optimization of a PM2.5 land use regres-                port vector machine. Neural Comput Appl 33:2783-2792
+       sion model with small monitoring network. Sci Total Environ
+       425:27-34                                                           145. Kalogeris I, Papadopoulos V (2021) Diffusion maps-based surro-
+129. Ma X, Zabaras N (2011) Kernel principal component analy-                     gate modeling: an alternativemachine learning approach. Comput
+       sis for stochastic input model generation. J Comput Phys                   Methods Appl Mech Eng 376:113568. https://doi.org/10.1016/j.
+       230:7311-7331                                                              cma.2020.113568
+130. Zhou T, Peng Y (2020) Kernel principal component analysis-
+       based Gaussian process regression modelling for high-dimen-         146. Chen X, Tian Y, Zhang T, Gao J (2020) Differential evo-
+       sional reliability analysis. Comput Struct 241:106358                      lution based manifold Gaussian process machine learning
+131. Kapsoulis D, Tsiakas K, Asouti V, Giannakoglou K (2016) The                  for microwave Filter's parameter extraction. IEEE Access
+       use of Kernel PCA in evolutionary optimization for computa-                8:146450-146462
+       tionally demanding engineering applications. In: 2016 IEEE
+       Symposium Series on Computational Intelligence (SSCI). Ath-         147. Franz T (2016) Reduced-order modeling for steady transonic
+       ens, Greece. https://doi.org/10.1109/SSCI.2016.7850203                     flows via manifold learning. Ph.D. thesis, Deutches Zentrum fur
+132. Bird G (2020) Linear and nonlinear dimensionality-reduction-                 Luft- und Raumfahrt.
+       based surrogate models for real-time design space exploration
+       of structural responses. Theses and Dissertations, p 8653.          148. Franz T, Zimmermann R, G�rtz S, Karcher N (2014) Interpola-
+133. Straus J, Skogestad S (2017) Use of latent variables to reduce               tion-based reduced-order modelling for steady transonic flows
+       the dimension of surrogate models. Comput Aided Chem Eng                   via manifold learning. Int J Comput Fluid Dyn 28(3-4):106-121.
+       40:445-450. https://doi.org/10.1016/B978-0-444-63965-3.                    https://doi.org/10.1080/10618562.2014.918695
+       50076-3
+134. Ehre M, Papaioannou I, Straub D (2020) Global sensitivity             149. Zimmermann R, Franz T (2014) Interpolation-based reduced-
+       analysis in high dimensions with PLS-PCE. Reliab Eng Syst                  order modelling for steady transonic flows via manifold learning.
+       Saf 198:106861                                                             Int J Comput Fluid Dyn 28(3-4):106-121
+135. Na J, Jeon K, Lee W (2018) Toxic gas release modeling for
+       real-time analysis using variationalautoencoder with convolu-       150. Mayr F, Gagliardi A (2021) Global property prediction: a bench-
+       tional neural networks. Chem Eng Sci 181:68-78. https://doi.               mark study. ACS Omega 6:12722-12732
+       org/10.1016/j.ces.2018.02.008
+136. Laubscher R, Rousseau P (2021) An integrated approach to              151. Njock P, Shen S, Zhou A, Lyu H (2002) Evaluation of soil lique-
+       predict scalar fields of a simulated turbulent jet diffusion flame         faction using AI technology incorporating a coupled ENN/t-SNE
+       using multiple fully connected variational autoencoders and                model. Soil Dyn Earthq Eng. https://doi.org/10.1016/j.soildyn.
+       MLP networks. Appl Soft Comput 101:107074                                  2019.105988
+137. Ullah S, Nguyen D, Wang H, Menzel S, Sendhoff B, Back
+       T (2020) Exploring dimensionality reduction techniques for          152. Bouhlel M, Bartoli N, Otsmane A, Morlier J (2016) An Improved
+       efficient surrogate-assisted optimization. In: IEEE sympo-                 approach for estimating the hyperparameters ofthe kriging model
+       sium series on computational intelligence. Canberra, ACT,                  for high-dimensional problems through the partial least squares
+       Australia.                                                                 method. Math Probl Eng 4:1-11. https://doi.org/10.1155/2016/
+138. Salimi A, Ziaii M, Amiri A, Zadeh M, Karimpouli S, Morad-                    6723410
+       khani M (2018) Using a feature subset selection method and
+       support vector machine to address curse of dimensionality and       153. Constantine P, Dow E, Wang Q (2014) Active subspace methods
+       redundancy in Hyperion hyperspectral data classification. Egypt            in theory and practice: applications to kriging surfaces. SIAM J
+       J Remote Sens Space Sci 21(1):27-36                                        Sci Comput 36:A1500. https://doi.org/10.1137/130916138
+
+                                                                           154. Steer J, Worsley P, Browne M, Dickinson A (2020) Predictive
+                                                                                  prosthetic socket design: part 1--population-based evaluation of
+                                                                                  transtibial prosthetic sockets by FEA-driven surrogate modelling.
+                                                                                  Biomech Modell Mechanobiol 19:1331-1346
+
+                                                                           155. Gadd C, Xing W, Nedhad M, Shah A (2019) A surrogate model-
+                                                                                  ling approach based on nonlinear dimension reduction for uncer-
+                                                                                  tainty quantification in groundwater flow models. Transp Porous
+                                                                                  Med 126(1):1-39
+
+                                                                           156. Lei B, Kirk T, Bhattacharya A, Pati D, Qian X, Arroyave R,
+                                                                                  Mallick B (2021) Bayesian optimization with adaptive surro-
+                                                                                  gate models forautomated experimental design. Comput Mater
+                                                                                  7(1):1-12
+
+                                                                           157. Moriconi R, Deisenroth M, Kumar K (2020) High-dimensional
+                                                                                  Bayesian optimization using low-dimensional feature spaces.
+                                                                                  Mach Learn 109:1925-1943
+
+1 3
+Dimensionality Reduction in Surrogate Modeling: A Review of Combined Methods  427
+
+158. Li C-L, Kandasamy K, Poczos B, Schneider J (2016) High              162. Karam ZN, Campbell WM (2013) Graph embedding for speaker
+       dimensional bayesian optimization via restricted projection. In:         recognition. In: Yun F, Ma Y (eds) Graph embedding for pat-
+       Proceedings of the 19th international conference on artificial           tern analysis. Springer New York, New York, NY, pp 229-260.
+       intelligence and statistics. 51. JMLR, Cadiz, Spain                      https://doi.org/10.1007/978-1-4614-4457-2_10
+
+159. Awais M, Shamail S, Ahmed N (2007) Dimensionally reduced            163. Nash J, Sutcliffe J (1970) River flow forecasting through concep-
+       Krylov subspace model reduction for large scale systems. Appl            tual models part I. J Hyrdol 10(3):282-290
+       Math Comput 191:21-30
+                                                                         164. Li Y, Shi J, Yin Z, Shen J, Wu Y, Wang S (2021) An improved
+160. Ubaru S, Seghouane A, Saad Y (2019) Find the dimension that                high-dimensional kriging surrogate modelingmethod through
+       counts: fast dimension estimation and Krylov PCA. In: Proceed-           principal component dimension reduction. Mathematics 9:1985
+       ings of the 2019 SIAM international conference on data mining.
+       SIAM, Calgary, Alberta, Canada, pp. 720-728                       Publisher's NoteSpringer Nature remains neutral with regard to
+                                                                         jurisdictional claims in published maps and institutional affiliations.
+161. Kapusuzoglu B, Mahadevan Y, Matsumoto S, Yoshitomo M,
+       Watanabe S (2022) Dimension reduction for efficient surrogate
+       modeling in high-dimensional applications. AIAA. https://doi.
+       org/10.2514/6.2022-1440
+
+                                                                              1 3
+

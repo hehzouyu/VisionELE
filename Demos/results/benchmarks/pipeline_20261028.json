@@ -1,0 +1,298 @@
+{
+  "meta": {
+    "generated_at": "2026-10-28T22:51:57+08:00",
+    "script": "scripts/demo_pipeline.py",
+    "date_tag": "20261028",
+    "seed": 7,
+    "conf_jitter": 0.02,
+    "max_steps_requested": 3000,
+    "max_steps_used": 789,
+    "scene": {
+      "description": "12×8m 变电站走廊，四柱 + 中段一柱，7 个绝缘子真值点（含 3 缺陷：2 闪络 + 1 破损）",
+      "size_m": [
+        12.0,
+        8.0
+      ],
+      "resolution": 0.1,
+      "start_pose": [
+        1.2,
+        1.2,
+        0.0
+      ],
+      "inspect_points": [
+        [
+          1.0,
+          1.0
+        ],
+        [
+          4.0,
+          1.0
+        ],
+        [
+          10.8,
+          3.2
+        ],
+        [
+          5.0,
+          7.0
+        ]
+      ],
+      "marks": [
+        {
+          "x": 1.0,
+          "y": 1.0,
+          "class_id": 0,
+          "class_name": "normal",
+          "confidence": 0.92
+        },
+        {
+          "x": 4.0,
+          "y": 1.0,
+          "class_id": 0,
+          "class_name": "normal",
+          "confidence": 0.9
+        },
+        {
+          "x": 8.0,
+          "y": 1.2,
+          "class_id": 1,
+          "class_name": "flashover",
+          "confidence": 0.66
+        },
+        {
+          "x": 10.8,
+          "y": 3.2,
+          "class_id": 0,
+          "class_name": "normal",
+          "confidence": 0.91
+        },
+        {
+          "x": 10.8,
+          "y": 6.6,
+          "class_id": 2,
+          "class_name": "broken",
+          "confidence": 0.72
+        },
+        {
+          "x": 5.0,
+          "y": 7.0,
+          "class_id": 0,
+          "class_name": "normal",
+          "confidence": 0.93
+        },
+        {
+          "x": 1.2,
+          "y": 4.0,
+          "class_id": 1,
+          "class_name": "flashover",
+          "confidence": 0.61
+        }
+      ]
+    },
+    "config": {
+      "decision": {
+        "map": {
+          "resolution": 0.1,
+          "robot_radius": 0.3,
+          "origin": [
+            0.0,
+            0.0
+          ]
+        },
+        "astar": {
+          "connectivity": 8,
+          "turn_penalty": 0.5,
+          "heuristic": "octile",
+          "smooth": {
+            "method": "douglas_peucker",
+            "epsilon": 0.15,
+            "bspline_iterations": 2
+          }
+        },
+        "dwa": {
+          "v_max": 1.0,
+          "v_min": 0.0,
+          "w_max": 1.5,
+          "w_min": -1.5,
+          "v_acc": 0.5,
+          "w_acc": 1.0,
+          "window_dt": 0.5,
+          "v_res": 0.05,
+          "w_res": 0.1,
+          "dt": 0.1,
+          "horizon": 2.0,
+          "lookahead": 0.6,
+          "stop_distance": 0.3,
+          "approach_radius": 0.8,
+          "clearance_cap": 0.6,
+          "weights": {
+            "heading": 0.8,
+            "dist": 0.6,
+            "vel": 0.4,
+            "clearance": 0.2
+          }
+        },
+        "planner": {
+          "goal_tolerance": 0.15,
+          "deviation_threshold": 0.5,
+          "replan_cooldown": 0.2,
+          "max_replans": 2000,
+          "safety_margin": 0.1
+        },
+        "scheduler": {
+          "defect_confidence": 0.5,
+          "revisit_range": 3.0,
+          "view_angles": 24,
+          "dedupe_radius": 1.0,
+          "max_queue": 64
+        }
+      },
+      "pipeline": {
+        "camera": {
+          "width": 640,
+          "height": 480,
+          "fx": 480.0,
+          "fy": 480.0,
+          "cx": 320.0,
+          "cy": 240.0,
+          "height_m": 1.5,
+          "pitch_deg": 25.0,
+          "mount_x": 0.0,
+          "mount_y": 0.0
+        },
+        "pipeline": {
+          "dt": 0.1,
+          "max_steps": 3000,
+          "defect_confidence": 0.5,
+          "ledger_flush_every": 1
+        },
+        "detector": {
+          "mode": "sim",
+          "weights": null,
+          "conf": 0.25,
+          "iou": 0.45,
+          "max_range_m": 6.0,
+          "fov_deg": 70.0,
+          "conf_jitter": 0.05,
+          "seed": 0
+        },
+        "paths": {
+          "results_root": "../results"
+        }
+      }
+    },
+    "machine": {
+      "python": "3.13.9",
+      "numpy": "2.3.5",
+      "matplotlib": "3.10.6",
+      "platform": "Windows-11-10.0.26200-SP0",
+      "machine": "AMD64"
+    }
+  },
+  "summary": {
+    "steps": 789,
+    "events": 501,
+    "defect_events": 317,
+    "tasks_completed": 7,
+    "completed_tasks": [
+      {
+        "x": 1.0,
+        "y": 1.0,
+        "yaw": 0.0,
+        "reason": "inspection"
+      },
+      {
+        "x": 0.42354286469243785,
+        "y": 1.102222521132795,
+        "yaw": 1.3089969389957474,
+        "reason": "defect_revisit"
+      },
+      {
+        "x": 5.0,
+        "y": 1.2000000000000006,
+        "yaw": -1.4802973661668753e-16,
+        "reason": "defect_revisit"
+      },
+      {
+        "x": 4.0,
+        "y": 1.0,
+        "yaw": 0.0,
+        "reason": "inspection"
+      },
+      {
+        "x": 10.8,
+        "y": 3.5999999999999996,
+        "yaw": 1.5707963267948966,
+        "reason": "defect_revisit"
+      },
+      {
+        "x": 10.8,
+        "y": 3.2,
+        "yaw": 0.0,
+        "reason": "inspection"
+      },
+      {
+        "x": 5.0,
+        "y": 7.0,
+        "yaw": 0.0,
+        "reason": "inspection"
+      }
+    ],
+    "tasks_pending": 0,
+    "replans": 13,
+    "scheduler_stats": {
+      "events": 789,
+      "defect_detections": 317,
+      "tasks_created": 3,
+      "duplicates_skipped": 314,
+      "no_feasible_pose": 0
+    },
+    "latency": {
+      "detect_ms": {
+        "mean": 0.20325285171824276,
+        "p50": 0.2669000004971167,
+        "p95": 0.3919199989468321,
+        "max": 4.076299999724142,
+        "n": 789
+      },
+      "decision_ms": {
+        "mean": 0.4507827629943749,
+        "p50": 0.318899999911082,
+        "p95": 0.45222000080684643,
+        "max": 57.386600001336774,
+        "n": 789
+      },
+      "cycle_ms": {
+        "mean": 0.6737097591707176,
+        "p50": 0.6094999989727512,
+        "p95": 0.8296800006064586,
+        "max": 57.468999999400694,
+        "n": 789
+      }
+    },
+    "duration_s": 0.5326201999996556,
+    "final_pose": [
+      5.135347808334962,
+      7.06293726501216,
+      -3.027604326654246
+    ],
+    "min_clearance_m": 0.4,
+    "collisions": 0,
+    "ledger": "E:\\创新创业\\Demos\\results\\logs\\defect_ledger_20261028.jsonl",
+    "trajectory_length_m": 25.5,
+    "defect_tasks_completed": 3,
+    "inspection_tasks_completed": 4,
+    "defect_tasks_created": 3,
+    "detections_total": 570,
+    "pending_tasks": []
+  },
+  "ledger": "E:\\创新创业\\Demos\\results\\logs\\defect_ledger_20261028.jsonl",
+  "artifacts": {
+    "trajectory_png": "E:\\创新创业\\Demos\\results\\plots\\nav_trajectory_20261028.png",
+    "latency_png": "E:\\创新创业\\Demos\\results\\plots\\latency_20261028.png",
+    "gif": "E:\\创新创业\\Demos\\results\\gifs\\nav_demo_20261028.gif",
+    "summary_json": "E:\\创新创业\\Demos\\results\\benchmarks\\pipeline_20261028.json",
+    "summary_md": "E:\\创新创业\\Demos\\results\\benchmarks\\pipeline_20261028.md"
+  },
+  "caveat": "SimulatedDetector: boxes are back-projected from ground-truth points; detection metrics are NOT real recognition accuracy."
+}
