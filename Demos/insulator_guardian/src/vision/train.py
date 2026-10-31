@@ -25,10 +25,55 @@ RESULTS_ROOT = PROJECT_ROOT.parent / "results"   # Demos/results
 # 在 get_model() 里读取。用模块级字典是因为 Ultralytics 的 trainer 只接受
 # overrides 字典，塞自定义键会被 check_dict_alignment 警告。
 _CA_SPEC: dict[str, Any] = {}
+# RFA（循环特征聚合）注入请求：与 CA 互不冲突，可同时打开。
+_RFA_SPEC: dict[str, Any] = {}
 
 
-def _ca_trainer(log):
-    """返回一个在 get_model() 里注入 CA 的 DetectionTrainer 子类。
+def attach_rfa(model, log=None) -> dict:
+    """把 ``RFAFusion`` 插到检测头之前（``model.model[-1]`` 是 Detect）。
+
+    做法：在 nn.Sequential 末尾插一层自定义模块，把 Detect 的输入索引指到它，
+    这样 ``_forward_once`` 正常执行，Detect 收到的仍然是「P3/P4/P5 列表」。
+    必须是模块实例而不是 forward hook——hook 里的闭包无法被 torch.save 序列化。
+    """
+    from ..vision.rfa import RFAFusion
+
+    layers = list(model.model)
+    detect = layers[-1]
+    ch = getattr(detect, "ch", None)
+    if not ch:
+        # Ultralytics 的 Detect 不保存输入通道，从首层卷积反推（cv2[i] = Conv(...)）
+        ch = []
+        for i in range(int(getattr(detect, "nl", 3))):
+            m = detect.cv2[i][0]
+            conv = getattr(m, "conv", None)
+            if conv is None:
+                raise RuntimeError("RFA 注入失败：无法推断检测头输入通道")
+            ch.append(int(conv.in_channels))
+    if not ch:
+        raise RuntimeError("RFA 注入失败：检测头通道为空")
+    idx = len(layers) - 1                     # RFA 将来占据的位置
+    rfa = RFAFusion([int(c) for c in ch])
+    rfa.i = idx
+    # YOLOv8 的 Detect 用 f=[16,19,22] 从 y 里取三层特征，而不是吃上一层的单张张量；
+    # 所以 RFA 必须继承同一组索引，才能收到 P3/P4/P5 列表。
+    src_idx = list(detect.f) if isinstance(detect.f, (list, tuple)) else [int(detect.f)]
+    rfa.f = [int(i) for i in src_idx]
+    detect.f = idx                            # Detect 改吃 RFA 的输出（int，才能拿到整个 list）
+    layers.insert(-1, rfa)
+    model.model = type(model.model)(*layers)  # 重建 nn.Sequential
+    # 让 y[] 里保留 RFA 的输出，供 Detec t读取
+    if hasattr(model, "save"):
+        model.save = list(getattr(model, "save", []) or []) + [idx]
+    info = {"index": idx, "channels": list(rfa.channels), "params": rfa.np}
+    _RFA_SPEC.update(info)
+    if log is not None:
+        log.info("RFA 注入检测头之前：通道 %s，参数 %d", info["channels"], info["params"])
+    return info
+
+
+def _custom_trainer(log):
+    """返回一个在 get_model() 里按需注入 CA / RFA 的 DetectionTrainer 子类。
 
     Ultralytics 的 ``Model.train()`` 会重建 DetectionModel（按 yaml）再载入
     预训练权重，所以在 ``YOLO(...)`` 实例上提前注入的包装层会被丢掉；
@@ -38,19 +83,23 @@ def _ca_trainer(log):
 
     from .attention import inject_coordatt
 
-    class _CATrainer(DetectionTrainer):
+    class _CustomTrainer(DetectionTrainer):
         def get_model(self, cfg=None, weights=None, verbose=True):  # type: ignore[override]
             model = super().get_model(cfg, weights, verbose)
-            injected = inject_coordatt(
-                model,
-                _CA_SPEC.get("layer_index"),
-                mode=_CA_SPEC.get("mode", "last"),
-            )
-            _CA_SPEC["injected"] = injected
-            log.info("CA 注入 trainer.model 层号：%s（mode=%s）", injected, _CA_SPEC.get("mode", "last"))
+            if _CA_SPEC:
+                injected = inject_coordatt(
+                    model,
+                    _CA_SPEC.get("layer_index"),
+                    mode=_CA_SPEC.get("mode", "last"),
+                )
+                _CA_SPEC["injected"] = injected
+                log.info("CA 注入 trainer.model 层号：%s（mode=%s）", injected, _CA_SPEC.get("mode", "last"))
+            if _RFA_SPEC.get("enabled"):
+                attach_rfa(model, log)
             return model
 
-    return _CATrainer
+    return _CustomTrainer
+
 
 
 
@@ -109,6 +158,7 @@ def train(
     ca_inject: str | None = None,
     imgsz: int | None = None,
     workers: int | None = None,
+    use_rfa: bool | None = None,
 ) -> Path:
     """训练 CA-YOLO，返回 run 目录。
 
@@ -143,11 +193,16 @@ def train(
         # "last" = 只挂 P5 入口（原实验）；"backbone" = 挂到 Backbone 每个 C2f/SPPF 输出
         _CA_SPEC["mode"] = str(ca_inject or model_cfg.get("ca_inject", "last"))
 
+    _RFA_SPEC.clear()
+    rfa_on = bool(model_cfg.get("use_rfa", False)) if use_rfa is None else bool(use_rfa)
+    if rfa_on:
+        _RFA_SPEC["enabled"] = True
+
     name = _run_name(vision_cfg, run_name)
     project_dir = ensure_dir(RESULTS_ROOT / "runs")
 
     results = model.train(
-        **({"trainer": _ca_trainer(log)} if _CA_SPEC else {}),
+        **({"trainer": _custom_trainer(log)} if (_CA_SPEC or _RFA_SPEC) else {}),
         data=str(data_path),
         epochs=int(epochs or train_cfg.get("epochs", 300)),
         batch=int(batch or train_cfg.get("batch", 32)),

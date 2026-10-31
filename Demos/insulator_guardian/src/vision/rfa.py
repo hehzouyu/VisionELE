@@ -28,7 +28,7 @@ except Exception:  # pragma: no cover - 无 torch 环境
     F = None  # type: ignore[assignment]
     TORCH_AVAILABLE = False
 
-__all__ = ["RFABlock", "RFA", "TORCH_AVAILABLE"]
+__all__ = ["RFABlock", "RFA", "RFAFusion", "TORCH_AVAILABLE"]
 
 
 def _require_torch() -> None:
@@ -48,12 +48,14 @@ if TORCH_AVAILABLE:
             self.lateral = nn.ModuleList(
                 nn.Conv2d(c, c, kernel_size=1, bias=False) for c in channels
             )
+            # 门控要把「上一层上采样后的特征」压到当前层的通道数再逐元素相乘，
+            # 所以第 i 个门控是 (channels[i+1] → channels[i])，不是一个方阵卷积。
             self.gates = nn.ModuleList(
                 nn.Sequential(
-                    nn.Conv2d(c, c, kernel_size=1, bias=True),
+                    nn.Conv2d(channels[i + 1], channels[i], kernel_size=1, bias=True),
                     nn.Sigmoid(),
                 )
-                for c in channels
+                for i in range(len(channels) - 1)
             )
             self.refine = nn.ModuleList(
                 nn.Sequential(
@@ -73,7 +75,8 @@ if TORCH_AVAILABLE:
             outs[-1] = self.refine[-1](self.lateral[-1](top))
             for i in range(len(features) - 2, -1, -1):
                 up = F.interpolate(outs[i + 1], size=features[i].shape[-2:], mode="nearest")
-                fused = features[i] + self.gates[i](up) * up
+                # 门控同时完成两件事：通道对齐（ch_{i+1} → ch_i）与权重分配
+                fused = features[i] + self.gates[i](up)
                 outs[i] = self.refine[i](self.lateral[i](fused))
             return outs
 
@@ -83,15 +86,33 @@ if TORCH_AVAILABLE:
         def __init__(self, channels: list[int], ratio: float = 0.5):
             super().__init__()
             self.block = RFABlock(channels)
-            self.project = nn.ModuleList(
-                nn.Conv2d(c, c, kernel_size=1) for c in channels[:-1]
-            )
 
         def forward(self, features: list["torch.Tensor"]) -> list["torch.Tensor"]:
-            fused = self.block(features)
-            # 顶层不做投影，低层用 1x1 对齐（结构上更稳定）
-            return [fused[0]] + [self.project[i](fused[i + 1])
-                                 for i in range(len(fused) - 1)]
+            # 各层通道数不变，只做特征层面的循环聚合，直接返回即可
+            return self.block(features)
+
+    class RFAFusion(nn.Module):
+        """接在检测头之前的「薄壳」：nn.Sequential 里的一层，输入输出都是 list。
+
+        定义在模块顶层是为了能被打包进 checkpoint——闭包/hook 都不可 pickle，
+        训练完的 ``best.pt`` 会被 torch.save 整个模型对象，闭包会直接让存盘失败。
+        """
+
+        def __init__(self, channels: list[int], ratio: float = 0.5):
+            super().__init__()
+            self.rfa = RFA(channels, ratio=ratio)
+            self.channels = list(channels)
+            # 供 Ultralytics 的 _forward_once 使用（与普通层同构）
+            self.f: list[int] = [-1]
+            self.i: int = 0
+            self.type: str = "rfa"
+            self.np: int = sum(p.numel() for p in self.parameters())
+            self.inplace: bool = True
+
+        def forward(self, features: list["torch.Tensor"]) -> list["torch.Tensor"]:
+            if isinstance(features, (list, tuple)):
+                return list(self.rfa(list(features)))
+            return self.rfa([features])
 
 else:  # pragma: no cover - 无 torch 环境
     class RFABlock:  # type: ignore[no-redef]
@@ -99,5 +120,9 @@ else:  # pragma: no cover - 无 torch 环境
             _require_torch()
 
     class RFA:  # type: ignore[no-redef]
+        def __init__(self, *args: Any, **kwargs: Any):
+            _require_torch()
+
+    class RFAFusion:  # type: ignore[no-redef]
         def __init__(self, *args: Any, **kwargs: Any):
             _require_torch()

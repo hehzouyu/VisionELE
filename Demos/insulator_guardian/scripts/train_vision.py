@@ -124,6 +124,11 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--cache", default=None, choices=["ram", "disk", "false"], help="数据集缓存方式")
     p.add_argument("--no-ca", action="store_true", help="不做 CA 注入（基线对照）")
     p.add_argument(
+        "--use-rfa",
+        action="store_true",
+        help="在检测头前插入 RFA 循环多尺度聚合（与 --no-ca 组合可单独验证 RFA）",
+    )
+    p.add_argument(
         "--ca-inject",
         default=None,
         choices=["last", "backbone"],
@@ -197,6 +202,7 @@ def main(argv: list[str] | None = None) -> int:
         ca_inject=args.ca_inject,
         imgsz=args.imgsz,
         workers=args.workers,
+        use_rfa=bool(args.use_rfa),
     )
     print(f"[done] run 目录：{run_dir}")
     print(f"  best.pt → {Path(run_dir) / 'weights' / 'best.pt'}")
