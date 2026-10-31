@@ -113,6 +113,33 @@ graph 45.71%/46.35%、cdmth 5-shot 42.56%±5.28%、cdcgan 生成样本未收敛�
   batch 96 的收益在吞吐（17–19 s/epoch、显存 11.9 GB、GPU 65%）。
 - **broken 水平**：mAP50 0.90–0.95、mAP50-95 0.50–0.55；test 比 val 低 0.5–1.5pt（192 个框，抖动大）。
 
+## 困难场景增广 + RFA（2026-10-30）
+
+退化模拟（雾/运动模糊/离焦/暗光噪声/雨痕，`scripts/make_degraded.py`）做了三套训练集，
+再配两套测试（干净 FBID test 320、同图退化版 `test_deg`）。全部 60 epoch、batch 64、
+`--cache ram`、seed 0。
+
+| 训练集 | 测试 | normal P/R | flashover P/R | broken P/R | mAP50 | mAP50-95 |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| S1 原始 | 干净 | .996/.997 | .913/.730 | .941/.859 | 0.911 | 0.603 |
+| S1 原始 | 困难 | .992/.903 | .697/.621 | .862/.620 | 0.751 | 0.482 |
+| S2 仅困难 | 干净 | .998/.997 | .870/.686 | .862/.880 | 0.881 | 0.577 |
+| S2 仅困难 | 困难 | .992/.994 | .829/.650 | .840/.819 | 0.846 | 0.550 |
+| **S3 混合** | **干净** | .997/.999 | .896/.787 | .929/.880 | **0.914** | **0.605** |
+| **S3 混合** | **困难** | .989/.991 | .861/.707 | .927/.849 | **0.887** | **0.577** |
+| RFA（原始） | 干净 | .995/.997 | .880/.734 | .946/.901 | 0.913 | 0.604 |
+| RFA（原始） | 困难 | .993/.920 | .840/.581 | .932/.625 | 0.769 | 0.492 |
+
+- **S3 混合**是唯一「干净不掉（+0.3pt）、困难大涨（+13.6pt）」，困难集召回提升更明显
+  （broken .620→.849）。
+- **S2 只用退化图**困难 +9.5pt，但干净 flashover −6.3pt，属于拿干净换困难。
+- **RFA** 干净 +0.2pt、困难 +1.8pt，都在噪声量级；只有干净 broken mAP50 0.904→0.926。
+- 数据侧收益（+13.6pt）比结构侧（<2pt）高一个数量级；单 seed、退化集为生成数据，
+  只代表一种退化分布。
+
+产物：`benchmarks/pr_table_2026-10-30.md`；权重 `runs/{real_deg_v8n,real_degmix_v8n,
+real_rfa_v8n}/weights/best.pt`。
+
 ## 怎么复现
 
 ```bash
@@ -148,6 +175,22 @@ python scripts/make_flash_oversample.py --dataset MERGED --tag merged_e3
 python scripts/summarize_runs.py                        # 生成 benchmarks/training_summary.md
 ```
 
+## 困难场景 / RFA 复现命令
+
+```bash
+cd E:/创新创业/Demos/insulator_guardian
+python scripts/make_degraded.py                        # 生成 训练样本/DEG（退化图 + 三套清单）
+..\.venv\Scripts\python.exe scripts/train_vision.py --run-name real_deg_v8n    --epochs 60 --batch 64 --cache ram --no-ca --data-yaml ../训练样本/DEG/data_s2.yaml
+..\.venv\Scripts\python.exe scripts/train_vision.py --run-name real_degmix_v8n --epochs 60 --batch 64 --cache ram --no-ca --data-yaml ../训练样本/DEG/data_s3.yaml
+..\.venv\Scripts\python.exe scripts/train_vision.py --run-name real_rfa_v8n    --epochs 60 --batch 64 --cache ram --use-rfa
+# P/R 对照表（干净 vs 困难，多权重一次跑完）
+..\.venv\Scripts\python.exe scripts/eval_pr_table.py \
+  --weights "S1 原始=../results/runs/real_baseline_b64_v8n/weights/best.pt" \
+  --weights "S3 混合=../results/runs/real_degmix_v8n/weights/best.pt" \
+  --test "干净=../训练样本/FBID/yolo/data.yaml" \
+  --test "困难=../训练样本/DEG/data_s1_testdeg.yaml" --device 0
+```
+
 ## 口径
 
 - 闭环 demo 用 `SimulatedDetector`：检测框由**场景预设的地面真值点**按相机几何反推，
@@ -162,3 +205,46 @@ python scripts/summarize_runs.py                        # 生成 benchmarks/trai
 - 补数据的实验里，E2/E3 的 296 张新图与 FBID 同源（文件名重叠 82.5%），
   属于「同分布扩样本」而不是「换域」，它的增益上限本来就不高；
   另外 **batch 32 与 batch 64 不可直接比**（本轮相差 1.2pt mAP50）。
+- 困难测试集 `训练样本/DEG/test_deg` 是**人工合成退化**（雾/运动模糊/离焦/暗光/雨痕），
+  只代表一种退化分布，不等于真实雾天雨天；S1/S2/S3 与 RFA 都是单 seed，±1pt 级别
+  的差异不能当结论。
+
+## 2026-10-31 · 困难工况增广实验（S1 / S2 / S3 / S3+RFA）
+
+数据配方：S1 = 原始 FBID 1152 张；S2 = 仅人工退化 1152 张；S3 = 原始 + 退化 2304 张。
+测试条件：干净 = `FBID/yolo/data.yaml`（test 320 张）；困难 = `DEG/data_s1_testdeg.yaml`（同 320 张退化版）。
+
+| 配方 | 干净 全体 | 困难 全体 | 干净 broken | 困难 broken | seed |
+| --- | ---: | ---: | ---: | ---: | --- |
+| S1 | 0.910 / 0.603 | 0.746 / 0.480 | 0.902 | 0.674 | 3 |
+| S2 | 0.890 / 0.581 | 0.865 / 0.557 | 0.899 | 0.868 | 2 |
+| S3 | **0.922 / 0.606** | **0.887 / 0.579** | **0.927** | **0.897** | 2 |
+| S3 + RFA | 0.913 / 0.602 | 0.890 / 0.582 | 0.922 | 0.904 | 1 |
+
+每格为 `mAP50 / mAP50-95`，逐类列为 mAP50；数值是同配方多 seed 的均值。
+明细（含逐类 P / R）见 `benchmarks/pr_table_2026-10-31.md`。
+
+要点：混合增广（S3）两个测试集同时提升；仅退化（S2）伤干净集；RFA 叠在 S3 上仍在 seed 噪声内；
+flashover 是所有配方里最弱的类（困难集 0.63~0.77）。
+
+复现：
+
+```powershell
+cd Demos/insulator_guardian
+..\.venv\Scripts\python.exe scripts\eval_pr_table.py --device 0 `
+  --weights "S1=..\results\runs\real_baseline_b64_v8n\weights\best.pt" `
+  --weights "S3=..\results\runs\real_degmix_b64_s1\weights\best.pt" `
+  --test "干净=..\训练样本\FBID\yolo\data.yaml" `
+  --test "困难=..\训练样本\DEG\data_s1_testdeg.yaml"
+```
+
+### imgsz 960 两档（2026-10-31 补齐）
+
+| 配方 | 干净·全体 | 困难·全体 | 干净·broken | 困难·broken |
+| --- | ---: | ---: | ---: | ---: |
+| S1 960 | **0.938 / 0.630** | 0.706 / 0.452 | **0.932** | 0.632 |
+| S3 960 | 0.936 / 0.619 | **0.892 / 0.575** | 0.916 | 0.871 |
+
+明细在 `benchmarks/pr960/pr_table_2026-10-31.md`。要点：分辨率只改善清晰图（干净 +2.8pt），
+在人工退化图上反而倒退（困难 −4.0pt），因为退化本身抹掉了高频细节；能同时兼顾两个条件的
+只有 S3 混合增广。
