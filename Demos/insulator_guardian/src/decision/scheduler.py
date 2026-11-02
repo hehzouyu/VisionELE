@@ -27,6 +27,9 @@ class SchedulerConfig:
     view_angles: int = 24
     dedupe_radius: float = 1.0
     max_queue: int = 64
+    # 连续确认帧数：同一个缺陷点要在 K 个不同帧里被看到才建任务。
+    # 1 = 关闭确认（旧行为）；2~3 可显著抑制误检引起的幽灵任务。
+    confirm_frames: int = 1
 
     @classmethod
     def from_dict(cls, cfg: dict | None) -> "SchedulerConfig":
@@ -36,7 +39,8 @@ class SchedulerConfig:
                    revisit_range=float(cfg.get("revisit_range", defaults.revisit_range)),
                    view_angles=int(cfg.get("view_angles", defaults.view_angles)),
                    dedupe_radius=float(cfg.get("dedupe_radius", defaults.dedupe_radius)),
-                   max_queue=int(cfg.get("max_queue", defaults.max_queue)))
+                   max_queue=int(cfg.get("max_queue", defaults.max_queue)),
+                   confirm_frames=int(cfg.get("confirm_frames", defaults.confirm_frames)))
 
 
 class InspectionScheduler:
@@ -50,12 +54,15 @@ class InspectionScheduler:
         # id(任务点) -> 缺陷点世界坐标：判重看缺陷本身，不看机位
         self._claims: dict[int, tuple[float, float]] = {}
         self._visited: list[tuple[float, float]] = []
+        # 候选缺陷点：{键: {"xy": (x, y), "frames": set(frame_id)}}，键用格点量化
+        self._candidates: dict[tuple[int, int], dict] = {}
         self.stats: dict[str, int] = {
             "events": 0,
             "defect_detections": 0,
             "tasks_created": 0,
             "duplicates_skipped": 0,
             "no_feasible_pose": 0,
+            "pending_confirm": 0,
         }
 
     # ------------------------------------------------------------------ 队列
@@ -110,6 +117,7 @@ class InspectionScheduler:
         self._defect_tasks.clear()
         self._inspection_tasks.clear()
         self._claims.clear()
+        self._candidates.clear()
         # _visited 保留：已复检过的缺陷不该因为清队列又被重新排队
 
     def reset(self) -> None:
@@ -122,6 +130,7 @@ class InspectionScheduler:
         self._defect_tasks.clear()
         self._inspection_tasks.clear()
         self._claims.clear()
+        self._candidates.clear()
         self._visited.clear()
         for key in self.stats:
             self.stats[key] = 0
@@ -142,6 +151,9 @@ class InspectionScheduler:
             if self._is_duplicate(det.world_xy):
                 self.stats["duplicates_skipped"] += 1
                 continue
+            if not self._confirm(det.world_xy, event.frame_id):
+                self.stats["pending_confirm"] += 1
+                continue
             pose = self.plan_revisit_pose(det.world_xy, current_pose)
             if pose is None:
                 self.stats["no_feasible_pose"] += 1
@@ -153,6 +165,34 @@ class InspectionScheduler:
                 created.append(task)
                 self.stats["tasks_created"] += 1
         return created
+
+    def _confirm(self, xy: Sequence[float], frame_id: int) -> bool:
+        """K 帧连续确认：同一缺陷点要在 K 个不同帧里被看到才建任务。
+
+        ``confirm_frames <= 1`` 时直接放行（保持旧行为）。候选点按
+        ``dedupe_radius`` 就近归并，帧号用 set 去重，避免同一帧多个框重复计数。
+        """
+        k = max(1, int(self.cfg.confirm_frames))
+        if k <= 1:
+            return True
+        x, y = float(xy[0]), float(xy[1])
+        radius = max(float(self.cfg.dedupe_radius), 0.05)
+        best_key, best_dist = None, math.inf
+        for key, item in self._candidates.items():
+            cx, cy = item["xy"]
+            d = math.hypot(cx - x, cy - y)
+            if d <= radius and d < best_dist:
+                best_key, best_dist = key, d
+        if best_key is None:
+            key = (int(x / radius), int(y / radius))
+            self._candidates[key] = {"xy": (x, y), "frames": {int(frame_id)}}
+            return False
+        item = self._candidates[best_key]
+        item["frames"].add(int(frame_id))
+        if len(item["frames"]) >= k:
+            self._candidates.pop(best_key, None)
+            return True
+        return False
 
     def _is_duplicate(self, xy: Sequence[float]) -> bool:
         r = self.cfg.dedupe_radius

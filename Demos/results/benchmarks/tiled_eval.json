@@ -1,0 +1,50 @@
+{
+  "weights": "../results/runs/real_degmix_b64_s1/weights/best.pt",
+  "imgsz": 640,
+  "conf": 0.25,
+  "n_images": 40,
+  "full": {
+    "hit": 109,
+    "gt": 129,
+    "pred": 132,
+    "recall": 84.49612403100775
+  },
+  "tiled": {
+    "hit": 100,
+    "gt": 129,
+    "pred": 199,
+    "recall": 77.51937984496124
+  },
+  "per_class": {
+    "normal": {
+      "full": [
+        40,
+        40
+      ],
+      "tiled": [
+        31,
+        40
+      ]
+    },
+    "flashover": {
+      "full": [
+        47,
+        66
+      ],
+      "tiled": [
+        51,
+        66
+      ]
+    },
+    "broken": {
+      "full": [
+        22,
+        23
+      ],
+      "tiled": [
+        18,
+        23
+      ]
+    }
+  }
+}

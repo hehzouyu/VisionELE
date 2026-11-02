@@ -141,6 +141,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--seed", type=int, default=None, help="随机种子，覆盖 train.seed（多种子对照用）")
     p.add_argument("--imgsz", type=int, default=None, help="输入分辨率，覆盖 model.input_size（默认 640；小目标实验用 960）")
     p.add_argument("--workers", type=int, default=None, help="DataLoader 进程数（沙箱默认 0；0 以外的值可能被环境拒绝）")
+    p.add_argument("--model", default=None,
+                   help="覆盖模型尺度，如 yolov8s / yolov8m（容量阶梯实验用）")
     p.add_argument("--dry-run", action="store_true", help="只打印计划与数据集体检，不加载模型")
     return p
 
@@ -203,6 +205,7 @@ def main(argv: list[str] | None = None) -> int:
         imgsz=args.imgsz,
         workers=args.workers,
         use_rfa=bool(args.use_rfa),
+        model_name=args.model,
     )
     print(f"[done] run 目录：{run_dir}")
     print(f"  best.pt → {Path(run_dir) / 'weights' / 'best.pt'}")

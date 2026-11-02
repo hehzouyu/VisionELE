@@ -159,6 +159,7 @@ def train(
     imgsz: int | None = None,
     workers: int | None = None,
     use_rfa: bool | None = None,
+    model_name: str | None = None,
 ) -> Path:
     """训练 CA-YOLO，返回 run 目录。
 
@@ -176,10 +177,12 @@ def train(
 
     family = str(model_cfg.get("family", "yolov8"))
     weights = model_cfg.get("weights")
+    # model_name 用于容量阶梯实验（yolov8s / yolov8m），只改尺度不改 family
+    stem = str(model_name or f"{family}n")
     if resume:                      # 断点续训：从上次的 last.pt 继续
-        weights = str(Path(weights)) if weights else f"{family}n.pt"
+        weights = str(Path(weights)) if weights else f"{stem}.pt"
     if not weights:
-        weights = f"{family}n.pt" if model_cfg.get("pretrained", True) else f"{family}n.yaml"
+        weights = f"{stem}.pt" if model_cfg.get("pretrained", True) else f"{stem}.yaml"
 
     log.info("加载 %s，注入 CA=%s", weights, use_ca if use_ca is not None else model_cfg.get("use_ca", True))
     model = YOLO(str(weights))

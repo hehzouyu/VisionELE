@@ -72,7 +72,7 @@ class NoisyDetector:
             x, y = self._random_free_point()
             kept.append(Detection(
                 class_id=2,
-                confidence=0.62,
+                confidence=self.rng.uniform(0.50, 0.90),
                 bbox=(320.0, 240.0, 380.0, 300.0),
                 world_xy=(x, y),
             ))
@@ -110,7 +110,8 @@ def collect(scene, pipe) -> dict[str, Any]:
 
 
 def run_case(decision_cfg, pipeline_cfg, p_miss: float, p_fp: float, seed: int,
-             max_steps: int, ledger: Path) -> dict[str, Any]:
+             max_steps: int, ledger: Path, confirm_frames: int = 1,
+             conf_threshold: float | None = None) -> dict[str, Any]:
     scene = build_inspection_field()
     camera = CameraModel.from_dict(pipeline_cfg.get("camera"))
     base = SimulatedDetector(
@@ -126,9 +127,14 @@ def run_case(decision_cfg, pipeline_cfg, p_miss: float, p_fp: float, seed: int,
         inspect_points=scene.inspect_points,
         ledger_path=ledger,
     )
+    pipe.scheduler.cfg.confirm_frames = int(confirm_frames)
+    if conf_threshold is not None:
+        pipe.scheduler.cfg.defect_confidence = float(conf_threshold)
     pipe.run(max_steps=max_steps)
     out = collect(scene, pipe)
-    out.update({"p_miss": p_miss, "p_fp": p_fp, "detector_stats": det.stats})
+    out.update({"p_miss": p_miss, "p_fp": p_fp, "confirm_frames": int(confirm_frames),
+                "conf_threshold": float(pipe.scheduler.cfg.defect_confidence),
+                "detector_stats": det.stats})
     return out
 
 
@@ -140,6 +146,10 @@ def main(argv: list[str] | None = None) -> int:
                     help="漏检率列表（省略则跑 clean / 仅漏检 / 仅误检 / 实测 / 加倍 五档）")
     ap.add_argument("--p-fp", type=float, nargs="*", default=None,
                     help="误检率列表（省略则与下面默认档位对应）")
+    ap.add_argument("--confirm-frames", type=int, nargs="*", default=None,
+                    help="连续确认帧数列表（省略则跑 1/2/3 三档）")
+    ap.add_argument("--conf-threshold", type=float, nargs="*", default=None,
+                    help="调度器缺陷置信度门限列表（省略则沿用 decision.yaml）")
     ap.add_argument("--out-dir", type=Path, default=None)
     args = ap.parse_args(argv)
 
@@ -150,29 +160,38 @@ def main(argv: list[str] | None = None) -> int:
     root = ensure_dir(root)
     tag = date_tag()
 
-    misses = args.p_miss if args.p_miss is not None else [0.0, 0.15, 0.0, 0.15, 0.30]
-    fps = args.p_fp if args.p_fp is not None else [0.0, 0.0, 0.15, 0.15, 0.30]
+    misses = args.p_miss if args.p_miss is not None else [0.0, 0.0, 0.15, 0.15, 0.30]
+    fps = args.p_fp if args.p_fp is not None else [0.0, 0.15, 0.0, 0.15, 0.30]
+    confirms = args.confirm_frames if args.confirm_frames is not None else [1, 2, 3]
+    thresholds = args.conf_threshold if args.conf_threshold is not None else [None]
 
     rows = []
-    for p_miss, p_fp in zip(misses, fps):
-        ledger = root / f"ledger_{tag}_{p_miss:.2f}.jsonl"
-        if ledger.exists():
-            ledger.unlink()
-        row = run_case(decision_cfg, pipeline_cfg, p_miss, p_fp, args.seed, args.max_steps, ledger)
-        rows.append(row)
-        print(f"[case] p_miss={p_miss:.2f} p_fp={p_fp:.2f} -> steps={row['steps']} "
-              f"done={row['tasks_completed']} (defect {row['defect_completed']}) "
-              f"created={row['tasks_created']} collisions={row['collisions']}")
+    for k in confirms:
+        for t in thresholds:
+            for p_miss, p_fp in zip(misses, fps):
+                tname = "cfg" if t is None else f"{t:.2f}"
+                ledger = root / f"ledger_{tag}_{p_miss:.2f}_{p_fp:.2f}_k{k}_t{tname}.jsonl"
+                if ledger.exists():
+                    ledger.unlink()
+                row = run_case(decision_cfg, pipeline_cfg, p_miss, p_fp, args.seed,
+                               args.max_steps, ledger, confirm_frames=k, conf_threshold=t)
+                rows.append(row)
+                print(f"[case] k={k} t={tname} p_miss={p_miss:.2f} p_fp={p_fp:.2f} "
+                      f"-> steps={row['steps']} done={row['tasks_completed']} "
+                      f"(defect {row['defect_completed']}) created={row['tasks_created']} "
+                      f"collisions={row['collisions']}")
 
     json_path = root / f"noise_{tag}.json"
     save_json({"cases": rows, "seed": args.seed, "max_steps": args.max_steps}, json_path)
 
     md = ["# 视觉误差传播：漏检/误检对巡检闭环的影响", "",
-          "仿真检测器按测得 P/R 注入噪声（broken P/R≈0.85，normal≈0.99）。", "",
-          "| p_miss | p_fp | 步数 | 完成 | 缺陷复检 | 创建任务 | 误检多建 | 碰撞 | 轨迹 m |",
-          "| ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |"]
+          "仿真检测器按测得 P/R 注入噪声（broken P/R≈0.85，normal≈0.99）；"
+          "K = 连续确认帧数（1 = 无确认，旧行为）。", "",
+          "| K | 门限 | p_miss | p_fp | 步数 | 完成 | 缺陷复检 | 创建任务 | 幽灵任务 | 碰撞 | 轨迹 m |",
+          "| ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |"]
     for r in rows:
-        md.append(f"| {r['p_miss']:.2f} | {r['p_fp']:.2f} | {r['steps']} | {r['tasks_completed']} | "
+        md.append(f"| {r['confirm_frames']} | {r['conf_threshold']:.2f} | {r['p_miss']:.2f} | "
+                  f"{r['p_fp']:.2f} | {r['steps']} | {r['tasks_completed']} | "
                   f"{r['defect_completed']} | {r['tasks_created']} | {r['spurious_tasks']} | "
                   f"{r['collisions']} | {r['trajectory_length_m']} |")
     md_path = root / f"noise_{tag}.md"

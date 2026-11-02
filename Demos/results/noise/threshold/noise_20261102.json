@@ -1,0 +1,246 @@
+{
+  "cases": [
+    {
+      "steps": 3000,
+      "tasks_completed": 6,
+      "inspection_completed": 0,
+      "defect_completed": 6,
+      "tasks_created": 40,
+      "spurious_tasks": 37,
+      "collisions": 0,
+      "trajectory_length_m": 105.48,
+      "min_clearance_m": 0.1,
+      "p_miss": 0.0,
+      "p_fp": 0.15,
+      "confirm_frames": 1,
+      "conf_threshold": 0.5,
+      "detector_stats": {
+        "calls": 3000,
+        "dropped": 0,
+        "injected": 464
+      }
+    },
+    {
+      "steps": 3000,
+      "tasks_completed": 7,
+      "inspection_completed": 0,
+      "defect_completed": 7,
+      "tasks_created": 46,
+      "spurious_tasks": 43,
+      "collisions": 0,
+      "trajectory_length_m": 101.53,
+      "min_clearance_m": 0.4,
+      "p_miss": 0.0,
+      "p_fp": 0.3,
+      "confirm_frames": 1,
+      "conf_threshold": 0.5,
+      "detector_stats": {
+        "calls": 3000,
+        "dropped": 0,
+        "injected": 953
+      }
+    },
+    {
+      "steps": 3000,
+      "tasks_completed": 3,
+      "inspection_completed": 0,
+      "defect_completed": 3,
+      "tasks_created": 40,
+      "spurious_tasks": 37,
+      "collisions": 0,
+      "trajectory_length_m": 101.88,
+      "min_clearance_m": 0.4,
+      "p_miss": 0.0,
+      "p_fp": 0.15,
+      "confirm_frames": 1,
+      "conf_threshold": 0.7,
+      "detector_stats": {
+        "calls": 3000,
+        "dropped": 0,
+        "injected": 473
+      }
+    },
+    {
+      "steps": 3000,
+      "tasks_completed": 4,
+      "inspection_completed": 0,
+      "defect_completed": 4,
+      "tasks_created": 41,
+      "spurious_tasks": 38,
+      "collisions": 0,
+      "trajectory_length_m": 104.29,
+      "min_clearance_m": 0.4,
+      "p_miss": 0.0,
+      "p_fp": 0.3,
+      "confirm_frames": 1,
+      "conf_threshold": 0.7,
+      "detector_stats": {
+        "calls": 3000,
+        "dropped": 0,
+        "injected": 962
+      }
+    },
+    {
+      "steps": 3000,
+      "tasks_completed": 5,
+      "inspection_completed": 1,
+      "defect_completed": 4,
+      "tasks_created": 27,
+      "spurious_tasks": 24,
+      "collisions": 0,
+      "trajectory_length_m": 100.44,
+      "min_clearance_m": 0.1,
+      "p_miss": 0.0,
+      "p_fp": 0.15,
+      "confirm_frames": 1,
+      "conf_threshold": 0.85,
+      "detector_stats": {
+        "calls": 3000,
+        "dropped": 0,
+        "injected": 464
+      }
+    },
+    {
+      "steps": 3000,
+      "tasks_completed": 16,
+      "inspection_completed": 1,
+      "defect_completed": 15,
+      "tasks_created": 30,
+      "spurious_tasks": 27,
+      "collisions": 0,
+      "trajectory_length_m": 124.87,
+      "min_clearance_m": 0.2,
+      "p_miss": 0.0,
+      "p_fp": 0.3,
+      "confirm_frames": 1,
+      "conf_threshold": 0.85,
+      "detector_stats": {
+        "calls": 3000,
+        "dropped": 0,
+        "injected": 938
+      }
+    },
+    {
+      "steps": 3000,
+      "tasks_completed": 13,
+      "inspection_completed": 1,
+      "defect_completed": 12,
+      "tasks_created": 36,
+      "spurious_tasks": 33,
+      "collisions": 0,
+      "trajectory_length_m": 89.66,
+      "min_clearance_m": 0.2,
+      "p_miss": 0.0,
+      "p_fp": 0.15,
+      "confirm_frames": 2,
+      "conf_threshold": 0.5,
+      "detector_stats": {
+        "calls": 3000,
+        "dropped": 0,
+        "injected": 455
+      }
+    },
+    {
+      "steps": 3000,
+      "tasks_completed": 14,
+      "inspection_completed": 1,
+      "defect_completed": 13,
+      "tasks_created": 45,
+      "spurious_tasks": 42,
+      "collisions": 0,
+      "trajectory_length_m": 96.76,
+      "min_clearance_m": 0.2,
+      "p_miss": 0.0,
+      "p_fp": 0.3,
+      "confirm_frames": 2,
+      "conf_threshold": 0.5,
+      "detector_stats": {
+        "calls": 3000,
+        "dropped": 0,
+        "injected": 942
+      }
+    },
+    {
+      "steps": 3000,
+      "tasks_completed": 11,
+      "inspection_completed": 1,
+      "defect_completed": 10,
+      "tasks_created": 32,
+      "spurious_tasks": 29,
+      "collisions": 0,
+      "trajectory_length_m": 99.98,
+      "min_clearance_m": 0.4,
+      "p_miss": 0.0,
+      "p_fp": 0.15,
+      "confirm_frames": 2,
+      "conf_threshold": 0.7,
+      "detector_stats": {
+        "calls": 3000,
+        "dropped": 0,
+        "injected": 471
+      }
+    },
+    {
+      "steps": 3000,
+      "tasks_completed": 20,
+      "inspection_completed": 1,
+      "defect_completed": 19,
+      "tasks_created": 37,
+      "spurious_tasks": 34,
+      "collisions": 1,
+      "trajectory_length_m": 105.97,
+      "min_clearance_m": 0.0,
+      "p_miss": 0.0,
+      "p_fp": 0.3,
+      "confirm_frames": 2,
+      "conf_threshold": 0.7,
+      "detector_stats": {
+        "calls": 3000,
+        "dropped": 0,
+        "injected": 959
+      }
+    },
+    {
+      "steps": 643,
+      "tasks_completed": 5,
+      "inspection_completed": 4,
+      "defect_completed": 1,
+      "tasks_created": 1,
+      "spurious_tasks": 0,
+      "collisions": 0,
+      "trajectory_length_m": 25.02,
+      "min_clearance_m": 0.5,
+      "p_miss": 0.0,
+      "p_fp": 0.15,
+      "confirm_frames": 2,
+      "conf_threshold": 0.85,
+      "detector_stats": {
+        "calls": 643,
+        "dropped": 0,
+        "injected": 108
+      }
+    },
+    {
+      "steps": 3000,
+      "tasks_completed": 2,
+      "inspection_completed": 2,
+      "defect_completed": 0,
+      "tasks_created": 23,
+      "spurious_tasks": 20,
+      "collisions": 0,
+      "trajectory_length_m": 116.5,
+      "min_clearance_m": 0.5,
+      "p_miss": 0.0,
+      "p_fp": 0.3,
+      "confirm_frames": 2,
+      "conf_threshold": 0.85,
+      "detector_stats": {
+        "calls": 3000,
+        "dropped": 0,
+        "injected": 979
+      }
+    }
+  ],
+  "seed": 7,
+  "max_steps": 3000
+}
