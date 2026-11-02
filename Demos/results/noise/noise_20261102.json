@@ -1,0 +1,96 @@
+{
+  "cases": [
+    {
+      "steps": 789,
+      "tasks_completed": 7,
+      "inspection_completed": 4,
+      "defect_completed": 3,
+      "tasks_created": 3,
+      "spurious_tasks": 0,
+      "collisions": 0,
+      "trajectory_length_m": 25.5,
+      "min_clearance_m": 0.4,
+      "p_miss": 0.0,
+      "p_fp": 0.0,
+      "detector_stats": {
+        "calls": 789,
+        "dropped": 0,
+        "injected": 0
+      }
+    },
+    {
+      "steps": 789,
+      "tasks_completed": 7,
+      "inspection_completed": 4,
+      "defect_completed": 3,
+      "tasks_created": 3,
+      "spurious_tasks": 0,
+      "collisions": 0,
+      "trajectory_length_m": 25.5,
+      "min_clearance_m": 0.4,
+      "p_miss": 0.15,
+      "p_fp": 0.0,
+      "detector_stats": {
+        "calls": 789,
+        "dropped": 65,
+        "injected": 0
+      }
+    },
+    {
+      "steps": 3000,
+      "tasks_completed": 20,
+      "inspection_completed": 0,
+      "defect_completed": 20,
+      "tasks_created": 44,
+      "spurious_tasks": 41,
+      "collisions": 0,
+      "trajectory_length_m": 97.32,
+      "min_clearance_m": 0.5,
+      "p_miss": 0.0,
+      "p_fp": 0.15,
+      "detector_stats": {
+        "calls": 3000,
+        "dropped": 0,
+        "injected": 481
+      }
+    },
+    {
+      "steps": 3000,
+      "tasks_completed": 20,
+      "inspection_completed": 0,
+      "defect_completed": 20,
+      "tasks_created": 44,
+      "spurious_tasks": 41,
+      "collisions": 0,
+      "trajectory_length_m": 97.32,
+      "min_clearance_m": 0.5,
+      "p_miss": 0.15,
+      "p_fp": 0.15,
+      "detector_stats": {
+        "calls": 3000,
+        "dropped": 159,
+        "injected": 481
+      }
+    },
+    {
+      "steps": 3000,
+      "tasks_completed": 13,
+      "inspection_completed": 0,
+      "defect_completed": 13,
+      "tasks_created": 48,
+      "spurious_tasks": 45,
+      "collisions": 11,
+      "trajectory_length_m": 114.37,
+      "min_clearance_m": 0.0,
+      "p_miss": 0.3,
+      "p_fp": 0.3,
+      "detector_stats": {
+        "calls": 3000,
+        "dropped": 334,
+        "injected": 938
+      }
+    }
+  ],
+  "seed": 7,
+  "max_steps": 3000
+}
