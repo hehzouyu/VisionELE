@@ -371,3 +371,21 @@ S1 = 原始 FBID 1152；S2 = 仅人工退化 1152；S3 = 原始 + 退化 2304。
 
 **这一轮的完整结论句**：算法侧（CA / RFA / 分辨率）在本数据上都不构成稳定增益，
 唯一在两个测试条件下都提升的是**数据侧混合增广**；分辨率是"晴天专用"的开关。
+
+---
+
+## 2026-11-02 21:50 参考资料与跨数据集对照
+
+**参考项目（GitHub 检索，2026-11-02）**：`Deepleen/CACS-YOLO`(21★, AGPL-3.0)、`zhangzhengde0225/FINet`(144★, 无 LICENSE)、`LuYang-2023/Insulator-Defect-Detection-YOLO`(34★, MIT)，均无 release 权重。笔记 `Demos/docs/参考项目对照_CACS-YOLO_FINet.md`。
+- CACS-YOLO：backbone 每个 stage 的 C2f 换成 `CACS_C2f`，`CACS_Bottleneck` 把通道对半切后对分支加 `CoordAttlayer`，cat 后 `channel_shuffle`——与我们「整层包 CoordAttWrapper」是不同挂法。
+- FINet：径向雾公式（见 `--fog radial`），另主张 13,700 张雾天数据。
+
+**SFID 不可达**：`ihepbox.ihep.ac.cn` https 握手 `SSL: UNEXPECTED_EOF_WHILE_READING`、http 502，40 次重试全败；百度网盘/Google Drive 在本环境不可用。
+
+**改用 HF 镜像（hf-mirror.com）**：
+- `KeenForgeAI/CPLID_Insulators-corrected`（72 MB，VOC）→ `训练样本/CPLID/yolo`：143 图 / 286 框（normal 239、broken 47，1152×864）。仓库只上传了 143 张图，845 个 xml 里多数找不到图。
+- `introvoyz043/InsulatorDataSet`（213 MB，CPLID 原版）→ `训练样本/IDD/yolo`：248 图 / 248 框，框是**缺陷局部**。
+
+**跨数据集（不微调）**：S3@640 / S1@960 在 CPLID 上 mAP50 0.147 / 0.086（broken 均为 0），在 IDD 上均为 0.000。原因不是单纯过拟合：标注层级不同（整串 vs 缺陷局部）+ 拍摄域差异，跨集数字必须在统一标注口径后才可比。产物 `results/benchmarks/pr_table_2026-11-02.md`。
+
+**代码**：`scripts/make_degraded.py` 新增 `--fog {depth,radial,both}`，默认 depth（旧数据不变）。

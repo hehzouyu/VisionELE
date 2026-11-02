@@ -53,6 +53,28 @@ def add_fog(arr: np.ndarray, rng: random.Random, severity: int) -> np.ndarray:
     return arr * t + A * (1.0 - t)
 
 
+def add_radial_fog(arr: np.ndarray, rng: random.Random, severity: int) -> np.ndarray:
+    """FINet（zhangzhengde0225/FINet）式径向雾：雾浓度随「到画面中心的距离」衰减。
+
+    原实现（scripts/synthetic_fog.py::fogging_img）：
+        size = sqrt(max(h, w))
+        d  = -0.04 * ||pixel - center|| + size
+        td = exp(-thickness * d)
+        fogged = img * td + brightness * (1 - td)
+    与 add_fog 的「上远下近」深度代理不同，这里雾以画面中心为圆心：
+    d 随到中心的距离减小 -> t 变大 -> **中心雾最浓、边角相对通透**（像镜头前的一团雾）。
+    thickness 原实现限制 <=0.1，这里 severity=3 会到 0.18，属于有意加强。
+    """
+    h, w = arr.shape[:2]
+    thickness = {1: 0.05, 2: 0.10, 3: 0.18}[severity]
+    brightness = rng.uniform(0.70, 0.85)
+    yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
+    dist = np.sqrt((yy - h / 2.0) ** 2 + (xx - w / 2.0) ** 2)
+    d = -0.04 * dist + np.sqrt(float(max(h, w)))
+    td = np.exp(-thickness * d)[..., None]
+    return arr * td + brightness * (1.0 - td)
+
+
 def add_motion_blur(arr: np.ndarray, rng: random.Random, severity: int) -> np.ndarray:
     """沿随机方向做线性运动模糊：用可分离的均匀滤波近似（比逐次平移快两个数量级）。"""
     from scipy.ndimage import uniform_filter1d
@@ -161,7 +183,19 @@ def main(argv: list[str] | None = None) -> int:
         help="退化前把长边压到该值（YOLO 标注是归一化的，不影响框；0=保持原尺寸）",
     )
     ap.add_argument("--max-step-mb", type=int, default=0, help="占位参数，保持与其他脚本一致的风格")
+    ap.add_argument(
+        "--fog",
+        default="depth",
+        choices=["depth", "radial", "both"],
+        help="雾模型：depth=上远下近的大气散射（默认，本报告数据用这个）；"
+        "radial=FINet 式径向雾；both=每张随机二选一",
+    )
     args = ap.parse_args(argv)
+
+    if args.fog == "radial":
+        DEGRADATIONS["fog"] = add_radial_fog
+    elif args.fog == "both":
+        DEGRADATIONS["fog"] = lambda a, r, s: (add_fog if r.random() < 0.5 else add_radial_fog)(a, r, s)
 
     src = (PROJECT_ROOT / args.src).resolve() if not Path(args.src).is_absolute() else Path(args.src)
     dst = (PROJECT_ROOT / args.dst).resolve() if not Path(args.dst).is_absolute() else Path(args.dst)
