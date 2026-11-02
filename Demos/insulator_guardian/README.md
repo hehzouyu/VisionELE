@@ -81,6 +81,17 @@ insulator_guardian/
 9. **CA 必须注入在 trainer 里。** Ultralytics 的 `Model.train()` 会重建模型并重载权重，
    在 `YOLO(...)` 实例上提前包装的层会被丢掉；`src/vision/train.py::_ca_trainer()`
    在 `get_model()` 里注入，权重里才能看到 `CoordAttWrapper`。
+10. **指标函数先自检再比较。** `tiled_eval.py` 曾把 `[cls, cx, cy, w, h, conf]` 当成
+   `cxcywh` 算 IoU（等于拿类别号当坐标），一整套切片结论作废。任何新指标函数，
+   先跑「同框自匹配 = 1.0」这一条再拿去比。
+11. **闭环对漏检不敏感、对误检极敏感。** 15% 漏检下步数仍是 789，15% 误检就要 3000 步
+   仍不收敛；调度侧 K 帧确认（K=2）只能减噪，收敛必须靠检测端精确率。见
+   `scripts/sim_noise.py` 与 `results/noise/`。
+12. **相机几何把可视带钉死在 1.19–3.99 m。** 挂高 1.5 m + 俯仰 25° 下 4 m 外的检测框
+   投不到地面；`goal_tolerance = 0.15 m` 反推要求俯仰标定 ≤1°、挂高误差 ≤5 cm。
+   见 `scripts/calib_robust.py` 与 `results/calibration/`。
+13. **切片推理是条件性增益。** 目标跨切片时才有用（跨域整串 NMM 38.9% vs 整图 24.3%），
+   域内基本打平；`scripts/tiled_eval.py --merge both` 一次给出整图 / NMS / NMM 三档。
 
 ---
 
@@ -226,6 +237,14 @@ python -m pytest tests -q -p no:cacheprovider
 - 决策线基准仍有 2/50 张图发生碰撞（都是随机图里 < 1 m 的窄缝、直角拐角），
   说明 DWA 在极窄通道下仍可能蹭到墙体；场景图的 1.8 m 走廊不受影响。
 - 台账是 JSONL 追加写，没有做滚动清理，长时间跑要留意磁盘。
+- **没有实物、没有现场数据**：视觉误差传播、标定鲁棒性、切片/NMM 都是算法侧或几何仿真结论
+  （`results/noise/`、`results/calibration/`、`results/benchmarks/tiled_eval_*`），不能替代真机实验。
+- **误检抑制只做了调度侧**：`confirm_frames` + 门限能减噪，但 15% 误检下仍不收敛；
+  检测端的更强 NMS、跨帧轨迹、难负样本挖掘都还没做。
+- **容量与门限都已封顶**：yolov8s 相比 yolov8n 干净集 −1.1pt、困难集 +0.1pt；
+  conf 的 F1 在 0.05–0.45 是平台（最优 0.30），抬门限只换漏检。
+- **跨域（CPLID / IDD）不可用**：mAP50 只有 0.099–0.125 与 0.000，切片能把整串 recall
+  从 24.3% 抬到 38.9%，但 broken 仍是 0——域差异是硬墙。
 
 ---
 

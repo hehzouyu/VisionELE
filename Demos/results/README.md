@@ -22,6 +22,17 @@ results/
 │   ├── flash_oversample_e2.json       # E2 过采样清单统计（FBID）
 │   ├── flash_oversample_merged_e3.json# E3 过采样清单统计（MERGED）
 │   └── vision_latency_<date>.json/.md      # 视觉延迟基准（需 torch）
+│   ├── pr_table_<date>.json/.md       # 多权重 × 多测试集逐类 P/R（含 CPLID / IDD 跨集）
+│   ├── pr960/                         # imgsz=960 的 P/R 表
+│   ├── cplid_string/                  # CPLID 整串口径 + 切片对照
+│   ├── conf_sweep_<run>_<split>.json/.md   # conf-F1 扫描
+│   ├── tiled_eval_<tiles>x<tiles>_ov<ov>.json  # 整图 / 切片 NMS / 切片 NMM 召回对照
+│   └── broken_summary.md / flashover_summary.md   # 单类汇总表
+├── calibration/                 # 相机标定鲁棒性扫描
+│   └── calib_robust_<date>.{json,md,png}  # 参数扰动 → 地面坐标误差（含可视带）
+├── noise/                       # 视觉误差传播到决策线
+│   ├── noise_<date>.{json,md}          # 漏检/误检 × K 帧确认
+│   └── threshold/noise_<date>.{json,md} # 再叠置信度门限
 ├── logs/
 │   └── defect_ledger_<date>.jsonl  # 缺陷台账：检测事件 / 任务创建 / 任务完成
 ├── enhanced/                    # 增强模块真实样本实验
@@ -248,3 +259,25 @@ cd Demos/insulator_guardian
 明细在 `benchmarks/pr960/pr_table_2026-10-31.md`。要点：分辨率只改善清晰图（干净 +2.8pt），
 在人工退化图上反而倒退（困难 −4.0pt），因为退化本身抹掉了高频细节；能同时兼顾两个条件的
 只有 S3 混合增广。
+
+### 纯算法验证线（2026-11-02）
+
+没有实物可部署，转做「不依赖现场数据」的算法侧验证。四条线，全部可复现：
+
+| 方向 | 结论 | 产物 |
+| --- | --- | --- |
+| 视觉误差 → 决策 | 15% 漏检无影响；15% 误检即不收敛；短板是误检抑制不是召回 | `noise/noise_20261102.md` |
+| K 帧确认 + 门限 | 幽灵任务 −10~25%、30% 误检下碰撞 11→0，但都收不回 789 步；误检须在检测端抑制 | `noise/threshold/noise_20261102.md` |
+| 容量阶梯 | yolov8s 相比 v8n：干净 −1.1pt、困难 +0.1pt → 2304 张撑不起更大模型 | `runs/real_s3_yolov8s/` |
+| conf 扫描 | F1 在 0.05–0.45 是平台（最优点 0.30），0.55 起塌陷；部署门限留 0.25–0.30 | `benchmarks/conf_sweep_*.md` |
+| 相机标定鲁棒性 | 可视带只有 1.19–3.99 m；goal_tolerance 0.15 m ⇒ 俯仰 ≤1°、挂高 ≤5 cm | `calibration/calib_robust_20261102.*` |
+| 切片推理（NMM） | 域内打平；跨域整串 38.9% vs NMS 28.9% vs 整图 24.3%；broken 仍 0 | `benchmarks/tiled_eval_2x2_ov35.json` |
+| 跨数据集 | CPLID 143 图 mAP50 仅 0.099–0.125、IDD 全 0 → 域差异是硬墙 | `benchmarks/pr_table_2026-11-02.md` |
+
+**一个必须记住的教训**：`tiled_eval.py` 早先把 `[cls, cx, cy, w, h, conf]` 直接当 `cxcywh` 算 IoU，
+等于拿类别号当坐标，旧的一组「切片 84.5% → 77.5%」结论因此作废。指标函数要先用「同框自匹配
+IoU = 1.0」自检，再拿去比较结果。
+
+新增/更新的脚本：`scripts/sim_noise.py`（误差注入 + K 帧/门限扫描）、`scripts/calib_robust.py`
+（标定扰动扫描）、`scripts/tiled_eval.py`（整图 / 切片 NMS / 切片 NMM 三档对照）、
+`scripts/sweep_broken_conf.py`（conf-F1 曲线）、`scripts/eval_pr_table.py`（多权重 × 多测试集逐类 P/R）。

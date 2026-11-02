@@ -1,0 +1,73 @@
+{
+  "weights": "..\\results\\runs\\real_degmix_b64_s1\\weights\\best.pt",
+  "imgsz": 640,
+  "conf": 0.25,
+  "tiles": 2,
+  "overlap": 0.35,
+  "merge_thr": 0.2,
+  "n_images": 143,
+  "modes": {
+    "full": {
+      "hit": 58,
+      "gt": 239,
+      "pred": 175,
+      "recall": 24.267782426778243
+    },
+    "tiled_nms": {
+      "hit": 69,
+      "gt": 239,
+      "pred": 415,
+      "recall": 28.87029288702929
+    },
+    "tiled_nmm": {
+      "hit": 93,
+      "gt": 239,
+      "pred": 263,
+      "recall": 38.91213389121339
+    }
+  },
+  "per_class": {
+    "normal": {
+      "full": [
+        58,
+        192
+      ],
+      "tiled_nms": [
+        69,
+        192
+      ],
+      "tiled_nmm": [
+        93,
+        192
+      ]
+    },
+    "flashover": {
+      "full": [
+        0,
+        0
+      ],
+      "tiled_nms": [
+        0,
+        0
+      ],
+      "tiled_nmm": [
+        0,
+        0
+      ]
+    },
+    "broken": {
+      "full": [
+        0,
+        47
+      ],
+      "tiled_nms": [
+        0,
+        47
+      ],
+      "tiled_nmm": [
+        0,
+        47
+      ]
+    }
+  }
+}

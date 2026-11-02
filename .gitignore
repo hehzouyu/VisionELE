@@ -1,15 +1,25 @@
-﻿# ---------- 澶ф枃浠朵笌鐢熸垚鐗╋紙涓嶈繘鐗堟湰搴擄級 ----------
-# 璁粌铏氭嫙鐜涓庣涓夋柟鍖?Demos/.venv/
+# ---------- 大文件与生成物（不进版本库） ----------
+# 训练虚拟环境与第三方包
+Demos/.venv/
 .venv/
-# 鏁版嵁闆嗭紙FBID / FLASH / MERGED锛屾暟鐧?MB 鍒?GB锛?Demos/璁粌鏍锋湰/
-# 娌欑涓存椂鐩綍
+
+# 数据集（FBID / FLASH / MERGED / DEG，训练样本整个目录，数百 MB 到 GB）
+Demos/训练样本/
+
+# 模型权重（下载的预训练权重与训练产物）
+*.pt
+*.onnx
+*.engine
+
+# 沙箱临时目录
 Demos/.tmp*/
 .tmp*/
 .tmp_pip/
 .pytest_tmp/
 .pytest_basetmp/
 pytest-cache-files-*/
-# 璁粌浜х墿涓殑澶т欢锛氭潈閲嶃€乥atch 鍙鍖栧浘
+
+# 训练产物中的大件：权重、batch 可视化图
 Demos/insulator_guardian/runs/
 Demos/results/runs/**
 !Demos/results/runs/*/results.csv
@@ -20,14 +30,14 @@ Demos/results/runs/*/train_batch*.jpg
 Demos/results/runs/*/val_batch*.jpg
 Demos/results/enhanced/**/*.pt
 
-# ---------- 绉佷汉 / 浼氳瘽鏁版嵁 ----------
+# ---------- 私人 / 会话数据 ----------
 .dsh-meow/
 .dsh-progress/
 
-# ---------- 璇剧▼绱犳潗涓庣敵鎶ユ潗鏂?----------
-# 鍚弬鑰冩枃鐚?PDF銆佸悓瀛︽牱渚嬫姤鍛娿€佸甫涓汉绛惧悕鐨勭敵鎶ヤ功锛岄粯璁や笉鍏紑
-鍒涙柊鍒涗笟璇?
-鍥藉垱/
+# ---------- 课程素材与申报材料 ----------
+# 含参考文献 PDF、同学样例报告、带个人签名的申报书，默认不公开
+创新创业课/
+国创/
 
 # ---------- Python ----------
 __pycache__/
@@ -36,7 +46,7 @@ __pycache__/
 .pytest_cache/
 .ipynb_checkpoints/
 
-# ---------- 鍏跺畠 ----------
+# ---------- 其它 ----------
 .DS_Store
 Thumbs.db
 *.log
@@ -44,5 +54,3 @@ Thumbs.db
 
 # 误差传播仿真的逐例台账（体积大，可复现）
 Demos/results/noise/**/ledger_*.jsonl
-
-

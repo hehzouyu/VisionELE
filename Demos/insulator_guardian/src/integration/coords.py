@@ -27,6 +27,7 @@ class CameraModel:
     cy: float = 240.0
     height_m: float = 1.5
     pitch_deg: float = 25.0
+    roll_deg: float = 0.0
     mount_x: float = 0.0
     mount_y: float = 0.0
 
@@ -36,7 +37,7 @@ class CameraModel:
         defaults = cls()
         return cls(**{k: type(getattr(defaults, k))(cfg.get(k, getattr(defaults, k)))
                       for k in ("width", "height", "fx", "fy", "cx", "cy",
-                                "height_m", "pitch_deg", "mount_x", "mount_y")})
+                                "height_m", "pitch_deg", "roll_deg", "mount_x", "mount_y")})
 
     @property
     def pitch_rad(self) -> float:
@@ -50,6 +51,14 @@ class CameraModel:
         return np.array([[self.fx, 0.0, self.cx],
                          [0.0, self.fy, self.cy],
                          [0.0, 0.0, 1.0]], dtype=float)
+
+
+def _rot_x(angle: float) -> np.ndarray:
+    """绕相机光轴滚转：正角度 = 画面顺时针。"""
+    c, s = math.cos(angle), math.sin(angle)
+    return np.array([[c, -s, 0.0],
+                     [s, c, 0.0],
+                     [0.0, 0.0, 1.0]], dtype=float)
 
 
 def _rot_y(angle: float) -> np.ndarray:
@@ -84,7 +93,8 @@ def pixel_to_ground(
     ray_cam = np.array([(float(u) - camera.cx) / camera.fx,
                         (float(v) - camera.cy) / camera.fy,
                         1.0], dtype=float)
-    ray_robot = np.array([ray_cam[2], -ray_cam[0], -ray_cam[1]], dtype=float)
+    ray_roll = _rot_x(math.radians(camera.roll_deg)) @ ray_cam
+    ray_robot = np.array([ray_roll[2], -ray_roll[0], -ray_roll[1]], dtype=float)
     ray_tilt = _rot_y(camera.pitch_rad) @ ray_robot
     ray_world = _rot_z(float(pose[2])) @ ray_tilt
     if ray_world[2] >= -1e-9:
@@ -112,6 +122,8 @@ def ground_to_pixel(
     x_c, y_c, z_c = -ray_robot[1], -ray_robot[2], ray_robot[0]
     if z_c <= 1e-6:
         return (0.0, 0.0, False)
+    cam = _rot_x(-math.radians(camera.roll_deg)) @ np.array([x_c, y_c, z_c], dtype=float)
+    x_c, y_c, z_c = float(cam[0]), float(cam[1]), float(cam[2])
     u = camera.fx * x_c / z_c + camera.cx
     v = camera.fy * y_c / z_c + camera.cy
     visible = (0.0 <= u < camera.width) and (0.0 <= v < camera.height)
